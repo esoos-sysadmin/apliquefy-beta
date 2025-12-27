@@ -36,3 +36,13 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# trash of apps
+node_modules
+.turbo
+.next
+dist
+dist-electron
+dist-react
+.env
+.DS_Store
