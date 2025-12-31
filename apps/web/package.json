@@ -10,7 +10,6 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.36.5",
     "@repo/ui": "*",
     "next": "16.1.0",
     "react": "^19.2.0",
