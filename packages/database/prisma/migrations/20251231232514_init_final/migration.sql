@@ -54,7 +54,7 @@ CREATE TYPE "ij_pcd" AS ENUM ('auditiva', 'fisica', 'visual', 'mental', 'reabili
 
 -- CreateTable
 CREATE TABLE "users" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" TEXT NOT NULL,
     "email" VARCHAR NOT NULL,
     "password" VARCHAR,
     "role" "user_role" NOT NULL DEFAULT 'user',
@@ -68,7 +68,7 @@ CREATE TABLE "users" (
 -- CreateTable
 CREATE TABLE "resumes" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "user_id" UUID,
+    "user_id" TEXT,
     "title" VARCHAR,
     "personal_info" JSONB,
     "education" JSONB,
@@ -84,7 +84,7 @@ CREATE TABLE "resumes" (
 CREATE TABLE "campaigns" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "resume_id" UUID,
-    "user_id" UUID,
+    "user_id" TEXT,
     "name" VARCHAR,
     "platform" "platform",
     "status" VARCHAR DEFAULT 'paused',
@@ -132,7 +132,7 @@ CREATE TABLE "campaign_infojobs" (
 CREATE TABLE "job_applications" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "campaign_id" UUID,
-    "user_id" UUID,
+    "user_id" TEXT,
     "platform" "platform",
     "company_name" VARCHAR,
     "job_title" VARCHAR,
