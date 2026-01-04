@@ -6,8 +6,8 @@ export default async function Home() {
   const { userId } = await auth();
 
   if (!userId) {
-    redirect("/dashboard")
+    redirect("/lp")
   } else {
-    redirect("/login")
+    redirect("/dashboard")
   }
 }
