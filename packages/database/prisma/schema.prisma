@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "packages/database/prisma"
 }
 
 datasource db {
@@ -14,6 +13,12 @@ enum UserRole {
   user
 
   @@map("user_role")
+}
+
+enum status_campaign {
+  paused
+  active
+  inactive 
 }
 
 enum AppStatus {
@@ -256,63 +261,61 @@ enum IjPcd {
 }
 
 enum TransactionType {
-  purchase
-  usage
-  bonus
-  refund
+  PURCHASE
+  USAGE
+  BONUS
+  REFUND
 }
 
 // ======================= MODELS =======================
 
 model User {
-  id               String    @id
-  email            String    @unique @db.VarChar
-  password         String?   @db.VarChar
-  role             UserRole  @default(user)
-  stripeCustomerId String?   @unique @map("stripe_customer_id") @db.VarChar
-  credits          Int?
-  planTier         String?   @default("free") @map("plan_tier") @db.VarChar
-  createdAt        DateTime? @default(now()) @map("created_at") @db.Timestamp
+  id                String    @id
+  email             String    @unique @db.VarChar
+  password          String?   @db.VarChar
+  role              UserRole  @default(user)
+  gatewayCustomerId String    @unique @map("stripe_customer_id") @db.VarChar
+  credits           Int
+  planTier          String    @default("free") @map("plan_tier") @db.VarChar
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
 
   // Relacionamentos Inversos
   resumes           Resume[]
   campaigns         Campaign[]
   jobApplications   JobApplication[]
-  transaction       Transaction[]    @relation("transactionUser")
-  stripeTransaction Transaction[]    @relation("transactionStripeCustomer")
+  transaction       Transaction[]
 
   @@map("users")
 }
 
 model Transaction {
-  id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId       String?          @map("user_id")
-  amount       Int?
-  type         TransactionType?
-  reference_id String?
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String          @map("user_id")
+  amount       Int
+  type         TransactionType
+  reference_id String
   description  String?
-  created_at   DateTime?
+  created_at   DateTime        @default(now())
 
   //Relacionamentos
-  user           User? @relation("transactionUser", fields: [userId], references: [id])
-  stripeCustomer User? @relation("transactionStripeCustomer", fields: [reference_id], references: [stripeCustomerId])
+  user User? @relation(fields: [userId], references: [id])
 
-  @@map("transaction")
+  @@map("Transaction")
 }
 
 model Resume {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId       String?   @map("user_id")
-  title        String?   @db.VarChar
-  personalInfo Json?     @map("personal_info") // jsonb no postgres
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id")
+  title        String   @db.VarChar
+  personalInfo Json?    @map("personal_info") // jsonb no postgres
   education    Json? // jsonb
   experience   Json? // jsonb
   skills       Json? // jsonb
-  isDefault    Boolean?  @default(false) @map("is_default")
-  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp
+  isDefault    Boolean  @default(false) @map("is_default")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp
 
   // Relacionamentos
-  user      User?      @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
   campaigns Campaign[]
 
   @@map("resumes")
@@ -320,17 +323,17 @@ model Resume {
 
 model Campaign {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  resumeId   String?   @map("resume_id") @db.Uuid
-  userId     String?   @map("user_id")
-  name       String?   @db.VarChar
-  platform   Platform?
-  status     String?   @default("paused") @db.VarChar
+  resumeId   String   @map("resume_id") @db.Uuid
+  userId     String   @map("user_id")
+  name       String   @db.VarChar
+  platform   Platform
+  status     status_campaign   @default(inactive)
   dailyLimit Int?      @default(50) @map("daily_limit")
-  createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamp
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp
 
   // Relacionamentos
-  resume Resume? @relation(fields: [resumeId], references: [id])
-  user   User?   @relation(fields: [userId], references: [id])
+  resume Resume @relation(fields: [resumeId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   // Configurações específicas (1:1 Opcional)
   linkedinConfig CampaignLinkedin?
@@ -342,12 +345,12 @@ model Campaign {
 }
 
 model CampaignLinkedin {
-  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  campaignId   String?       @unique @map("campaign_id") @db.Uuid
-  searchTerms  String?       @map("search_terms") @db.VarChar
-  locationTerm String?       @map("location_term") @db.VarChar
-  sortBy       LinkedinSort? @default(relevant) @map("sort_by")
-  datePosted   LinkedinDate? @default(any) @map("date_posted")
+  id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId   String           @unique @map("campaign_id") @db.Uuid
+  searchTerms  String?          @map("search_terms") @db.VarChar
+  locationTerm String?          @map("location_term") @db.VarChar
+  sortBy       LinkedinSort?    @default(relevant) @map("sort_by")
+  datePosted   LinkedinDate?    @default(any) @map("date_posted")
 
   // Arrays para Multi-select
   expLevel     LinkedinExp[]     @map("exp_level")
@@ -361,13 +364,13 @@ model CampaignLinkedin {
 }
 
 model CampaignInfojobs {
-  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  campaignId    String?       @unique @map("campaign_id") @db.Uuid
-  searchTerms   String?       @map("search_terms") @db.VarChar
-  locationState BrazilState?  @map("location_state")
-  kmDeVoce      IjRadius?     @default(km_25) @map("km_de_voce")
-  salaryFilter  IjSalary?     @map("salary_filter")
-  datePosted    IjDatePosted? @map("date_posted")
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId    String          @unique @map("campaign_id") @db.Uuid
+  searchTerms   String?         @map("search_terms") @db.VarChar
+  locationState BrazilState?    @map("location_state")
+  kmDeVoce      IjRadius?       @default(km_25) @map("km_de_voce")
+  salaryFilter  IjSalary?       @map("salary_filter")
+  datePosted    IjDatePosted?   @map("date_posted")
 
   // Arrays para Multi-select
   workModels      IjWorkModel[] @map("work_models")
@@ -397,8 +400,8 @@ model JobApplication {
   createdAt   DateTime?  @default(now()) @map("created_at") @db.Timestamp
 
   // Relacionamentos
-  campaign Campaign? @relation(fields: [campaignId], references: [id])
-  user     User?     @relation(fields: [userId], references: [id])
+  campaign Campaign?     @relation(fields: [campaignId], references: [id])
+  user     User?         @relation(fields: [userId], references: [id])
 
   // Índices
   @@index([userId, status])

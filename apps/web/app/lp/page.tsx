@@ -1,7 +1,6 @@
-import Link  from "next/link"
+import Link from "next/link"
 
 export default function landingPage() {
-
 
     return (
         <div className="checkout-simulate-button-container flex justify-center items-center mt-32 flex-col gap-4" >

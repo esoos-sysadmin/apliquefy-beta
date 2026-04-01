@@ -1,0 +1,243 @@
+{
+  "info": {
+    "name": "Apliquefy API",
+    "_postman_id": "apliquefy-collection-v1",
+    "description": "Collection completa da API da Apliquefy. Configure a variável `baseUrl` com a URL do servidor (ex: http://localhost:3000).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "resumeId",
+      "value": "uuid-do-resume-aqui",
+      "type": "string"
+    },
+    {
+      "key": "campaignId",
+      "value": "uuid-da-campaign-aqui",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Test",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "test"]
+            },
+            "description": "Verifica se a API está respondendo."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Resumes",
+      "item": [
+        {
+          "name": "Create Resume",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Currículo Dev Full Stack\",\n  \"personalInfo\": {\n    \"name\": \"Luiz Belispetre\",\n    \"jobTitle\": \"Desenvolvedor Full Stack\",\n    \"email\": \"luiz@email.com\",\n    \"contact\": \"11999999999\",\n    \"portfolio\": \"\",\n    \"github\": \"\"\n  },\n  \"education\": [\n    {\n      \"nameOfInstitution\": \"Universidade XYZ\",\n      \"nameOfGraduation\": \"Ciência da Computação\",\n      \"StartDateOfGraduation\": \"2018-01-01\",\n      \"EndDateOfGraduation\": \"2022-12-01\"\n    }\n  ],\n  \"experience\": [\n    {\n      \"companyName\": \"Empresa ABC\",\n      \"jobType\": \"CLT\",\n      \"description\": \"Desenvolvimento de sistemas web\",\n      \"jobArea\": \"Tecnologia\",\n      \"jobStartDate\": \"2022-01-01\",\n      \"jobEndDate\": null,\n      \"isActualJob\": true,\n      \"certifications\": []\n    }\n  ],\n  \"skills\": [\"TypeScript\", \"React\", \"Node.js\", \"PostgreSQL\"],\n  \"idioms\": [\n    { \"language\": \"Inglês\", \"level\": \"Avançado\" }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"]
+            },
+            "description": "Cria um novo currículo para o usuário autenticado."
+          }
+        },
+        {
+          "name": "Get All Resumes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"]
+            },
+            "description": "Lista todos os currículos do usuário autenticado."
+          }
+        },
+        {
+          "name": "Get Resume by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/{{resumeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", "{{resumeId}}"]
+            },
+            "description": "Busca um currículo específico pelo ID. Substitua {{resumeId}} pelo UUID real."
+          }
+        },
+        {
+          "name": "Update Resume",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"personalInfo\": {\n    \"name\": \"Luiz Belispetre\",\n    \"jobTitle\": \"Engenheiro de Software\",\n    \"email\": \"luiz@email.com\",\n    \"contact\": \"11999999999\",\n    \"portfolio\": \"\",\n    \"github\": \"\"\n  },\n  \"education\": [],\n  \"experience\": [],\n  \"skills\": [\"TypeScript\", \"Next.js\"],\n  \"idioms\": [\n    { \"language\": \"Inglês\", \"level\": \"Fluente\" }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/{{resumeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", "{{resumeId}}"]
+            },
+            "description": "Atualiza um currículo existente pelo ID."
+          }
+        },
+        {
+          "name": "Delete Resume",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/{{resumeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", "{{resumeId}}"]
+            },
+            "description": "Deleta um currículo pelo ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Campaigns",
+      "item": [
+        {
+          "name": "Create LinkedIn Campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Campanha Dev Full Stack - LinkedIn\",\n  \"resumeId\": \"{{resumeId}}\",\n  \"dailyLimit\": 30,\n  \"linkedinConfig\": {\n    \"searchTerms\": \"Desenvolvedor Full Stack\",\n    \"locationTerm\": \"São Paulo\",\n    \"sortBy\": \"relevant\",\n    \"datePosted\": \"past_week\",\n    \"expLevel\": [\"mid_senior\", \"associate\"],\n    \"jobType\": [\"full_time\"],\n    \"remoteFilter\": [\"remote\", \"hybrid\"]\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/linkedin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "linkedin"]
+            },
+            "description": "Cria uma nova campanha para o LinkedIn Easy Apply."
+          }
+        },
+        {
+          "name": "Create InfoJobs Campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Campanha Dev - InfoJobs\",\n  \"resumeId\": \"{{resumeId}}\",\n  \"dailyLimit\": 20,\n  \"infojobsConfig\": {\n    \"searchTerms\": \"Desenvolvedor TypeScript\",\n    \"locationState\": \"sao_paulo\",\n    \"kmDeVoce\": \"km_50\",\n    \"salaryFilter\": \"brl_5000\",\n    \"datePosted\": \"ultima_semana\",\n    \"workModels\": [\"home_office\", \"hibrido\"],\n    \"jobAreas\": [\"informatica_ti_telecomunicacoes\"],\n    \"contractTypes\": [\"clt\", \"pj\"],\n    \"workSchedules\": [\"periodo_integral\"],\n    \"seniorityLevels\": [\"analista\", \"especialista\"],\n    \"pcdTypes\": []\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/infojobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "infojobs"]
+            },
+            "description": "Cria uma nova campanha para o InfoJobs."
+          }
+        },
+        {
+          "name": "Update Campaign",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Campanha Renomeada\",\n  \"resumeId\": \"{{resumeId}}\",\n  \"dailyLimit\": 50\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaignId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaignId}}"]
+            },
+            "description": "Atualiza campos editáveis da campanha: name, resumeId (trocar currículo vinculado) e/ou dailyLimit. Ao menos um campo deve ser enviado."
+          }
+        },
+        {
+          "name": "Pause Campaign",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaignId}}/pause",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaignId}}", "pause"]
+            },
+            "description": "Pausa uma campanha ativa. Chamado pelo web e pelo runner do Electron."
+          }
+        },
+        {
+          "name": "Activate Campaign",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaignId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaignId}}", "activate"]
+            },
+            "description": "Ativa uma campanha pausada. Chamado pelo web e pelo runner do Electron."
+          }
+        },
+        {
+          "name": "Delete Campaign",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaignId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaignId}}"]
+            },
+            "description": "Deleta uma campanha e seus registros dependentes."
+          }
+        }
+      ]
+    }
+  ]
+}
