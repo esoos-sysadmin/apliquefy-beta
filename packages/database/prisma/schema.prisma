@@ -274,7 +274,7 @@ model User {
   email             String    @unique @db.VarChar
   password          String?   @db.VarChar
   role              UserRole  @default(user)
-  gatewayCustomerId String    @unique @map("stripe_customer_id") @db.VarChar
+  gatewayCustomerId String    @unique @map("gateway_customer_id") @db.VarChar
   credits           Int
   planTier          String    @default("free") @map("plan_tier") @db.VarChar
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
@@ -311,6 +311,7 @@ model Resume {
   education    Json? // jsonb
   experience   Json? // jsonb
   skills       Json? // jsonb
+  idioms       Json? // jsonb
   isDefault    Boolean  @default(false) @map("is_default")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp
 
