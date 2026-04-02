@@ -27,34 +27,20 @@ export class CampaignService {
 
         try {
 
-            const existingResumeId = await prisma.user.findFirst({
+            const existingResume = await prisma.resume.findFirst({
                 where: {
-                    id: userId,
-                    resumeId: validation.data.resumeId
-                }
-            })
-            
-            if (!existingResumeId) {
-                return {
-                    success: true,
-                    message: "Curriculo não pertence ao usuário ou não encontrado"
-                }
-            }
-
-            const activeLinkedinCampaign = await prisma.campaign.findFirst({
-                where: {
+                    id: validation.data.resumeId,
                     userId: userId,
-                    platform: 'linkedin',
-                    status: 'active'
                 }
             })
 
-            if (activeLinkedinCampaign) {
+            if (!existingResume) {
                 return {
                     success: false,
-                    message: "Você já tem uma campanha ativa do Linkedin"
+                    message: "Currículo não pertence ao usuário ou não encontrado"
                 }
             }
+
 
             const createCampaignData = await prisma.campaign.create({
             data: {
@@ -83,12 +69,11 @@ export class CampaignService {
   
             }
         } catch (error) {
-            console.error("Erro ao criar curriculo no banco de dados", error)
-            throw new Error("Falha na comunicação do banco de dados endpoint createResume")
+            console.error("Erro ao criar campanha LinkedIn", error)
+            throw new Error("Erro: Falha de comunicação na API, não foi possível criar a campanha LinkedIn")
         }
     }
 
-    
     async createInfojobsCampaign(userId: string, rawData: CreateInfojobsCampaignInput): Promise<CampaignResponse> {
 
         const validation = createInfojobsCampaignSchema.safeParse(rawData)
@@ -102,17 +87,17 @@ export class CampaignService {
         
         try {
             
-            const verifyCampaign = await prisma.campaign.findFirst({
+            const existingResume = await prisma.resume.findFirst({
                 where: {
+                    id: validation.data.resumeId,
                     userId: userId,
-                    resumeId: validation.data.resumeId
                 }
             })
 
-            if (!verifyCampaign) {
+            if (!existingResume) {
                 return {
-                    success: true,
-                    message: "campanha não econtrada"
+                    success: false,
+                    message: "Currículo não pertence ao usuário ou não encontrado"
                 }
             }
 
@@ -148,11 +133,24 @@ export class CampaignService {
             }
 
         } catch (error) {
-            console.error("Erro ao criar curriculo no banco de dados", error)
-            throw new Error("Falha na comunicação do banco de dados endpoint createResume")
+            console.error("Erro ao criar campanha InfoJobs", error)
+            throw new Error("Erro: Falha de comunicação na API, não foi possível criar a campanha InfoJobs")
         }
-    }  
-    
+    }
+
+    async getAllCampaigns(userId: string): Promise<CampaignResponse> {
+        try {
+            const campaigns = await prisma.campaign.findMany({
+                where: { userId }
+            })
+
+            return { success: true, data: campaigns }
+
+        } catch (error) {
+            console.error("Erro ao buscar campanhas", error)
+            throw new Error("Erro: Falha de comunicação na API, não foi possível buscar as campanhas")
+        }
+    }
 
     async updateCampaign(userId: string, campaignId: string, rawData: UpdateCampaignInput): Promise<CampaignResponse> {
         const validation = updateCampaignSchema.safeParse(rawData)
@@ -271,6 +269,19 @@ export class CampaignService {
                 }
             }
 
+            if (existCampaign.platform === 'linkedin') {
+                const activeLinkedin = await prisma.campaign.findFirst({
+                    where: { userId, platform: 'linkedin', status: 'active' }
+                })
+
+                if (activeLinkedin) {
+                    return {
+                        success: false,
+                        message: "Você já tem uma campanha LinkedIn ativa"
+                    }
+                }
+            }
+
             const updateStatus = await prisma.campaign.update({
                 where: {id: campaignId },
                 data: {
@@ -289,7 +300,6 @@ export class CampaignService {
             throw new Error("Erro:Falha de comunicação na API, não foi possível ativar a campanha")
         }
     }
-
   
     async deleteCampaign(userId: string, campaignId: string): Promise<CampaignResponse> {
         try {

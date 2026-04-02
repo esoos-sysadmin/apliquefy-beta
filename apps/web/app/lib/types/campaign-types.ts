@@ -25,7 +25,7 @@ export type CampaignResponseError = {
 
 export type CampaignResponseSuccess = {
     success: true;
-    data?: Campaign | CampaignWithLinkedin | CampaignWithInfojobs;
+    data?: Campaign | CampaignWithLinkedin | CampaignWithInfojobs | Campaign[];
     message?: string;
 };
 
