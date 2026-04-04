@@ -1,6 +1,7 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
+  "globalEnv": ["CLERK_DESKTOP_JWT_TEMPLATE", "APLIQUEFY_WEB_URL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
