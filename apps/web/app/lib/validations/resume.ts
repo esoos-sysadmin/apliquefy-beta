@@ -14,11 +14,16 @@ const idiomsSchema = z.object({
 
 const personalInfoSchema = z.object({
     name: z.string().min(3, "O nome deve ter ao menos 3 letras"),
-    jobTitle: z.string().min(3, "O cargo deve ter ao menos 3 letras"), 
-    portfolio: z.url("Link do portfólio inválido").optional().or(z.literal("")), 
+    jobTitle: z.string().min(3, "O cargo deve ter ao menos 3 letras"),
+    email: z.email("Formato de e-mail inválido"),
+    contact: z.string().min(8, "Digite um número de contato válido com DDD"),
+    address: z.string().optional(),
+    desiredSalary: z.string().optional(),
+    seniority: z.enum(["Estagiário", "Júnior", "Pleno", "Sênior", "Especialista", "Gerente", "Diretor"]).optional(),
+    linkedinUrl: z.url("Link do LinkedIn inválido").optional().or(z.literal("")),
+    portfolio: z.url("Link do portfólio inválido").optional().or(z.literal("")),
     github: z.url("Link do GitHub inválido").optional().or(z.literal("")),
-    contact: z.string().min(8, "Digite um número de contato válido com DDD"), 
-    email: z.email("Formato de e-mail inválido")    
+    professionalSummary: z.string().max(500, "O resumo não pode exceder 500 caracteres").optional(),
 });
 
 const educationSchema = z.object({

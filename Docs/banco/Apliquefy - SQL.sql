@@ -289,6 +289,28 @@ CREATE TABLE "campaign_infojobs" (
   "pcd_types" ij_pcd
 );
 
+CREATE TABLE "jobs" (
+  "id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
+  "campaign_id" uuid,
+  "link" text UNIQUE,
+  "company_name" text,
+  "position" text,
+  "expiration_date" timestamp,
+  "number_of_applications" int DEFAULT 0,
+  "created_at" timestamp DEFAULT (now())
+);
+
+CREATE TABLE "reports" (
+  "id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
+  "campaign_id" uuid,
+  "total_jobs_applications" int DEFAULT 0,
+  "success_applications" int DEFAULT 0,
+  "fail_applications" int DEFAULT 0,
+  "credits_used" int DEFAULT 0,
+  "credits_refund" int DEFAULT 0,
+  "created_at" timestamp DEFAULT (now())
+);
+
 CREATE TABLE "job_applications" (
   "id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
   "campaign_id" uuid,
@@ -341,6 +363,12 @@ COMMENT ON COLUMN "campaign_infojobs"."seniority_levels" IS 'Multi-select: Estag
 
 COMMENT ON COLUMN "campaign_infojobs"."pcd_types" IS 'Multi-select: Tipos de deficiência';
 
+COMMENT ON COLUMN "jobs"."link" IS 'URL da vaga';
+
+COMMENT ON COLUMN "jobs"."expiration_date" IS 'Data de expiração da vaga';
+
+COMMENT ON COLUMN "jobs"."number_of_applications" IS 'Quantidade de candidaturas na vaga';
+
 ALTER TABLE "Transaction" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "resumes" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
@@ -352,6 +380,10 @@ ALTER TABLE "campaigns" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") DE
 ALTER TABLE "campaign_linkedin" ADD FOREIGN KEY ("campaign_id") REFERENCES "campaigns" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "campaign_infojobs" ADD FOREIGN KEY ("campaign_id") REFERENCES "campaigns" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "jobs" ADD FOREIGN KEY ("campaign_id") REFERENCES "campaigns" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "reports" ADD FOREIGN KEY ("campaign_id") REFERENCES "campaigns" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "job_applications" ADD FOREIGN KEY ("campaign_id") REFERENCES "campaigns" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 

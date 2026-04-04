@@ -2,11 +2,11 @@
   "name": "desktop",
   "version": "1.0.0",
   "description": "",
-  "main": "dist-electron/core/main.js",
+  "main": "dist-electron/electron/main.js",
   "scripts": {
     "build": "tsc && vite build",
     "dev": "concurrently -k \"vite\" \"npm run electron:dev\"",
-    "electron:dev": "wait-on tcp:5173 && tsc && cross-env NODE_ENV=development electron dist-electron/core/main.js"
+    "electron:dev": "wait-on tcp:5173 && tsc && cross-env NODE_ENV=development electron dist-electron/electron/main.js"
   },
   "keywords": [],
   "author": "",

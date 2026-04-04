@@ -18,7 +18,9 @@ enum UserRole {
 enum status_campaign {
   paused
   active
-  inactive 
+  inactive
+
+  @@map("status_campaign")
 }
 
 enum AppStatus {
@@ -274,8 +276,8 @@ model User {
   email             String    @unique @db.VarChar
   password          String?   @db.VarChar
   role              UserRole  @default(user)
-  gatewayCustomerId String    @unique @map("gateway_customer_id") @db.VarChar
-  credits           Int
+  gatewayCustomerId String?   @unique @map("gateway_customer_id") @db.VarChar
+  credits           Int?
   planTier          String    @default("free") @map("plan_tier") @db.VarChar
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
 
@@ -311,7 +313,6 @@ model Resume {
   education    Json? // jsonb
   experience   Json? // jsonb
   skills       Json? // jsonb
-  idioms       Json? // jsonb
   isDefault    Boolean  @default(false) @map("is_default")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp
 
@@ -328,7 +329,7 @@ model Campaign {
   userId     String   @map("user_id")
   name       String   @db.VarChar
   platform   Platform
-  status     status_campaign   @default(inactive)
+  status     status_campaign   @default(paused)
   dailyLimit Int?      @default(50) @map("daily_limit")
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp
 
@@ -341,6 +342,8 @@ model Campaign {
   infojobsConfig CampaignInfojobs?
 
   jobApplications JobApplication[]
+  jobs            Job[]
+  reports         Report[]
 
   @@map("campaigns")
 }
@@ -385,6 +388,38 @@ model CampaignInfojobs {
   campaign Campaign? @relation(fields: [campaignId], references: [id])
 
   @@map("campaign_infojobs")
+}
+
+model Job {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId           String?   @map("campaign_id") @db.Uuid
+  link                 String?   @unique @db.VarChar
+  companyName          String?   @map("company_name") @db.VarChar
+  position             String?   @db.VarChar
+  expirationDate       DateTime? @map("expiration_date") @db.Timestamp
+  numberOfApplications Int?      @default(0) @map("number_of_applications")
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamp
+
+  // Relacionamentos
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+
+  @@map("jobs")
+}
+
+model Report {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId           String?  @map("campaign_id") @db.Uuid
+  totalJobsApplications Int     @default(0) @map("total_jobs_applications")
+  successApplications  Int      @default(0) @map("success_applications")
+  failApplications     Int      @default(0) @map("fail_applications")
+  creditsUsed          Int      @default(0) @map("credits_used")
+  creditsRefund        Int      @default(0) @map("credits_refund")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamp
+
+  // Relacionamentos
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+
+  @@map("reports")
 }
 
 model JobApplication {

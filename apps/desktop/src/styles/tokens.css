@@ -1,0 +1,22 @@
+:root {
+  --bg-app: #0d1117;
+  --bg-card: #161b22;
+  --bg-card-hover: #1c2333;
+  --border-card: #30363d;
+  --accent-primary: #4b8bf5;
+  --accent-secondary: #6aa3ff;
+  --accent-gradient: linear-gradient(135deg, #4b8bf5, #6aa3ff);
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+  --status-active: #3fb950;
+  --status-paused: #f0883e;
+  --toggle-on: #4b8bf5;
+  --toggle-off: #30363d;
+  --linkedin-blue: #0a66c2;
+  --infojobs-orange: #ff6d00;
+  --window-radius: 16px;
+  --card-radius: 12px;
+  --button-radius: 10px;
+  --shadow-window: 0 20px 60px rgba(0, 0, 0, 0.38);
+}
