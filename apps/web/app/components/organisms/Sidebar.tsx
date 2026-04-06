@@ -1,6 +1,6 @@
 import { SidebarLogo } from "../molecules/SidebarLogo";
 import { SidebarNav } from "../molecules/SidebarNav";
-import { SyncBadge } from "../atoms/SyncBadge";
+import { SidebarSession } from "../molecules/SidebarSession";
 
 export function Sidebar() {
     return (
@@ -21,7 +21,7 @@ export function Sidebar() {
                 <SidebarLogo />
                 <SidebarNav />
             </div>
-            <SyncBadge synced={true} />
+            <SidebarSession />
         </aside>
     );
 }

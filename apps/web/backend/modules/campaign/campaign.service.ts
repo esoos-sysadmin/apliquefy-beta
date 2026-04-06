@@ -12,6 +12,23 @@ import {
 } from "../../../app/lib/types/campaign-types";
 
 export class CampaignService {
+    private campaignRelations = {
+        linkedinConfig: true,
+        infojobsConfig: true,
+        resume: {
+            select: {
+                id: true,
+                title: true,
+            }
+        },
+        _count: {
+            select: {
+                jobApplications: true,
+                reports: true,
+                jobs: true,
+            }
+        }
+    } as const;
 
    
     async createLinkedinCampaign(userId: string, rawData: CreateLinkedinCampaignInput): Promise<CampaignResponse> {
@@ -48,7 +65,7 @@ export class CampaignService {
                 resumeId: validation.data.resumeId,
                 name: validation.data.name,
                 platform: "linkedin",
-                status: 'inactive',
+                dailyLimit: validation.data.dailyLimit,
                 linkedinConfig: {
                     create: {
                         searchTerms: validation.data.linkedinConfig.searchTerms,
@@ -108,13 +125,13 @@ export class CampaignService {
                     name: validation.data.name,
                     platform: "infojobs",
                     dailyLimit: validation.data.dailyLimit,
-                    status: 'inactive',
                     infojobsConfig: {
                         create: {
                             searchTerms: validation.data.infojobsConfig.searchTerms,
                             locationState: validation.data.infojobsConfig.locationState,
                             kmDeVoce: validation.data.infojobsConfig.kmDeVoce,
                             salaryFilter: validation.data.infojobsConfig.salaryFilter,
+                            datePosted: validation.data.infojobsConfig.datePosted,
                             workModels: validation.data.infojobsConfig.workModels,
                             jobAreas: validation.data.infojobsConfig.jobAreas,
                             contractTypes: validation.data.infojobsConfig.contractTypes,
@@ -141,7 +158,9 @@ export class CampaignService {
     async getAllCampaigns(userId: string): Promise<CampaignResponse> {
         try {
             const campaigns = await prisma.campaign.findMany({
-                where: { userId }
+                where: { userId },
+                include: this.campaignRelations,
+                orderBy: { createdAt: "desc" },
             })
 
             return { success: true, data: campaigns }
@@ -149,6 +168,27 @@ export class CampaignService {
         } catch (error) {
             console.error("Erro ao buscar campanhas", error)
             throw new Error("Erro: Falha de comunicação na API, não foi possível buscar as campanhas")
+        }
+    }
+
+    async getCampaignById(userId: string, campaignId: string): Promise<CampaignResponse> {
+        try {
+            const campaign = await prisma.campaign.findFirst({
+                where: { id: campaignId, userId },
+                include: this.campaignRelations,
+            })
+
+            if (!campaign) {
+                return {
+                    success: false,
+                    message: "Campanha não encontrada",
+                }
+            }
+
+            return { success: true, data: campaign }
+        } catch (error) {
+            console.error("Erro ao buscar campanha por ID", error)
+            throw new Error("Erro: Falha de comunicação na API, não foi possível buscar a campanha")
         }
     }
 
@@ -186,8 +226,9 @@ export class CampaignService {
                 data: {
                     ...(validation.data.name && { name: validation.data.name }),
                     ...(validation.data.resumeId && { resumeId: validation.data.resumeId }),
-                    ...(validation.data.dailyLimit && { dailyLimit: validation.data.dailyLimit }),
-                }
+                    ...(validation.data.dailyLimit !== undefined && { dailyLimit: validation.data.dailyLimit }),
+                },
+                include: this.campaignRelations,
             })
 
             return { success: true, data: updated }
@@ -229,6 +270,7 @@ export class CampaignService {
                 data: {
                     status: 'paused',
                 },
+                include: this.campaignRelations,
             })
 
             return {
@@ -287,6 +329,7 @@ export class CampaignService {
                 data: {
                     status: 'active',
                 },
+                include: this.campaignRelations,
             })
 
             return {
@@ -321,6 +364,8 @@ export class CampaignService {
             await prisma.$transaction([
                 prisma.campaignLinkedin.deleteMany({ where: { campaignId } }),
                 prisma.campaignInfojobs.deleteMany({ where: { campaignId } }),
+                prisma.report.deleteMany({ where: { campaignId } }),
+                prisma.job.deleteMany({ where: { campaignId } }),
                 prisma.jobApplication.deleteMany({ where: { campaignId } }),
                 prisma.campaign.delete({ where: { id: campaignId } }),
             ])

@@ -2,87 +2,47 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronDown, Eye, Pencil, Plus, Search } from "lucide-react";
-
-type Resume = {
-    id: string;
-    title: string;
-    updatedAt: string;
-    status: "synced" | "draft";
-    role: string;
-    location: string;
-};
-
-const resumesMock: Resume[] = [
-    {
-        id: "resume-1",
-        title: "Senior Frontend Resume",
-        updatedAt: "2026-04-04T09:30:00.000Z",
-        status: "synced",
-        role: "Frontend Engineer",
-        location: "Remote",
-    },
-    {
-        id: "resume-2",
-        title: "Product Engineer Resume",
-        updatedAt: "2026-04-03T18:15:00.000Z",
-        status: "synced",
-        role: "Product Engineer",
-        location: "Sao Paulo, BR",
-    },
-    {
-        id: "resume-3",
-        title: "Fullstack Europe Resume",
-        updatedAt: "2026-04-01T14:00:00.000Z",
-        status: "draft",
-        role: "Fullstack Developer",
-        location: "Europe",
-    },
-    {
-        id: "resume-4",
-        title: "Marketing Ops Resume",
-        updatedAt: "2026-03-29T11:20:00.000Z",
-        status: "synced",
-        role: "Marketing Operations",
-        location: "Rio de Janeiro, BR",
-    },
-];
-
-function timeAgo(date: string): string {
-    const diff = Date.now() - new Date(date).getTime();
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes} min ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d ago`;
-    const weeks = Math.floor(days / 7);
-    return `${weeks}w ago`;
-}
+import { ChevronDown, Plus, Search } from "lucide-react";
+import { ConfirmDialog } from "../../components/molecules/ConfirmDialog";
+import { ResumeCard } from "../../components/molecules/ResumeCard";
+import { ResumeCardSkeleton } from "../../components/molecules/ResumeCardSkeleton";
+import { useResumes } from "../../hooks/use-resumes";
+import type { Resume } from "../../types/resume";
 
 export default function ResumesPage() {
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState<"newest" | "oldest" | "alpha">("newest");
+    const [resumeToDelete, setResumeToDelete] = useState<Resume | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const { resumes, isLoading, error, refetch, deleteResume } = useResumes();
 
-    const filteredResumes = resumesMock
+    const filteredResumes = [...resumes]
         .filter((resume) => {
             const query = search.toLowerCase().trim();
             return (
                 resume.title.toLowerCase().includes(query) ||
-                resume.role.toLowerCase().includes(query) ||
-                resume.location.toLowerCase().includes(query)
+                (resume.personalInfo?.jobTitle ?? "").toLowerCase().includes(query) ||
+                (resume.personalInfo?.location ?? resume.personalInfo?.address ?? "").toLowerCase().includes(query)
             );
         })
         .sort((a, b) => {
-            if (sort === "newest") {
-                return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-            }
-            if (sort === "oldest") {
-                return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
-            }
+            if (sort === "newest") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            if (sort === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
             return a.title.localeCompare(b.title);
         });
+
+    async function handleDeleteResume() {
+        if (!resumeToDelete) return;
+
+        setIsDeleting(true);
+
+        try {
+            await deleteResume(resumeToDelete.id);
+            setResumeToDelete(null);
+        } finally {
+            setIsDeleting(false);
+        }
+    }
 
     return (
         <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-white">
@@ -140,71 +100,34 @@ export default function ResumesPage() {
                 </div>
             </div>
 
-            {filteredResumes.length > 0 ? (
+            {isLoading ? (
                 <div className="grid gap-4 xl:grid-cols-2">
-                    {filteredResumes.map((resume) => {
-                        const isSynced = resume.status === "synced";
-
-                        return (
-                            <article
-                                key={resume.id}
-                                className="flex min-h-[220px] overflow-hidden rounded-2xl border border-[#1C2333] bg-[#131B2A] transition-colors hover:border-[#283349]"
-                            >
-                                <div className="flex flex-1 flex-col justify-between p-6">
-                                    <div>
-                                        <div className="mb-5 flex items-start justify-between gap-4">
-                                            <span
-                                                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                                                    isSynced
-                                                        ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-                                                        : "border border-amber-500/20 bg-amber-500/10 text-amber-300"
-                                                }`}
-                                            >
-                                                {isSynced ? "Synced" : "Draft"}
-                                            </span>
-
-                                            <button
-                                                type="button"
-                                                aria-label={`Preview ${resume.title}`}
-                                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-colors hover:border-[#263149] hover:bg-[#182233] hover:text-white"
-                                            >
-                                                <Eye size={17} />
-                                            </button>
-                                        </div>
-
-                                        <h2 className="text-xl font-semibold text-white">{resume.title}</h2>
-                                        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-400">
-                                            <span className="font-medium text-sky-300">{resume.role}</span>
-                                            <span className="text-slate-600">•</span>
-                                            <span>{resume.location}</span>
-                                        </div>
-                                        <p className="mt-3 text-sm text-slate-500">
-                                            Last edited: {timeAgo(resume.updatedAt)}
-                                        </p>
-                                    </div>
-
-                                    <div className="mt-6 flex items-center gap-3">
-                                        <Link
-                                            href={`/curriculos/${resume.id}`}
-                                            className="inline-flex h-11 items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 text-sm font-semibold text-blue-300 transition hover:border-blue-400/30 hover:bg-blue-500/15"
-                                        >
-                                            <Pencil size={15} />
-                                            Edit Resume
-                                        </Link>
-                                    </div>
-                                </div>
-
-                                <div className="hidden w-44 shrink-0 border-l border-[#1C2333] bg-[radial-gradient(circle_at_top,#1d2a42,transparent_55%),linear-gradient(180deg,#172132_0%,#111827_100%)] lg:flex lg:items-center lg:justify-center">
-                                    <div className="rounded-2xl border border-[#2A3445] bg-[#101826]/80 px-5 py-6 text-center">
-                                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                                            Resume
-                                        </p>
-                                        <p className="mt-3 text-5xl font-light text-slate-700">≡</p>
-                                    </div>
-                                </div>
-                            </article>
-                        );
-                    })}
+                    {Array.from({ length: 4 }).map((_, index) => (
+                        <ResumeCardSkeleton key={index} />
+                    ))}
+                </div>
+            ) : error ? (
+                <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-6 py-10 text-center">
+                    <p className="text-lg font-semibold text-white">Não foi possível carregar os currículos</p>
+                    <p className="mt-2 text-sm text-slate-300">Verifique sua conexão e tente novamente.</p>
+                    <button
+                        type="button"
+                        onClick={() => refetch()}
+                        className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
+                    >
+                        Tentar novamente
+                    </button>
+                </div>
+            ) : filteredResumes.length > 0 ? (
+                <div className="grid gap-4 xl:grid-cols-2">
+                    {filteredResumes.map((resume) => (
+                        <ResumeCard key={resume.id} resume={resume} onDelete={setResumeToDelete} />
+                    ))}
+                </div>
+            ) : resumes.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-[#2A3445] bg-[#131B2A] px-6 py-14 text-center">
+                    <p className="text-lg font-semibold text-white">Nenhum currículo ainda.</p>
+                    <p className="mt-2 text-sm text-slate-400">Crie seu primeiro currículo para começar!</p>
                 </div>
             ) : (
                 <div className="rounded-2xl border border-dashed border-[#2A3445] bg-[#131B2A] px-6 py-14 text-center">
@@ -216,8 +139,19 @@ export default function ResumesPage() {
             )}
 
             <div className="border-t border-[#1C2333] pt-5 text-sm text-slate-500">
-                Displaying {filteredResumes.length} of {resumesMock.length} resumes
+                Displaying {filteredResumes.length} of {resumes.length} resumes
             </div>
+
+            <ConfirmDialog
+                open={Boolean(resumeToDelete)}
+                title="Excluir currículo"
+                description="Tem certeza? Campanhas vinculadas perderão o currículo."
+                confirmLabel="Excluir currículo"
+                danger
+                loading={isDeleting}
+                onCancel={() => setResumeToDelete(null)}
+                onConfirm={handleDeleteResume}
+            />
         </section>
     );
 }

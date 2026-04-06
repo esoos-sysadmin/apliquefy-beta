@@ -1,13 +1,28 @@
 import { z } from "zod"
 
-export const createJobSchema = z.object({
+export const createJobSchema = z.preprocess((value) => {
+    if (!value || typeof value !== "object") {
+        return value
+    }
+
+    const payload = value as Record<string, unknown>
+
+    return {
+        campaign_id: payload.campaign_id ?? payload.campaignId,
+        link: payload.link,
+        company_name: payload.company_name ?? payload.companyName,
+        position: payload.position,
+        expiration_date: payload.expiration_date ?? payload.expirationDate,
+        number_of_applications: payload.number_of_applications ?? payload.numberOfApplications,
+    }
+}, z.object({
     campaign_id: z.string().uuid("campaign_id deve ser um UUID válido"),
     link: z.string().url("link deve ser uma URL válida"),
     company_name: z.string().optional(),
     position: z.string().min(1, "position é obrigatório"),
     expiration_date: z.string().datetime({ offset: true }).optional().nullable(),
     number_of_applications: z.number().int().min(0).default(0).optional(),
-})
+}))
 
 export const listJobsQuerySchema = z.object({
     campaign_id: z.string().uuid().optional(),

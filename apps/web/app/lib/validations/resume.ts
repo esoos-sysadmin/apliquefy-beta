@@ -16,25 +16,28 @@ const personalInfoSchema = z.object({
     name: z.string().min(3, "O nome deve ter ao menos 3 letras"),
     jobTitle: z.string().min(3, "O cargo deve ter ao menos 3 letras"),
     email: z.email("Formato de e-mail inválido"),
-    contact: z.string().min(8, "Digite um número de contato válido com DDD"),
+    contact: z.string().min(8, "Digite um número de contato válido com DDD").optional(),
+    phone: z.string().min(8, "Digite um número de contato válido com DDD").optional(),
+    location: z.string().optional(),
     address: z.string().optional(),
     desiredSalary: z.string().optional(),
-    seniority: z.enum(["Estagiário", "Júnior", "Pleno", "Sênior", "Especialista", "Gerente", "Diretor"]).optional(),
+    seniority: z.enum(["Estagiário", "Júnior", "Pleno", "Sênior", "Especialista", "Gerente", "Diretor"]).optional().or(z.literal("")),
+    linkedin: z.url("Link do LinkedIn inválido").optional().or(z.literal("")),
     linkedinUrl: z.url("Link do LinkedIn inválido").optional().or(z.literal("")),
     portfolio: z.url("Link do portfólio inválido").optional().or(z.literal("")),
     github: z.url("Link do GitHub inválido").optional().or(z.literal("")),
+    summary: z.string().max(500, "O resumo não pode exceder 500 caracteres").optional(),
     professionalSummary: z.string().max(500, "O resumo não pode exceder 500 caracteres").optional(),
+}).refine((data) => Boolean(data.contact || data.phone), {
+    message: "Digite um número de contato válido com DDD",
+    path: ["contact"],
 });
 
 const educationSchema = z.object({
     nameOfInstitution: z.string().min(3, "O nome da instituição é muito curto").optional(),
     nameOfGraduation: z.string().min(3, "O nome do curso é muito curto").optional(),
-    StartDateOfGraduation: z.coerce.date({
-        message: "A data de início da graduação é inválida"
-    }).optional(), 
-    EndDateOfGraduation: z.coerce.date({
-        message: "A data de término da graduação é inválida"
-    }).optional(),
+    StartDateOfGraduation: z.string().optional(),
+    EndDateOfGraduation: z.string().optional(),
 });
 
 const experienceSchema = z.object({
@@ -42,12 +45,8 @@ const experienceSchema = z.object({
     jobType: z.string().min(3, "O tipo de vaga é muito curto").optional(),
     description: z.string().min(3, "A descrição das atividades é muito curta").optional(),
     jobArea: z.string().min(3, "A área de atuação é muito curta").optional(),
-    jobStartDate: z.coerce.date({
-        message: "A data de início no emprego é inválida"
-    }).optional(),
-    jobEndDate: z.coerce.date({
-        message: "A data de término no emprego é inválida"
-    }).optional(),
+    jobStartDate: z.string().optional(),
+    jobEndDate: z.string().optional().nullable(),
     isActualJob: z.boolean({
         message: "O campo 'trabalho atual' deve ser verdadeiro ou falso"
     }).optional().default(false),
@@ -55,9 +54,11 @@ const experienceSchema = z.object({
 });
 
 export const resumeSchema = z.object({
+    title: z.string().min(1, "O título do currículo é obrigatório"),
     personalInfo: personalInfoSchema,
     education: z.array(educationSchema).optional(),
     experience: z.array(experienceSchema).optional(),
     skills: z.array(z.string().min(2, "O nome da habilidade é muito curto")).optional(),
-    idioms: z.array(idiomsSchema).optional()
+    idioms: z.array(idiomsSchema).optional(),
+    isDefault: z.boolean().optional(),
 });

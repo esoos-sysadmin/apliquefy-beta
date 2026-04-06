@@ -38,7 +38,7 @@ const fallbackEngineStatus: RunnerEngineStatus = {
     uptimeLabel: "0m",
     memoryMb: 0,
     memoryLabel: "0MB",
-    engineVersion: "LOCAL ENGINE V1.0.4",
+    engineVersion: "APLIQUEFY V1.0.0",
     scriptVersion: "v12",
 };
 
@@ -48,8 +48,9 @@ const fallbackElectronAPI: ElectronAPI = {
     },
     campaigns: {
         list: async () => fallbackCampaigns,
+        getById: async () => null,
         pause: async () => fallbackCampaigns,
-        resume: async () => fallbackCampaigns,
+        activate: async () => fallbackCampaigns,
     },
     accounts: {
         get: async () => fallbackAccount,

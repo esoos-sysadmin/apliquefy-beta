@@ -6,7 +6,7 @@ import { auth } from '@clerk/nextjs/server';
 export async function POST(request: Request) {
     try {
         const { userId } = await auth()
-        
+
         const data = await request.json()
         if (!userId || !data.title) {
             return NextResponse.json(
@@ -14,8 +14,8 @@ export async function POST(request: Request) {
                 { status: 400 }
             )
         }
-        
-        const newCV = await resumeService.createResume(userId, data.title, data)
+
+        const newCV = await resumeService.createResume(userId, data)
         if (!newCV.success) {
             return NextResponse.json(
                 {
@@ -52,15 +52,6 @@ export async function GET() {
         }
 
         const allCVs = await resumeService.getAllMyResumes(userId)
-        if (allCVs.success != true) {
-            return NextResponse.json(
-                {
-                    message: "Erro ao buscar todos os curriculos nehum cvs foi encontrado no BD",
-                    ErrorDesc: allCVs.errorDesc
-                },
-                {status: 404}
-            )
-        }
         return NextResponse.json(allCVs)
 
     } catch (error) {
@@ -73,5 +64,4 @@ export async function GET() {
         )
     }
 }
-
 

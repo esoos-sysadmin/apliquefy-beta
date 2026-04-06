@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { getAuthSession, getCurrentSessionUser, getDesktopSessionToken } from "../../../lib/auth/server/clerk";
 
 export async function GET() {
-    const { userId, getToken } = await auth();
+    const { userId } = await getAuthSession();
 
     if (!userId) {
         return NextResponse.json(
@@ -11,9 +11,8 @@ export async function GET() {
         );
     }
 
-    const tokenTemplate = process.env.CLERK_DESKTOP_JWT_TEMPLATE ?? "teste";
-    const token = await getToken({ template: tokenTemplate });
-    const user = await currentUser();
+    const { tokenTemplate, token } = await getDesktopSessionToken();
+    const user = await getCurrentSessionUser();
 
     if (!token) {
         return NextResponse.json(

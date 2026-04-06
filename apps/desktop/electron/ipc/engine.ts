@@ -2,7 +2,7 @@ import { BrowserWindow, ipcMain } from "electron";
 import type { RunnerEngineStatus } from "../../shared/runner-types";
 
 const engineStartedAt = Date.now();
-const engineVersion = "LOCAL ENGINE V1.0.4";
+const engineVersion = "APLIQUEFY V1.0.0";
 const scriptVersion = "v12";
 
 let isEngineIpcRegistered = false;

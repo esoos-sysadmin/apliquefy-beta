@@ -1,13 +1,28 @@
 import { z } from "zod"
 
-export const createReportSchema = z.object({
+export const createReportSchema = z.preprocess((value) => {
+    if (!value || typeof value !== "object") {
+        return value
+    }
+
+    const payload = value as Record<string, unknown>
+
+    return {
+        campaign_id: payload.campaign_id ?? payload.campaignId,
+        total_jobs_applications: payload.total_jobs_applications ?? payload.totalJobsApplications,
+        success_applications: payload.success_applications ?? payload.successApplications,
+        fail_applications: payload.fail_applications ?? payload.failApplications,
+        credits_used: payload.credits_used ?? payload.creditsUsed,
+        credits_refund: payload.credits_refund ?? payload.creditsRefund,
+    }
+}, z.object({
     campaign_id: z.string().uuid("campaign_id deve ser um UUID válido"),
     total_jobs_applications: z.number().int().min(0).default(0).optional(),
     success_applications: z.number().int().min(0).default(0).optional(),
     fail_applications: z.number().int().min(0).default(0).optional(),
     credits_used: z.number().int().min(0).default(0).optional(),
     credits_refund: z.number().int().min(0).default(0).optional(),
-}).refine(
+})).refine(
     (data) => {
         const total = data.total_jobs_applications ?? 0
         const success = data.success_applications ?? 0
