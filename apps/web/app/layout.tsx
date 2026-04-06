@@ -8,7 +8,7 @@ const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
 });
-const geistMono = localFont({
+const geistMono = localFont({w
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
 });
