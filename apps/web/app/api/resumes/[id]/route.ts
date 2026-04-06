@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import {resumeService} from '../../../../backend/modules/resume/resume.service'
 
-export async function GET(resquest: Request, contextDocmentId: { params: { id: string } }) {
+export async function GET(resquest: Request, contextDocmentId: { params: Promise<{ id: string }> }) {
     
     try {
         const { userId } = await auth()
@@ -33,9 +33,7 @@ export async function GET(resquest: Request, contextDocmentId: { params: { id: s
             }, {status: 400})
         }
 
-        return NextResponse.json({
-            data: searchCVs
-        }, {status: 200})
+        return NextResponse.json(searchCVs, {status: 200})
 
     } catch (error) {
         console.error("error ao tentar acessar a rota GET /api/resumes/[id]:", error)
@@ -49,7 +47,7 @@ export async function GET(resquest: Request, contextDocmentId: { params: { id: s
     
 }
 
-export async function DELETE(request: Request, resumeId: { params: {id: string}}) {
+export async function DELETE(request: Request, resumeId: { params: Promise<{id: string}>}) {
     try {
         const { userId } = await auth()
         
@@ -92,7 +90,7 @@ export async function DELETE(request: Request, resumeId: { params: {id: string}}
     }
 }
 
-export async function PUT (request: Request, resumeId: {params: {id: string}}) {
+export async function PUT (request: Request, resumeId: {params: Promise<{id: string}>}) {
    
     const { userId } = await auth();
 
@@ -120,19 +118,18 @@ export async function PUT (request: Request, resumeId: {params: {id: string}}) {
     const updateCv = await resumeService.updateResume(userId, id, resumeUpdateJson);
 
     if (!updateCv.success) {
+        console.error("[PUT /api/resumes] Zod validation failed:", JSON.stringify(updateCv.errorDesc, null, 2));
         return NextResponse.json({
-            message: updateCv.message,          
-            error: updateCv.errorDesc 
+            message: updateCv.message,
+            error: updateCv.errorDesc
         },
-        {status: 500})
+        {status: 400})
     }
 
     return NextResponse.json({
-        message: updateCv.success,
+        success: updateCv.success,
         data: updateCv.data
     })
 
 
 }
-
-

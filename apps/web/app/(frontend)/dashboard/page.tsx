@@ -1,15 +1,15 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { getAuthSession, getCurrentSessionUser } from "../../lib/auth/server/clerk";
 
 export default async function Dashboard() {
 
-    const { isAuthenticated } = await auth()
+    const { isAuthenticated } = await getAuthSession()
 
     if (!isAuthenticated) {
         return redirect("/login")
     }
 
-    const user = await currentUser()
+    const user = await getCurrentSessionUser()
 
     console.log(user)
 

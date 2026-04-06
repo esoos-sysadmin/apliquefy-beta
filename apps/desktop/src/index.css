@@ -219,6 +219,44 @@ a {
   color: var(--text-muted);
 }
 
+.section-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid #30363d;
+  background: #1c2333;
+  color: #6aa3ff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  line-height: 1;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: #253148;
+  border-color: #4b8bf5;
+  color: #4b8bf5;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.refresh-btn:active:not(:disabled) {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease, background 0.15s;
+}
+
 .campaign-list {
   position: relative;
   display: flex;

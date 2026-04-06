@@ -36,6 +36,12 @@ a {
   text-decoration: none;
 }
 
+.cl-userProfile-root .cl-profileSection__danger,
+.cl-userProfile-root [data-localization-key*="dangerSection"],
+.cl-userProfile-root [data-localization-key*="deleteAccountButton"] {
+  display: none !important;
+}
+
 .imgDark {
   display: none;
 }

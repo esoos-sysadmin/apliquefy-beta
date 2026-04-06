@@ -20,6 +20,16 @@
       "key": "campaignId",
       "value": "uuid-da-campaign-aqui",
       "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "uuid-do-job-aqui",
+      "type": "string"
+    },
+    {
+      "key": "reportId",
+      "value": "uuid-do-report-aqui",
+      "type": "string"
     }
   ],
   "item": [
@@ -87,7 +97,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "resumes", "{{resumeId}}"]
             },
-            "description": "Busca um currículo específico pelo ID. Substitua {{resumeId}} pelo UUID real."
+            "description": "Busca um currículo específico pelo ID."
           }
         },
         {
@@ -169,6 +179,19 @@
           }
         },
         {
+          "name": "Get All Campaigns",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns"]
+            },
+            "description": "Lista todas as campanhas do usuário autenticado."
+          }
+        },
+        {
           "name": "Update Campaign",
           "request": {
             "method": "PATCH",
@@ -185,7 +208,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "campaigns", "{{campaignId}}"]
             },
-            "description": "Atualiza campos editáveis da campanha: name, resumeId (trocar currículo vinculado) e/ou dailyLimit. Ao menos um campo deve ser enviado."
+            "description": "Atualiza campos editáveis da campanha: name, resumeId e/ou dailyLimit. Ao menos um campo deve ser enviado."
           }
         },
         {
@@ -203,7 +226,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "campaigns", "{{campaignId}}", "pause"]
             },
-            "description": "Pausa uma campanha ativa. Chamado pelo web e pelo runner do Electron."
+            "description": "Pausa uma campanha ativa."
           }
         },
         {
@@ -221,7 +244,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "campaigns", "{{campaignId}}", "activate"]
             },
-            "description": "Ativa uma campanha pausada. Chamado pelo web e pelo runner do Electron."
+            "description": "Ativa uma campanha pausada."
           }
         },
         {
@@ -235,6 +258,120 @@
               "path": ["api", "campaigns", "{{campaignId}}"]
             },
             "description": "Deleta uma campanha e seus registros dependentes."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "Create Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campaign_id\": \"{{campaignId}}\",\n  \"link\": \"https://linkedin.com/jobs/view/123456\",\n  \"company_name\": \"Empresa X\",\n  \"position\": \"Desenvolvedor Full Stack\",\n  \"expiration_date\": \"2026-05-01T00:00:00Z\",\n  \"number_of_applications\": 42\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"]
+            },
+            "description": "Persiste uma vaga encontrada pelo engine de automação durante a execução de uma campanha.\n\nValidações:\n- campaign_id obrigatório e deve pertencer ao usuário\n- link obrigatório, URL válida e única (409 se duplicado)\n- position obrigatório\n- company_name, expiration_date e number_of_applications opcionais"
+          }
+        },
+        {
+          "name": "Get All Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs?page=1&limit=20&sort=created_at_desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"],
+              "query": [
+                { "key": "campaign_id", "value": "", "disabled": true, "description": "Filtrar por campanha específica (UUID)" },
+                { "key": "page", "value": "1", "description": "Página (default: 1)" },
+                { "key": "limit", "value": "20", "description": "Itens por página (default: 20, max: 100)" },
+                { "key": "sort", "value": "created_at_desc", "description": "Ordenação: created_at_asc | created_at_desc" }
+              ]
+            },
+            "description": "Lista todos os jobs das campanhas do usuário autenticado com paginação.\n\nQuery params opcionais:\n- campaign_id: filtra por campanha\n- page: default 1\n- limit: default 20, max 100\n- sort: created_at_asc | created_at_desc (default: created_at_desc)"
+          }
+        },
+        {
+          "name": "Get Job by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}"]
+            },
+            "description": "Retorna um job específico pelo UUID.\n\nRetorna 404 se não encontrado, 403 se pertence a outro usuário."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Create Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campaign_id\": \"{{campaignId}}\",\n  \"total_jobs_applications\": 150,\n  \"success_applications\": 120,\n  \"fail_applications\": 25,\n  \"credits_used\": 150,\n  \"credits_refund\": 5\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports"]
+            },
+            "description": "Persiste um snapshot de relatório ao final de um ciclo de execução de campanha.\n\nValidações:\n- campaign_id obrigatório e deve pertencer ao usuário\n- Campos numéricos opcionais, default 0, inteiros >= 0\n- success_applications + fail_applications não pode exceder total_jobs_applications"
+          }
+        },
+        {
+          "name": "Get All Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports?page=1&limit=20&sort=created_at_desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports"],
+              "query": [
+                { "key": "campaign_id", "value": "", "disabled": true, "description": "Filtrar por campanha específica (UUID)" },
+                { "key": "page", "value": "1", "description": "Página (default: 1)" },
+                { "key": "limit", "value": "20", "description": "Itens por página (default: 20, max: 100)" },
+                { "key": "sort", "value": "created_at_desc", "description": "Ordenação: created_at_asc | created_at_desc" }
+              ]
+            },
+            "description": "Lista todos os relatórios das campanhas do usuário autenticado com paginação.\n\nCada item retorna campaign_name e campaign_platform além dos dados do report."
+          }
+        },
+        {
+          "name": "Get Report by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/{{reportId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "{{reportId}}"]
+            },
+            "description": "Retorna um relatório específico pelo UUID, incluindo campaign_name e campaign_platform.\n\nRetorna 404 se não encontrado, 403 se pertence a outro usuário."
           }
         }
       ]

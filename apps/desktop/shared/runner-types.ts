@@ -15,6 +15,32 @@ export type RunnerCampaign = {
     notes: string;
 };
 
+export type RunnerCampaignApiModel = {
+    id: string;
+    name: string;
+    platform: RunnerPlatform;
+    status: RunnerCampaignStatus;
+    dailyLimit: number | null;
+    createdAt: string;
+    resume?: {
+        id: string;
+        title: string;
+    } | null;
+    linkedinConfig?: {
+        locationTerm?: string | null;
+        searchTerms?: string | null;
+    } | null;
+    infojobsConfig?: {
+        locationState?: string | null;
+        searchTerms?: string | null;
+    } | null;
+    _count?: {
+        jobApplications: number;
+        reports?: number;
+        jobs?: number;
+    };
+};
+
 export type RunnerAccountState = {
     connected: boolean;
     platform: RunnerPlatform | null;
@@ -61,8 +87,9 @@ export type ElectronAPI = {
     };
     campaigns: {
         list: () => Promise<RunnerCampaign[]>;
+        getById: (id: string) => Promise<RunnerCampaign | null>;
         pause: (id: string) => Promise<RunnerCampaign[]>;
-        resume: (id: string) => Promise<RunnerCampaign[]>;
+        activate: (id: string) => Promise<RunnerCampaign[]>;
     };
     accounts: {
         get: () => Promise<RunnerAccountState>;

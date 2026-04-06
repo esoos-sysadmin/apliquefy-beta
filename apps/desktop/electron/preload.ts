@@ -7,8 +7,9 @@ const electronAPI: ElectronAPI = {
     },
     campaigns: {
         list: () => ipcRenderer.invoke("campaigns:list"),
+        getById: (id: string) => ipcRenderer.invoke("campaigns:get-by-id", id),
         pause: (id: string) => ipcRenderer.invoke("campaigns:pause", id),
-        resume: (id: string) => ipcRenderer.invoke("campaigns:resume", id),
+        activate: (id: string) => ipcRenderer.invoke("campaigns:activate", id),
     },
     accounts: {
         get: () => ipcRenderer.invoke("accounts:get"),

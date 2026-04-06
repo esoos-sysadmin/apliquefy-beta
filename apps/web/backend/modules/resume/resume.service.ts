@@ -7,7 +7,7 @@ export type IResumeDataInput = z.infer<typeof resumeSchema>
 
 export class ResumeService {
 
-    async createResume(userId: string, title: string, rawData: IResumeDataInput): Promise<CreateResumeResponse> {
+    async createResume(userId: string, rawData: IResumeDataInput): Promise<CreateResumeResponse> {
     
         const validation = resumeSchema.safeParse(rawData)
     
@@ -25,12 +25,12 @@ export class ResumeService {
             const resumeSave = await prisma.resume.create({
                 data: {
                     userId: userId,
-                    title: title,
+                    title: validation.data.title,
                     personalInfo: validation.data.personalInfo,
                     education: validation.data.education,
                     experience: validation.data.experience,
                     skills: validation.data.skills,
-                    idioms: validation.data.idioms
+                    isDefault: validation.data.isDefault ?? false,
                 },
     
             })
@@ -53,19 +53,13 @@ export class ResumeService {
         try {
     
             const responseAllCvs = await prisma.resume.findMany({
-                where: { userId: userId }
+                where: { userId: userId },
+                orderBy: { createdAt: "desc" },
             })
     
-            if (responseAllCvs.length != 0) {
-                return {
-                    success: true,
-                    data: responseAllCvs
-                }
-            } else {
-                return {
-                    success: false,
-                    errorDesc: "Erro não há nenhum CV na base de dados"
-                }
+            return {
+                success: true,
+                data: responseAllCvs
             }
     
         } catch (err) {
@@ -160,7 +154,13 @@ export class ResumeService {
             where: {
                 id: resumeId, 
             },
-            data: validation.data
+            data: {
+                title: validation.data.title,
+                personalInfo: validation.data.personalInfo,
+                education: validation.data.education,
+                experience: validation.data.experience,
+                skills: validation.data.skills,
+            }
         });
 
         return {

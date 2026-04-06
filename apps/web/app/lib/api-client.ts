@@ -1,0 +1,60 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
+
+export interface ApiClientOptions {
+    token: string;
+}
+
+export class ApiError extends Error {
+    status: number;
+
+    constructor(status: number, message: string) {
+        super(message);
+        this.name = "ApiError";
+        this.status = status;
+    }
+}
+
+export function createApiClient({ token }: ApiClientOptions) {
+    async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+                ...options.headers,
+            },
+        });
+
+        const isJson = response.headers.get("content-type")?.includes("application/json");
+        const payload = isJson ? await response.json().catch(() => null) : await response.text().catch(() => null);
+
+        if (!response.ok) {
+            const message =
+                typeof payload === "object" && payload && "message" in payload
+                    ? String(payload.message)
+                    : typeof payload === "string" && payload
+                      ? payload
+                      : "Request failed";
+
+            throw new ApiError(response.status, message);
+        }
+
+        return payload as T;
+    }
+
+    return {
+        get: <T>(endpoint: string) => request<T>(endpoint),
+        post: <T>(endpoint: string, body: unknown) =>
+            request<T>(endpoint, { method: "POST", body: JSON.stringify(body) }),
+        put: <T>(endpoint: string, body: unknown) =>
+            request<T>(endpoint, { method: "PUT", body: JSON.stringify(body) }),
+        patch: <T>(endpoint: string, body?: unknown) =>
+            request<T>(endpoint, {
+                method: "PATCH",
+                ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+            }),
+        delete: <T>(endpoint: string) => request<T>(endpoint, { method: "DELETE" }),
+    };
+}
+
+export type ApiClient = ReturnType<typeof createApiClient>;

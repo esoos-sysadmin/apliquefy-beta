@@ -1,9 +1,11 @@
 import { NavItem } from "../atoms/NavItem";
-import { FileText, Megaphone } from "lucide-react";
+import { CreditCard, FileText, Megaphone, MonitorDown } from "lucide-react";
 
 const navItems = [
-    { href: "/curriculos", label: "Currículos", icon: <FileText size={16} /> },
+    { href: "/curriculos", label: "Resumes", icon: <FileText size={16} /> },
     { href: "/campanhas", label: "Campanhas", icon: <Megaphone size={16} /> },
+    { href: "/desktop", label: "Desktop App", icon: <MonitorDown size={16} /> },
+    { href: "/api/stripe", label: "Assinatura", icon: <CreditCard size={16} /> },
 ];
 
 export function SidebarNav() {
