@@ -64,6 +64,12 @@ export type RunnerAuthState = {
     expiresAt: number | null;
 };
 
+export type RunnerCreditBalance = {
+    balance: number;
+    canSend: boolean;
+    plan: string;
+};
+
 export type RunnerEngineStatus = {
     running: boolean;
     uptimeMs: number;
@@ -79,6 +85,7 @@ export type RunnerPersistedState = {
     account: RunnerAccountState;
     settings: RunnerSettings;
     auth: RunnerAuthState;
+    creditBalance: RunnerCreditBalance;
 };
 
 export type ElectronAPI = {
@@ -108,5 +115,8 @@ export type ElectronAPI = {
     engine: {
         getStatus: () => Promise<RunnerEngineStatus>;
         subscribe: (listener: (status: RunnerEngineStatus) => void) => () => void;
+    };
+    credits: {
+        getBalance: () => Promise<RunnerCreditBalance>;
     };
 };

@@ -12,6 +12,7 @@ import { useCampaignActions } from "../../hooks/use-campaign-actions";
 import { useAuthActions } from "../../hooks/use-auth-actions";
 import { useSettingsActions } from "../../hooks/use-settings-actions";
 import { campaignStore, useCampaignStore } from "../../stores/campaign-store";
+import { useCreditStore } from "../../stores/credit-store";
 import { settingsStore, useSettingsStore } from "../../stores/settings-store";
 
 export default function RunnerPage() {
@@ -19,6 +20,7 @@ export default function RunnerPage() {
     const campaigns = useCampaignStore((state) => state.campaigns);
     const activeCampaign = useCampaignStore((state) => state.activeCampaign);
     const isCampaignsLoading = useCampaignStore((state) => state.isLoading);
+    const creditBalance = useCreditStore((state) => state.creditBalance);
     const activeTab = useSettingsStore((state) => state.activeTab);
     const auth = useSettingsStore((state) => state.auth);
     const draftSettings = useSettingsStore((state) => state.draftSettings);
@@ -45,6 +47,7 @@ export default function RunnerPage() {
         <RunnerShell
             activeTab={activeTab}
             engineStatus={engineStatus}
+            creditBalance={creditBalance}
             isAuthenticated={auth.isAuthenticated}
             onClose={handleClose}
             onChangeTab={settingsStore.setActiveTab}

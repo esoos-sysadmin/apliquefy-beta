@@ -6,6 +6,8 @@ import { getRunnerState } from "./store";
 
 let mainWindow: BrowserWindow | null = null;
 
+app.disableHardwareAcceleration()
+
 app.whenReady().then(() => {
     registerIpcHandlers({
         getMainWindow: () => mainWindow,
@@ -15,6 +17,9 @@ app.whenReady().then(() => {
             mainWindow = null;
         }
     });
+
+    // mainWindow.webContents.openDevTools()
+
     applyRunnerSettings(getRunnerState().settings, mainWindow);
 
     app.on("activate", () => {

@@ -2,6 +2,7 @@
 
 import { SWRConfig } from "swr";
 import { ToastProvider } from "../../lib/toast";
+import { CreditGateProvider } from "./CreditGateProvider";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
     return (
@@ -11,7 +12,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
                 shouldRetryOnError: false,
             }}
         >
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+                <CreditGateProvider>{children}</CreditGateProvider>
+            </ToastProvider>
         </SWRConfig>
     );
 }

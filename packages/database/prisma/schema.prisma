@@ -267,19 +267,24 @@ enum TransactionType {
   USAGE
   BONUS
   REFUND
+  SUBSCRIPTION_CREDIT
+  RESET
 }
 
 // ======================= MODELS =======================
 
 model User {
-  id                String    @id
-  email             String    @unique @db.VarChar
-  password          String?   @db.VarChar
-  role              UserRole  @default(user)
-  gatewayCustomerId String?   @unique @map("gateway_customer_id") @db.VarChar
-  credits           Int?
-  planTier          String    @default("free") @map("plan_tier") @db.VarChar
-  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
+  id                   String    @id
+  email                String    @unique @db.VarChar
+  password             String?   @db.VarChar
+  role                 UserRole  @default(user)
+  gatewayCustomerId    String?   @unique @map("gateway_customer_id") @db.VarChar
+  credits              Int       @default(0)
+  planTier             String    @default("free") @map("plan_tier") @db.VarChar
+  stripeSubscriptionId String?   @unique @map("stripe_subscription_id") @db.VarChar
+  subscriptionStatus   String?   @map("subscription_status") @db.VarChar
+  currentPeriodEnd     DateTime? @map("current_period_end") @db.Timestamp
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamp
 
   // Relacionamentos Inversos
   resumes           Resume[]
@@ -291,13 +296,15 @@ model User {
 }
 
 model Transaction {
-  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId       String          @map("user_id")
-  amount       Int
-  type         TransactionType
-  reference_id String
-  description  String?
-  created_at   DateTime        @default(now())
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String          @map("user_id")
+  amount         Int
+  type           TransactionType
+  reference_id   String
+  description    String?
+  idempotencyKey String?         @unique @map("idempotency_key") @db.VarChar
+  metadata       Json?
+  created_at     DateTime        @default(now())
 
   //Relacionamentos
   user User? @relation(fields: [userId], references: [id])
@@ -443,4 +450,23 @@ model JobApplication {
   @@index([userId, status])
   @@index([campaignId])
   @@map("job_applications")
+}
+
+// ======================= BILLING & CREDITS =======================
+
+model CreditWeight {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stage  String @unique @db.VarChar
+  weight Float
+  label  String @db.VarChar
+
+  @@map("credit_weights")
+}
+
+model WebhookEvent {
+  id          String   @id @db.VarChar
+  type        String   @db.VarChar
+  processedAt DateTime @default(now()) @map("processed_at") @db.Timestamp
+
+  @@map("webhook_events")
 }

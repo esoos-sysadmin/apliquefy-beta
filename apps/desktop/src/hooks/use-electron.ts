@@ -70,6 +70,9 @@ const fallbackElectronAPI: ElectronAPI = {
         getStatus: async () => fallbackEngineStatus,
         subscribe: () => () => undefined,
     },
+    credits: {
+        getBalance: async () => ({ balance: 0, canSend: false, plan: "free" }),
+    },
 };
 
 export function useElectron() {

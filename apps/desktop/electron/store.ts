@@ -4,6 +4,7 @@ import path from "node:path";
 import type {
     RunnerAccountState,
     RunnerAuthState,
+    RunnerCreditBalance,
     RunnerPersistedState,
     RunnerPlatform,
     RunnerSettings,
@@ -34,6 +35,12 @@ const defaultAuth: RunnerAuthState = {
     expiresAt: null,
 };
 
+const defaultCreditBalance: RunnerCreditBalance = {
+    balance: 0,
+    canSend: false,
+    plan: "free",
+};
+
 // --- Persistence ---
 
 const STATE_FILE = "apliquefy-runner-state.json";
@@ -53,13 +60,14 @@ function readStateFromDisk(): RunnerPersistedState {
                 account: raw.account ? { ...defaultAccount, ...raw.account } : defaultAccount,
                 settings: raw.settings ? { ...defaultSettings, ...raw.settings } : defaultSettings,
                 auth: raw.auth ? { ...defaultAuth, ...raw.auth } : defaultAuth,
+                creditBalance: raw.creditBalance ? { ...defaultCreditBalance, ...raw.creditBalance } : defaultCreditBalance,
             };
         }
     } catch (error) {
         console.error("Failed to read runner state:", error);
     }
 
-    return { campaigns: [], account: defaultAccount, settings: defaultSettings, auth: defaultAuth };
+    return { campaigns: [], account: defaultAccount, settings: defaultSettings, auth: defaultAuth, creditBalance: defaultCreditBalance };
 }
 
 function writeStateToDisk(state: RunnerPersistedState) {

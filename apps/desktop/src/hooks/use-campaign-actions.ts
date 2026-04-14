@@ -1,8 +1,22 @@
 import type { ElectronAPI, RunnerCampaign } from "../../shared/runner-types";
 import { campaignStore } from "../stores/campaign-store";
+import { creditStore } from "../stores/credit-store";
+
+
+// @ts-ignore: O TypeScript reclama do module Node16, mas o Vite compila isso perfeitamente
+const WEB_URL = import.meta.env.VITE_APLIQUEFY_WEB_URL || "http://localhost:3000";
 
 export function useCampaignActions(electron: ElectronAPI) {
     const handleToggleCampaign = async (campaign: RunnerCampaign) => {
+        // Block activation when no credits
+        if (campaign.status !== "active") {
+            const { canSend } = creditStore.getState().creditBalance;
+            if (!canSend) {
+                window.open(`${WEB_URL}/assinatura`, "_blank");
+                return;
+            }
+        }
+
         const nextCampaigns =
             campaign.status === "active"
                 ? await electron.campaigns.pause(campaign.id)

@@ -30,6 +30,16 @@
       "key": "reportId",
       "value": "uuid-do-report-aqui",
       "type": "string"
+    },
+    {
+      "key": "clerk_token",
+      "value": "YOUR_CLERK_TOKEN_HERE",
+      "type": "string"
+    },
+    {
+      "key": "stripe_signature",
+      "value": "YOUR_STRIPE_SIGNATURE_HERE",
+      "type": "string"
     }
   ],
   "item": [
@@ -372,6 +382,173 @@
               "path": ["api", "reports", "{{reportId}}"]
             },
             "description": "Retorna um relatório específico pelo UUID, incluindo campaign_name e campaign_platform.\n\nRetorna 404 se não encontrado, 403 se pertence a outro usuário."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stripe",
+      "item": [
+        {
+          "name": "Create Subscription Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planSlug\": \"starter\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stripe", "checkout"]
+            },
+            "description": "Cria uma sessão de checkout Stripe para planos de assinatura (Starter, Professional, Enterprise)"
+          }
+        },
+        {
+          "name": "Create Credit Package Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"packageSlug\": \"package_50\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stripe", "checkout"]
+            },
+            "description": "Cria uma sessão de checkout Stripe para pacotes de créditos avulsos (50, 100, 200 créditos)"
+          }
+        },
+        {
+          "name": "Create Billing Portal Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stripe"]
+            },
+            "description": "Cria uma sessão do Stripe Customer Portal para gerenciar assinaturas e faturas"
+          }
+        },
+        {
+          "name": "Stripe Webhook (teste local)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "stripe-signature", "value": "{{stripe_signature}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_test_...\",\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"cs_test_...\",\n      \"customer\": \"cus_...\",\n      \"metadata\": {\n        \"userId\": \"user_...\",\n        \"planSlug\": \"starter\",\n        \"type\": \"subscription\"\n      }\n    }\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/webhooks/stripe",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "webhooks", "stripe"]
+            },
+            "description": "Webhook endpoint para eventos Stripe. Use 'stripe listen --forward-to localhost:3000/api/webhooks/stripe' para testes locais"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Credits",
+      "item": [
+        {
+          "name": "Check Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "balance"]
+            },
+            "description": "Retorna saldo de créditos, status de assinatura e informações do plano do usuário"
+          }
+        },
+        {
+          "name": "Debit Credits",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"questions\": [\n    {\n      \"id\": \"q1\",\n      \"stages\": [\"input\", \"rag\", \"output\", \"judge\"]\n    },\n    {\n      \"id\": \"q2\",\n      \"stages\": [\"input\", \"rag\", \"output\", \"judge\", \"fallback\"]\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/debit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "debit"]
+            },
+            "description": "Debita créditos da conta do usuário com base nos estágios ponderados do pipeline. Idempotente via idempotencyKey"
+          }
+        },
+        {
+          "name": "Get Credit History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/history?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "history"],
+              "query": [
+                { "key": "type", "value": "PURCHASE", "disabled": true, "description": "Filtrar por tipo: PURCHASE, SUBSCRIPTION_CREDIT, BONUS, REFUND" },
+                { "key": "startDate", "value": "2026-04-01", "disabled": true, "description": "Data de início (YYYY-MM-DD)" },
+                { "key": "endDate", "value": "2026-04-30", "disabled": true, "description": "Data de fim (YYYY-MM-DD)" },
+                { "key": "page", "value": "1", "description": "Página (default: 1)" },
+                { "key": "limit", "value": "10", "description": "Itens por página (default: 10)" }
+              ]
+            },
+            "description": "Retorna histórico paginado de transações de créditos com filtros opcionais (tipo, intervalo de datas)"
+          }
+        },
+        {
+          "name": "Get Credit Weights Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/weights",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "weights"]
+            },
+            "description": "Retorna a configuração atual de pesos para cada estágio do pipeline (input, rag, output, judge, fallback)"
           }
         }
       ]

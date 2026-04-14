@@ -1,7 +1,7 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
-  "globalEnv": ["CLERK_DESKTOP_JWT_TEMPLATE", "APLIQUEFY_WEB_URL", "STRIPE_BILLING_PORTAL_URL", "CLERK_WEBHOOK_SECRET"],
+  "globalEnv": ["CLERK_DESKTOP_JWT_TEMPLATE", "APLIQUEFY_WEB_URL", "STRIPE_BILLING_PORTAL_URL", "CLERK_WEBHOOK_SECRET", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "NEXT_PUBLIC_APP_URL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

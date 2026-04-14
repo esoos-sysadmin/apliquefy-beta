@@ -39,6 +39,9 @@ const electronAPI: ElectronAPI = {
             };
         },
     },
+    credits: {
+        getBalance: () => ipcRenderer.invoke("credits:get-balance"),
+    },
 };
 
 contextBridge.exposeInMainWorld("electronAPI", electronAPI);

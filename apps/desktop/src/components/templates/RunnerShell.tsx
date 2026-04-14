@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { RunnerEngineStatus, RunnerTab } from "../../../shared/runner-types";
+import type { RunnerCreditBalance, RunnerEngineStatus, RunnerTab } from "../../../shared/runner-types";
 import { TabBar } from "../atoms/TabBar";
 import { TitleBar } from "../atoms/TitleBar";
 import { StatusBar } from "../organisms/StatusBar";
@@ -7,6 +7,7 @@ import { StatusBar } from "../organisms/StatusBar";
 type RunnerShellProps = {
     activeTab: RunnerTab;
     engineStatus: RunnerEngineStatus | null;
+    creditBalance: RunnerCreditBalance | null;
     isAuthenticated: boolean;
     onClose: () => void;
     onChangeTab: (tab: RunnerTab) => void;
@@ -17,6 +18,7 @@ type RunnerShellProps = {
 export function RunnerShell({
     activeTab,
     engineStatus,
+    creditBalance,
     isAuthenticated,
     onClose,
     onChangeTab,
@@ -37,7 +39,7 @@ export function RunnerShell({
                 <main className="runner-main">{children}</main>
             </div>
 
-            <StatusBar status={engineStatus} />
+            <StatusBar status={engineStatus} creditBalance={creditBalance} />
             {overlay}
         </div>
     );

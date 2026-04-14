@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { DesktopDownloadTab } from "../../components/organisms/DesktopDownloadTab";
 import { DesktopHowItWorksTab } from "../../components/organisms/DesktopHowItWorksTab";
 
@@ -12,7 +13,18 @@ const tabs: { value: Tab; label: string }[] = [
 ];
 
 export default function DesktopPage() {
-    const [activeTab, setActiveTab] = useState<Tab>("download");
+    const searchParams = useSearchParams();
+    const tabParam = searchParams.get("tab") as Tab | null;
+
+    const [activeTab, setActiveTab] = useState<Tab>(
+        tabParam === "como-funciona" ? "como-funciona" : "download"
+    );
+
+    useEffect(() => {
+        if (tabParam === "como-funciona") {
+            setActiveTab("como-funciona");
+        }
+    }, [tabParam]);
 
     return (
         <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-white">
