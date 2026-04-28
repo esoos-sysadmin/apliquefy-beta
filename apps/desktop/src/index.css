@@ -333,8 +333,9 @@ a {
 
 .campaign-card__stats {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .campaign-card__stats-label {
@@ -346,9 +347,10 @@ a {
 }
 
 .campaign-card__stats-value {
-  font-size: 28px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .campaign-card__actions {

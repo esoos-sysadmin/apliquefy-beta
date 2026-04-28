@@ -9,10 +9,10 @@ type CampaignCardProps = {
 };
 
 export function CampaignCard({ campaign, onView, onToggleStatus }: CampaignCardProps) {
-    const isPaused = campaign.status === "paused";
+    const isActive = campaign.status === "active";
 
     return (
-        <article className={`campaign-card ${isPaused ? "campaign-card--compact" : ""}`}>
+        <article className="campaign-card campaign-card--compact">
             <div className="campaign-card__header">
                 <div>
                     <h3 className="campaign-card__title">{campaign.name}</h3>
@@ -21,7 +21,7 @@ export function CampaignCard({ campaign, onView, onToggleStatus }: CampaignCardP
                 <StatusBadge status={campaign.status} />
             </div>
 
-            {!isPaused ? (
+            {isActive ? (
                 <div className="campaign-card__stats">
                     <span className="campaign-card__stats-label">Applications</span>
                     <strong className="campaign-card__stats-value">{campaign.applications}</strong>
@@ -40,10 +40,10 @@ export function CampaignCard({ campaign, onView, onToggleStatus }: CampaignCardP
                 <button
                     type="button"
                     className="icon-button no-drag"
-                    aria-label={isPaused ? `Resume ${campaign.name}` : `Pause ${campaign.name}`}
+                    aria-label={isActive ? `Pause ${campaign.name}` : `Resume ${campaign.name}`}
                     onClick={() => onToggleStatus(campaign)}
                 >
-                    {isPaused ? <Play size={16} /> : <Pause size={16} />}
+                    {isActive ? <Pause size={16} /> : <Play size={16} />}
                 </button>
             </div>
         </article>

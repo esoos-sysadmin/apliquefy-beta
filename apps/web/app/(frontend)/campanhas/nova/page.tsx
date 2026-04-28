@@ -9,6 +9,9 @@ import { useResumes } from "../../../hooks/use-resumes";
 import { SelectField } from "../../../components/atoms/SelectField";
 import { LinkedinParametersForm } from "../../../components/organisms/LinkedinParametersForm";
 import { InfojobsParametersForm } from "../../../components/organisms/InfojobsParametersForm";
+import { FormErrorBanner } from "../../../components/molecules/FormErrorBanner";
+import { ApiError } from "../../../lib/api-client";
+import { flattenZodErrorTree, type FieldError } from "../../../lib/format-field-errors";
 import type { LinkedinFormValues } from "../../../components/organisms/LinkedinParametersForm";
 import type { InfojobsFormValues } from "../../../components/organisms/InfojobsParametersForm";
 
@@ -49,6 +52,8 @@ export default function NewCampaignPage() {
     const [linkedinValues, setLinkedinValues] = useState<LinkedinFormValues>(defaultLinkedinValues);
     const [infojobsValues, setInfojobsValues] = useState<InfojobsFormValues>(defaultInfojobsValues);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [apiErrors, setApiErrors] = useState<FieldError[]>([]);
+    const [localError, setLocalError] = useState<string | null>(null);
 
     function handleLinkedinChange<K extends keyof LinkedinFormValues>(field: K, value: LinkedinFormValues[K]) {
         setLinkedinValues((prev) => ({ ...prev, [field]: value }));
@@ -59,7 +64,19 @@ export default function NewCampaignPage() {
     }
 
     async function handleSubmit() {
-        if (!resumeId || !campaignName.trim()) {
+        setApiErrors([]);
+        setLocalError(null);
+
+        const missing: FieldError[] = [];
+        if (!campaignName.trim()) missing.push({ path: "name", label: "Nome da campanha", message: "Campo obrigatório" });
+        if (!resumeId) missing.push({ path: "resumeId", label: "Currículo", message: "Selecione um currículo" });
+        if (Number(dailyLimit) <= 0) missing.push({ path: "dailyLimit", label: "Limite diário", message: "Informe um valor maior que zero" });
+        const terms = platform === "linkedin" ? linkedinValues.searchTerms : infojobsValues.searchTerms;
+        if (terms.length === 0) missing.push({ path: "searchTerms", label: "Termos de busca", message: "Adicione ao menos um termo" });
+
+        if (missing.length > 0) {
+            setApiErrors(missing);
+            if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
             return;
         }
 
@@ -105,16 +122,24 @@ export default function NewCampaignPage() {
             }
 
             router.push("/campanhas");
+        } catch (error) {
+            if (error instanceof ApiError && error.status === 400 && error.details) {
+                const fieldErrors = flattenZodErrorTree(error.details);
+                if (fieldErrors.length > 0) {
+                    setApiErrors(fieldErrors);
+                    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+                    return;
+                }
+            }
+            if (error instanceof ApiError) {
+                setLocalError(error.message);
+            } else {
+                setLocalError("Falha de comunicação com o servidor");
+            }
         } finally {
             setIsSubmitting(false);
         }
     }
-
-    const canSubmit =
-        Boolean(resumeId) &&
-        Boolean(campaignName.trim()) &&
-        Number(dailyLimit) > 0 &&
-        (platform === "linkedin" ? linkedinValues.searchTerms.length > 0 : infojobsValues.searchTerms.length > 0);
 
     return (
         <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-white">
@@ -143,6 +168,15 @@ export default function NewCampaignPage() {
                 </div>
             </div>
 
+            <FormErrorBanner errors={apiErrors} />
+            {localError && (
+                <div
+                    role="alert"
+                    className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+                >
+                    {localError}
+                </div>
+            )}
             {isLoadingResumes ? (
                 <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-6">
                     <div className="h-40 animate-pulse rounded-2xl bg-[#101826]" />
@@ -286,7 +320,7 @@ export default function NewCampaignPage() {
                                 <button
                                     type="button"
                                     onClick={handleSubmit}
-                                    disabled={!canSubmit || isSubmitting}
+                                    disabled={isSubmitting}
                                     className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(37,99,235,0.28)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <Rocket size={16} />

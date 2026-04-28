@@ -7,6 +7,9 @@ import { emptyResumeForm, emptyExperience, emptyEducation, emptyIdiom } from "..
 import { formatPhone, calcResumeProgress } from "../../../lib/helpers/resume";
 import { ResumeProgressBar } from "../../../components/molecules/ResumeProgressBar";
 import { ResumeFormPopup } from "../../../components/molecules/ResumeFormPopup";
+import { FormErrorBanner } from "../../../components/molecules/FormErrorBanner";
+import { ApiError } from "../../../lib/api-client";
+import { flattenZodErrorTree, type FieldError } from "../../../lib/format-field-errors";
 import { ResumePersonalDetailsSection } from "../../../components/organisms/ResumePersonalDetailsSection";
 import { ResumeWorkExperienceSection } from "../../../components/organisms/ResumeWorkExperienceSection";
 import { ResumeSkillsSection } from "../../../components/organisms/ResumeSkillsSection";
@@ -23,6 +26,7 @@ export default function NovoResumePage() {
     const [loading, setLoading] = useState(false);
     const [popup, setPopup] = useState<{ type: "success" | "error"; message: string } | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [apiErrors, setApiErrors] = useState<FieldError[]>([]);
 
     const progress = calcResumeProgress(form);
 
@@ -76,6 +80,7 @@ export default function NovoResumePage() {
     }
 
     async function handleSubmit() {
+        setApiErrors([]);
         if (!validate()) return;
 
         setLoading(true);
@@ -90,7 +95,17 @@ export default function NovoResumePage() {
                 isDefault: false,
             });
             setPopup({ type: "success", message: "Currículo criado com sucesso!" });
-        } catch {
+        } catch (error) {
+            if (error instanceof ApiError && error.status === 400 && error.details) {
+                const fieldErrors = flattenZodErrorTree(error.details);
+                if (fieldErrors.length > 0) {
+                    setApiErrors(fieldErrors);
+                    if (typeof window !== "undefined") {
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                    return;
+                }
+            }
             setPopup({ type: "error", message: "Falha de comunicação com o servidor" });
         } finally {
             setLoading(false);
@@ -109,6 +124,8 @@ export default function NovoResumePage() {
                     <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>Resume Profile</h1>
                     <p style={{ color: "#64748b", marginTop: 6, fontSize: 15 }}>Manage your structured data for automated applications.</p>
                 </div>
+
+                <FormErrorBanner errors={apiErrors} />
 
                 <div style={{ marginBottom: 20 }}>
                     <label style={{ display: "block", fontSize: 13, color: "#94a3b8", marginBottom: 8, fontWeight: 500 }}>Título do Currículo *</label>

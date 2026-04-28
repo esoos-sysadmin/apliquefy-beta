@@ -44,7 +44,7 @@ const experienceSchema = z.object({
     companyName: z.string().min(3, "O nome da empresa é muito curto").optional(),
     jobType: z.string().min(3, "O tipo de vaga é muito curto").optional(),
     description: z.string().min(3, "A descrição das atividades é muito curta").optional(),
-    jobArea: z.string().min(3, "A área de atuação é muito curta").optional(),
+    jobArea: z.string().min(3, "A área de atuação é muito curta"),
     jobStartDate: z.string().optional(),
     jobEndDate: z.string().optional().nullable(),
     isActualJob: z.boolean({
