@@ -21,6 +21,9 @@ if (typeof loadEnvFile === "function") {
 
 let mainWindow: BrowserWindow | null = null;
 
+// Desliga aceleração de GPU: evita glitches de render do Chromium/Electron em
+// alguns setups Linux (ex.: Pop!_OS/Mesa). Se causar lentidão em máquina com GPU
+// ok, remover.
 app.disableHardwareAcceleration()
 
 app.whenReady().then(() => {

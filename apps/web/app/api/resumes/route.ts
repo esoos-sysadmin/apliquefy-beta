@@ -9,7 +9,6 @@ export async function POST(request: Request) {
 
         const data = await request.json()
         if (!userId || !data.title) {
-            console.log('[resumes POST] 400 entrada:', { userId, data })
             return NextResponse.json(
                 { message: "nenhum dado foi enviado ou usuário invalido"},
                 { status: 400 }
@@ -18,7 +17,6 @@ export async function POST(request: Request) {
 
         const newCV = await resumeService.createResume(userId, data)
         if (!newCV.success) {
-            console.log('[resumes POST] 400 service:', newCV.errorDesc)
             return NextResponse.json(
                 {
                     message: "Erro: Campos inválidos falha ao tentar criar um curriculo",

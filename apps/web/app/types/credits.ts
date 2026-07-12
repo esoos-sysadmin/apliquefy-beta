@@ -7,20 +7,6 @@ export interface CreditBalance {
     hasNegativeBalance: boolean
 }
 
-export interface DebitCreditsPayload {
-    questions: Array<{ question_id: string; used_fallback: boolean }>
-    campaign_id: string
-    job_application_id?: string
-    idempotency_key: string
-}
-
-export interface DebitCreditsResult {
-    newBalance: number
-    creditsDebited: number
-    rawCost: number
-    blocked: boolean
-}
-
 export interface CreditTransaction {
     id: string
     userId: string
@@ -33,9 +19,3 @@ export interface CreditTransaction {
     created_at: string
 }
 
-export interface CreditWeightConfig {
-    id: string
-    stage: string
-    weight: number
-    label: string
-}

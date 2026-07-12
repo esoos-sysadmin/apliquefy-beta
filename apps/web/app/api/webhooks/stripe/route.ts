@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 import { stripe } from "../../../lib/stripe";
 import { stripeService } from "../../../../backend/modules/stripe/stripe.service";
-import { prisma } from "@repo/database";
+import { prisma, Prisma } from "@repo/database";
 
 export async function POST(request: Request) {
     const body = await request.text();
@@ -30,10 +30,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: "Assinatura do webhook inválida" }, { status: 400 });
     }
 
-    // Idempotency check
-    const existing = await prisma.webhookEvent.findUnique({ where: { id: event.id } });
-    if (existing) {
-        return NextResponse.json({ message: "Evento já processado" }, { status: 200 });
+    // Idempotência: reivindica o evento ANTES de processar. Se já existe (retry do
+    // Stripe ou entrega concorrente), o create falha por unique (P2002) → já
+    // processado, sai 200. Evita reprocessar e creditar em dobro (invoice.paid/pacotes).
+    try {
+        await prisma.webhookEvent.create({ data: { id: event.id, type: event.type } });
+    } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+            return NextResponse.json({ message: "Evento já processado" }, { status: 200 });
+        }
+        throw err;
     }
 
     try {
@@ -61,12 +67,9 @@ export async function POST(request: Request) {
             default:
                 break;
         }
-
-        // Record processed event for idempotency
-        await prisma.webhookEvent.create({
-            data: { id: event.id, type: event.type },
-        });
     } catch (error) {
+        // Handler falhou: libera a reivindicação pra que o retry do Stripe reprocesse.
+        await prisma.webhookEvent.delete({ where: { id: event.id } }).catch(() => {});
         console.error(`Erro ao processar webhook ${event.type}:`, error);
         return NextResponse.json({ message: "Erro ao processar evento" }, { status: 500 });
     }
