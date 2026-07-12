@@ -70,6 +70,24 @@ const fallbackElectronAPI: ElectronAPI = {
         getStatus: async () => fallbackEngineStatus,
         subscribe: () => () => undefined,
     },
+    credits: {
+        getBalance: async () => ({ balance: 0, canSend: false, plan: "free" }),
+    },
+    sessions: {
+        capture: async () => ({ success: false, code: 500, message: "Electron unavailable." }),
+        check: async () => null,
+        list: async () => ({}),
+        remove: async () => ({}),
+        subscribe: () => () => undefined,
+    },
+    rpa: {
+        status: async () => ({ running: false, port: null, pid: null }),
+        ensureStarted: async () => ({ running: false, port: null, pid: null }),
+        stop: async () => ({ running: false, port: null, pid: null }),
+        startRun: async () => ({ runId: "", status: "started" }),
+        stopRun: async () => ({ success: false }),
+        subscribe: () => () => undefined,
+    },
 };
 
 export function useElectron() {

@@ -1,6 +1,7 @@
 "use client";
 
 import { inputStyle, sectionStyle, sectionTitle, labelStyle, gridTwo, addButtonStyle, removeButtonStyle } from "../../lib/constants/resume-styles";
+import { MonthYearPicker } from "../molecules/MonthYearPicker";
 import type { ResumeFormExperience } from "../../types/resume-form";
 
 export function ResumeWorkExperienceSection({
@@ -59,18 +60,22 @@ export function ResumeWorkExperienceSection({
                         </div>
                         <div>
                             <label style={labelStyle}>Data de início</label>
-                            <input type={isEditing ? "month" : "text"} value={exp.jobStartDate} onChange={(e) => onChange(i, "jobStartDate", e.target.value)} onClick={onUnlock} readOnly={frozen} style={inputStyle(false, frozen)} />
+                            <MonthYearPicker
+                                value={exp.jobStartDate}
+                                onChange={(v) => onChange(i, "jobStartDate", v)}
+                                onOpen={onUnlock}
+                                readOnly={frozen}
+                            />
                         </div>
                         <div>
                             <label style={labelStyle}>Data de término</label>
-                            <input
-                                type={isEditing ? "month" : "text"}
+                            <MonthYearPicker
                                 value={exp.jobEndDate}
-                                onChange={(e) => onChange(i, "jobEndDate", e.target.value)}
-                                onClick={onUnlock}
+                                onChange={(v) => onChange(i, "jobEndDate", v)}
+                                onOpen={onUnlock}
                                 readOnly={frozen}
                                 disabled={exp.isActualJob}
-                                style={{ ...inputStyle(false, frozen), opacity: exp.isActualJob ? 0.4 : 1 }}
+                                placeholder={exp.isActualJob ? "Atual" : "Selecione mês e ano"}
                             />
                         </div>
                         {isEditing && (

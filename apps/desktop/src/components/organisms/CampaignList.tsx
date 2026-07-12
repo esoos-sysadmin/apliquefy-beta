@@ -1,4 +1,4 @@
-import type { RunnerCampaign } from "../../../shared/runner-types";
+import type { RunnerCampaign, RunnerPlatform } from "../../../shared/runner-types";
 import { getVisibleCampaigns } from "../../helpers/get-visible-campaigns";
 import { CampaignCard } from "../molecules/CampaignCard";
 
@@ -6,6 +6,7 @@ type CampaignListProps = {
     campaigns: RunnerCampaign[];
     isLoading: boolean;
     engineVersion?: string;
+    isSessionValid: (platform: RunnerPlatform) => boolean;
     onView: (campaign: RunnerCampaign) => void;
     onToggleStatus: (campaign: RunnerCampaign) => void;
     onRefresh: () => void;
@@ -15,6 +16,7 @@ export function CampaignList({
     campaigns,
     isLoading,
     engineVersion,
+    isSessionValid,
     onView,
     onToggleStatus,
     onRefresh,
@@ -50,6 +52,7 @@ export function CampaignList({
                         <CampaignCard
                             key={campaign.id}
                             campaign={campaign}
+                            sessionValid={isSessionValid(campaign.platform)}
                             onView={onView}
                             onToggleStatus={onToggleStatus}
                         />

@@ -6,11 +6,13 @@ export interface ApiClientOptions {
 
 export class ApiError extends Error {
     status: number;
+    details?: unknown;
 
-    constructor(status: number, message: string) {
+    constructor(status: number, message: string, details?: unknown) {
         super(message);
         this.name = "ApiError";
         this.status = status;
+        this.details = details;
     }
 }
 
@@ -36,7 +38,12 @@ export function createApiClient({ token }: ApiClientOptions) {
                       ? payload
                       : "Request failed";
 
-            throw new ApiError(response.status, message);
+            const details =
+                typeof payload === "object" && payload
+                    ? ("errorS" in payload ? payload.errorS : "errorDesc" in payload ? payload.errorDesc : undefined)
+                    : undefined;
+
+            throw new ApiError(response.status, message, details);
         }
 
         return payload as T;

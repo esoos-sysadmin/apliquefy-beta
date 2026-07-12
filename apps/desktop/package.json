@@ -5,8 +5,21 @@
   "main": "dist-electron/electron/main.js",
   "scripts": {
     "build": "tsc && vite build",
+    "build:robots": "cd ../robots && pyinstaller --clean --distpath ../desktop/build/robots-dist build.spec",
     "dev": "concurrently -k \"vite\" \"npm run electron:dev\"",
-    "electron:dev": "wait-on tcp:5173 && tsc && cross-env NODE_ENV=development electron dist-electron/electron/main.js"
+    "electron:dev": "wait-on tcp:5173 && tsc && cross-env NODE_ENV=development electron dist-electron/electron/main.js",
+    "postinstall": "playwright install chrome"
+  },
+  "build": {
+    "appId": "com.apliquefy.desktop",
+    "files": ["dist-electron/**", "dist/**"],
+    "extraResources": [
+      {
+        "from": "build/robots-dist/robots",
+        "to": "robots",
+        "filter": ["**/*"]
+      }
+    ]
   },
   "keywords": [],
   "author": "",
@@ -16,6 +29,7 @@
     "@types/node": "^22.19.3",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "@types/ws": "^8.5.12",
     "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.19",
     "concurrently": "^9.2.1",
@@ -30,8 +44,10 @@
     "wait-on": "^9.0.3"
   },
   "dependencies": {
+    "playwright": "^1.59.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-router-dom": "^7.11.0"
+    "react-router-dom": "^7.11.0",
+    "ws": "^8.18.0"
   }
 }

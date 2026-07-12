@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { ElectronAPI, RunnerEngineStatus } from "../shared/runner-types";
+import type { ElectronAPI, RpaEvent, RunnerEngineStatus, RunnerSessionMap } from "../shared/runner-types";
 
 const electronAPI: ElectronAPI = {
     window: {
@@ -36,6 +36,40 @@ const electronAPI: ElectronAPI = {
 
             return () => {
                 ipcRenderer.removeListener("engine:status", handleEngineStatus);
+            };
+        },
+    },
+    credits: {
+        getBalance: () => ipcRenderer.invoke("credits:get-balance"),
+    },
+    sessions: {
+        capture: (platform) => ipcRenderer.invoke("sessions:capture", platform),
+        check: (platform) => ipcRenderer.invoke("sessions:check", platform),
+        list: () => ipcRenderer.invoke("sessions:list"),
+        remove: (platform) => ipcRenderer.invoke("sessions:remove", platform),
+        subscribe: (listener: (sessions: RunnerSessionMap) => void) => {
+            const handler = (_event: Electron.IpcRendererEvent, sessions: RunnerSessionMap) => {
+                listener(sessions);
+            };
+            ipcRenderer.on("sessions:changed", handler);
+            return () => {
+                ipcRenderer.removeListener("sessions:changed", handler);
+            };
+        },
+    },
+    rpa: {
+        status: () => ipcRenderer.invoke("rpa:status"),
+        ensureStarted: () => ipcRenderer.invoke("rpa:ensure-started"),
+        stop: () => ipcRenderer.invoke("rpa:stop"),
+        startRun: (request) => ipcRenderer.invoke("rpa:start-run", request),
+        stopRun: (runId) => ipcRenderer.invoke("rpa:stop-run", runId),
+        subscribe: (listener: (event: RpaEvent) => void) => {
+            const handler = (_event: Electron.IpcRendererEvent, payload: RpaEvent) => {
+                listener(payload);
+            };
+            ipcRenderer.on("rpa:event", handler);
+            return () => {
+                ipcRenderer.removeListener("rpa:event", handler);
             };
         },
     },
