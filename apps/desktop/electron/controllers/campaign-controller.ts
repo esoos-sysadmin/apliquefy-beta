@@ -1,6 +1,7 @@
 import { getRunnerState, updateRunnerState } from "../store";
 import { fetchCampaignById, fetchCampaigns, updateCampaignStatus } from "../services/campaign-service";
 import { notifyCampaignActivated, notifyCampaignPaused } from "../services/notification-service";
+import { startCampaignRun } from "../services/campaign-run-service";
 
 function persistCampaigns(campaigns: Awaited<ReturnType<typeof fetchCampaigns>>) {
     const nextState = updateRunnerState((currentState) => ({
@@ -41,11 +42,35 @@ export function createCampaignController() {
             return campaigns;
         },
         async activateCampaign(campaignId: string) {
+            const state = getRunnerState();
+            const targetCampaign =
+                state.campaigns.find((campaign) => campaign.id === campaignId) ??
+                (await fetchCampaignById(campaignId));
+
+            if (targetCampaign) {
+                const session = state.sessions[targetCampaign.platform];
+                if (!session || session.status !== "active") {
+                    const error = new Error("Sessão de login inválida ou expirada.") as Error & {
+                        code?: number;
+                    };
+                    error.code = 401;
+                    throw error;
+                }
+            }
+
             const campaigns = persistCampaigns(await updateCampaignStatus(`/api/campaigns/${campaignId}/activate`));
             const activatedCampaign = campaigns.find((campaign) => campaign.id === campaignId);
 
             if (activatedCampaign) {
                 notifyCampaignActivated(activatedCampaign.name);
+
+                // Dispara o run do RPA (abre o navegador). Falha aqui não desfaz a
+                // ativação: a campanha fica ativa e o erro é logado para diagnóstico.
+                try {
+                    await startCampaignRun(activatedCampaign);
+                } catch (error) {
+                    console.error(`[rpa] falha ao iniciar run da campanha ${campaignId}:`, error);
+                }
             }
 
             return campaigns;

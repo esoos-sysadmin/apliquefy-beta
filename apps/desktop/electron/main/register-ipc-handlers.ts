@@ -4,6 +4,8 @@ import { registerAuthIpc } from "../ipc/auth";
 import { registerCampaignIpc } from "../ipc/campaigns";
 import { registerCreditIpc } from "../ipc/credits";
 import { registerEngineIpc } from "../ipc/engine";
+import { registerRpaIpc } from "../ipc/rpa";
+import { registerSessionsIpc } from "../ipc/sessions";
 import { registerSettingsIpc } from "../ipc/settings";
 import { registerWindowIpc } from "../ipc/window";
 
@@ -17,6 +19,8 @@ export function registerIpcHandlers(options: RegisterIpcHandlersOptions) {
     registerAccountsIpc();
     registerCreditIpc();
     registerEngineIpc();
+    registerRpaIpc();
+    registerSessionsIpc();
     registerAuthIpc({
         getMainWindow: options.getMainWindow,
     });

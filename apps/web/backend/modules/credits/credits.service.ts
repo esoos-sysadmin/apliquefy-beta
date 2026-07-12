@@ -1,8 +1,10 @@
 import { prisma, Prisma } from "@repo/database"
 import {
     debitCreditsSchema,
+    debitFlatSchema,
     creditHistoryFiltersSchema,
     type DebitCreditsInput,
+    type DebitFlatInput,
     type CreditHistoryFilters,
 } from "../../../app/lib/validations/credits"
 import type {
@@ -175,6 +177,83 @@ export class CreditsService {
         } catch (error) {
             console.error("Erro ao debitar créditos:", error)
             throw new Error("Falha de comunicação no banco de dados ao debitar créditos")
+        }
+    }
+
+    /**
+     * Debits a flat cost per application (RPA engine).
+     * Cost read from env COST_PER_APPLICATION (default 1).
+     * Atomic + idempotent via idempotency_key.
+     */
+    async debitFlat(userId: string, rawData: DebitFlatInput): Promise<CreditsServiceResponse> {
+        const validation = debitFlatSchema.safeParse(rawData)
+
+        if (!validation.success) {
+            return { success: false, errorDesc: validation.error.format() }
+        }
+
+        const { campaign_id, job_application_id, idempotency_key } = validation.data
+        const cost = Math.max(1, Number.parseInt(process.env.COST_PER_APPLICATION ?? "1", 10))
+
+        try {
+            const result = await prisma.$transaction(async (tx) => {
+                const existing = await tx.transaction.findFirst({
+                    where: { idempotencyKey: idempotency_key },
+                })
+
+                if (existing) {
+                    const user = await tx.user.findUnique({ where: { id: userId } })
+                    return {
+                        newBalance: user?.credits ?? 0,
+                        creditsDebited: 0,
+                        rawCost: 0,
+                        blocked: (user?.credits ?? 0) <= 0,
+                        idempotent: true,
+                    }
+                }
+
+                const updated = await tx.user.update({
+                    where: { id: userId },
+                    data: { credits: { decrement: cost } },
+                })
+
+                await tx.transaction.create({
+                    data: {
+                        userId,
+                        amount: -cost,
+                        type: "USAGE",
+                        reference_id: campaign_id,
+                        description: `Candidatura aplicada — ${cost} crédito(s)`,
+                        idempotencyKey: idempotency_key,
+                        metadata: {
+                            flat: true,
+                            costPerApplication: cost,
+                            campaignId: campaign_id,
+                            jobApplicationId: job_application_id,
+                        },
+                    },
+                })
+
+                return {
+                    newBalance: updated.credits,
+                    creditsDebited: cost,
+                    rawCost: cost,
+                    blocked: updated.credits <= 0,
+                    idempotent: false,
+                }
+            })
+
+            const data: DebitCreditsData = {
+                newBalance: result.newBalance,
+                creditsDebited: result.creditsDebited,
+                rawCost: result.rawCost,
+                blocked: result.blocked,
+            }
+
+            return { success: true, data }
+        } catch (error) {
+            console.error("Erro ao debitar crédito flat:", error)
+            throw new Error("Falha de comunicação no banco de dados ao debitar crédito flat")
         }
     }
 

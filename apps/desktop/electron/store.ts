@@ -7,6 +7,7 @@ import type {
     RunnerCreditBalance,
     RunnerPersistedState,
     RunnerPlatform,
+    RunnerSessionMap,
     RunnerSettings,
 } from "../shared/runner-types";
 
@@ -41,6 +42,8 @@ const defaultCreditBalance: RunnerCreditBalance = {
     plan: "free",
 };
 
+const defaultSessions: RunnerSessionMap = {};
+
 // --- Persistence ---
 
 const STATE_FILE = "apliquefy-runner-state.json";
@@ -61,13 +64,21 @@ function readStateFromDisk(): RunnerPersistedState {
                 settings: raw.settings ? { ...defaultSettings, ...raw.settings } : defaultSettings,
                 auth: raw.auth ? { ...defaultAuth, ...raw.auth } : defaultAuth,
                 creditBalance: raw.creditBalance ? { ...defaultCreditBalance, ...raw.creditBalance } : defaultCreditBalance,
+                sessions: raw.sessions ?? defaultSessions,
             };
         }
     } catch (error) {
         console.error("Failed to read runner state:", error);
     }
 
-    return { campaigns: [], account: defaultAccount, settings: defaultSettings, auth: defaultAuth, creditBalance: defaultCreditBalance };
+    return {
+        campaigns: [],
+        account: defaultAccount,
+        settings: defaultSettings,
+        auth: defaultAuth,
+        creditBalance: defaultCreditBalance,
+        sessions: defaultSessions,
+    };
 }
 
 function writeStateToDisk(state: RunnerPersistedState) {

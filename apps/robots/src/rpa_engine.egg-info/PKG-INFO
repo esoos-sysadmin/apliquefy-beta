@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: rpa-engine
+Version: 0.1.0
+Summary: Apliquefy RPA Engine — FastAPI + Playwright + Anthropic Vision
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115
+Requires-Dist: uvicorn[standard]>=0.32
+Requires-Dist: playwright>=1.49
+Requires-Dist: pydantic>=2.9
+Requires-Dist: httpx>=0.27
+Requires-Dist: reportlab>=4.2
+Requires-Dist: websockets>=13
+Requires-Dist: browser-use<0.14,>=0.13

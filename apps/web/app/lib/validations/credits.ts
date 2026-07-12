@@ -23,6 +23,26 @@ export const debitCreditsSchema = z.preprocess((value) => {
     idempotency_key: z.string().min(1, "idempotency_key é obrigatório"),
 }))
 
+export const debitFlatSchema = z.preprocess((value) => {
+    if (!value || typeof value !== "object") {
+        return value
+    }
+
+    const payload = value as Record<string, unknown>
+
+    return {
+        campaign_id: payload.campaign_id ?? payload.campaignId,
+        job_application_id: payload.job_application_id ?? payload.jobApplicationId,
+        idempotency_key: payload.idempotency_key ?? payload.idempotencyKey,
+    }
+}, z.object({
+    campaign_id: z.string().uuid("campaign_id deve ser um UUID válido"),
+    job_application_id: z.string().uuid("job_application_id deve ser um UUID válido"),
+    idempotency_key: z.string().min(1, "idempotency_key é obrigatório"),
+}))
+
+export type DebitFlatInput = z.infer<typeof debitFlatSchema>
+
 export const creditHistoryFiltersSchema = z.object({
     type: z.enum(["PURCHASE", "USAGE", "BONUS", "REFUND", "SUBSCRIPTION_CREDIT", "RESET"]).optional(),
     from: z.string().optional(),
@@ -33,3 +53,4 @@ export const creditHistoryFiltersSchema = z.object({
 
 export type DebitCreditsInput = z.infer<typeof debitCreditsSchema>
 export type CreditHistoryFilters = z.infer<typeof creditHistoryFiltersSchema>
+

@@ -4,12 +4,14 @@ import { StatusBadge } from "../atoms/StatusBadge";
 
 type CampaignCardProps = {
     campaign: RunnerCampaign;
+    sessionValid: boolean;
     onView: (campaign: RunnerCampaign) => void;
     onToggleStatus: (campaign: RunnerCampaign) => void;
 };
 
-export function CampaignCard({ campaign, onView, onToggleStatus }: CampaignCardProps) {
+export function CampaignCard({ campaign, sessionValid, onView, onToggleStatus }: CampaignCardProps) {
     const isActive = campaign.status === "active";
+    const playDisabled = !isActive && !sessionValid;
 
     return (
         <article className="campaign-card campaign-card--compact">
@@ -39,8 +41,10 @@ export function CampaignCard({ campaign, onView, onToggleStatus }: CampaignCardP
                 </button>
                 <button
                     type="button"
-                    className="icon-button no-drag"
+                    className={`icon-button no-drag${playDisabled ? " icon-button--disabled" : ""}`}
                     aria-label={isActive ? `Pause ${campaign.name}` : `Resume ${campaign.name}`}
+                    aria-disabled={playDisabled}
+                    title={playDisabled ? "Faça login para iniciar" : undefined}
                     onClick={() => onToggleStatus(campaign)}
                 >
                     {isActive ? <Pause size={16} /> : <Play size={16} />}
