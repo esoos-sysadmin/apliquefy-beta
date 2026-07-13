@@ -38,51 +38,51 @@ export function LinkedinParametersForm({
         <div className="space-y-6">
             <div className="flex items-center gap-2">
                 <BriefcaseBusiness size={18} className="text-cyan-300" />
-                <h2 className="text-xl font-semibold text-white">LinkedIn Parameters</h2>
+                <h2 className="text-xl font-semibold text-white">Parâmetros do LinkedIn</h2>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
                 <label className="block space-y-2">
-                    <span className="text-sm font-medium text-slate-300">Search Terms</span>
+                    <span className="text-sm font-medium text-slate-300">Termos de busca</span>
                     <TagInput
                         tags={values.searchTerms}
                         onChange={(tags) => onChange("searchTerms", tags)}
-                        placeholder="e.g. Frontend Developer"
+                        placeholder="ex.: Desenvolvedor Front-end"
                     />
                 </label>
 
                 <label className="block space-y-2">
-                    <span className="text-sm font-medium text-slate-300">Location</span>
+                    <span className="text-sm font-medium text-slate-300">Localização</span>
                     <TagInput
                         tags={values.location}
                         onChange={(tags) => onChange("location", tags)}
-                        placeholder="e.g. Brazil, Remote"
+                        placeholder="ex.: Brasil, Remoto"
                         icon={<MapPin size={16} className="shrink-0 text-slate-500" />}
                     />
                 </label>
 
                 <label className="block space-y-2">
-                    <span className="text-sm font-medium text-slate-300">Sort By</span>
+                    <span className="text-sm font-medium text-slate-300">Ordenar por</span>
                     <SelectField value={values.sortBy} onChange={(value) => onChange("sortBy", value)} options={linkedinSortOptions} />
                 </label>
 
                 <label className="block space-y-2">
-                    <span className="text-sm font-medium text-slate-300">Date Posted</span>
+                    <span className="text-sm font-medium text-slate-300">Data de publicação</span>
                     <SelectField value={values.datePosted} onChange={(value) => onChange("datePosted", value)} options={linkedinDatePostedOptions} />
                 </label>
 
                 <label className="block space-y-2">
-                    <span className="text-sm font-medium text-slate-300">Experience Level</span>
+                    <span className="text-sm font-medium text-slate-300">Nível de experiência</span>
                     <SelectField value={values.experienceLevel} onChange={(value) => onChange("experienceLevel", value)} options={linkedinExperienceOptions} />
                 </label>
 
                 <label className="block space-y-2">
-                    <span className="text-sm font-medium text-slate-300">Job Type</span>
+                    <span className="text-sm font-medium text-slate-300">Tipo de vaga</span>
                     <SelectField value={values.jobType} onChange={(value) => onChange("jobType", value)} options={linkedinJobTypeOptions} />
                 </label>
 
                 <label className="block space-y-2 lg:col-span-2 xl:max-w-[calc(50%-0.5rem)]">
-                    <span className="text-sm font-medium text-slate-300">Remote Filter</span>
+                    <span className="text-sm font-medium text-slate-300">Modelo de trabalho</span>
                     <SelectField value={values.remoteFilter} onChange={(value) => onChange("remoteFilter", value)} options={linkedinRemoteOptions} />
                 </label>
             </div>

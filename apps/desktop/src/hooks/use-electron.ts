@@ -46,6 +46,10 @@ const fallbackElectronAPI: ElectronAPI = {
     window: {
         close: async () => undefined,
     },
+    assistant: {
+        transcribe: async () => "",
+        chat: async () => ({ reply: "Electron indisponível.", actions: [] }),
+    },
     campaigns: {
         list: async () => fallbackCampaigns,
         getById: async () => null,

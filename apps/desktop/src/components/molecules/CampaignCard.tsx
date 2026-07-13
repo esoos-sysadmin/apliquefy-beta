@@ -1,20 +1,22 @@
-import { Eye, Pause, Play } from "lucide-react";
+import { Eye, Loader2, Pause, Play } from "lucide-react";
 import type { RunnerCampaign } from "../../../shared/runner-types";
 import { StatusBadge } from "../atoms/StatusBadge";
 
 type CampaignCardProps = {
     campaign: RunnerCampaign;
     sessionValid: boolean;
+    isPending: boolean;
     onView: (campaign: RunnerCampaign) => void;
     onToggleStatus: (campaign: RunnerCampaign) => void;
 };
 
-export function CampaignCard({ campaign, sessionValid, onView, onToggleStatus }: CampaignCardProps) {
+export function CampaignCard({ campaign, sessionValid, isPending, onView, onToggleStatus }: CampaignCardProps) {
     const isActive = campaign.status === "active";
     const playDisabled = !isActive && !sessionValid;
+    const pendingLabel = isActive ? "Pausando…" : "Subindo campanha…";
 
     return (
-        <article className="campaign-card campaign-card--compact">
+        <article className={`campaign-card campaign-card--compact${isPending ? " campaign-card--pending" : ""}`}>
             <div className="campaign-card__header">
                 <div>
                     <h3 className="campaign-card__title">{campaign.name}</h3>
@@ -31,9 +33,15 @@ export function CampaignCard({ campaign, sessionValid, onView, onToggleStatus }:
             ) : null}
 
             <div className="campaign-card__actions">
+                {isPending ? (
+                    <span className="campaign-card__pending">
+                        <Loader2 size={13} className="spin" />
+                        {pendingLabel}
+                    </span>
+                ) : null}
                 <button
                     type="button"
-                    className="icon-button no-drag"
+                    className="icon-button icon-button--view no-drag"
                     aria-label={`View ${campaign.name}`}
                     onClick={() => onView(campaign)}
                 >
@@ -41,13 +49,20 @@ export function CampaignCard({ campaign, sessionValid, onView, onToggleStatus }:
                 </button>
                 <button
                     type="button"
-                    className={`icon-button no-drag${playDisabled ? " icon-button--disabled" : ""}`}
+                    className={`icon-button icon-button--play no-drag${playDisabled ? " icon-button--disabled" : ""}`}
                     aria-label={isActive ? `Pause ${campaign.name}` : `Resume ${campaign.name}`}
-                    aria-disabled={playDisabled}
+                    aria-disabled={playDisabled || isPending}
+                    disabled={isPending}
                     title={playDisabled ? "Faça login para iniciar" : undefined}
                     onClick={() => onToggleStatus(campaign)}
                 >
-                    {isActive ? <Pause size={16} /> : <Play size={16} />}
+                    {isPending ? (
+                        <Loader2 size={16} className="spin" />
+                    ) : isActive ? (
+                        <Pause size={16} />
+                    ) : (
+                        <Play size={16} />
+                    )}
                 </button>
             </div>
         </article>

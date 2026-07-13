@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import logging
 from dataclasses import dataclass, field
 from typing import Literal
@@ -47,6 +48,24 @@ class RunHandle:
             pass
 
 
+async def _stream_frames(page, emit, run_id: str, interval: float = 0.4) -> None:
+    """Screenshot periódico da página → evento `frame` (JPEG base64) p/ a prévia
+    ao vivo no desktop. Puramente cosmético: não toca no browser de automação
+    além de ler um screenshot, então não muda a superfície anti-detecção.
+
+    ponytail: screenshot da página conhecida a ~2.5fps; durante navegação o
+    screenshot lança e o frame é só descartado. Se um dia precisar seguir troca
+    de aba, migrar p/ CDP screencast.
+    """
+    while True:
+        try:
+            shot = await page.screenshot(type="jpeg", quality=45)
+            await emit({"runId": run_id, "type": "frame", "data": base64.b64encode(shot).decode()})
+        except Exception:  # noqa: BLE001 — nav em progresso / target ocupado: descarta o frame
+            pass
+        await asyncio.sleep(interval)
+
+
 class Orchestrator:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
@@ -89,7 +108,13 @@ class Orchestrator:
                         emit=handle.emit,
                         run_id=run_id,
                     )
-                    await engine_cls(ctx).execute()
+                    frame_task = asyncio.create_task(
+                        _stream_frames(bridge.page, handle.emit, run_id)
+                    )
+                    try:
+                        await engine_cls(ctx).execute()
+                    finally:
+                        frame_task.cancel()
 
                 handle.state = "finished"
                 await handle.emit({"runId": run_id, "type": "finished", "total": 0})

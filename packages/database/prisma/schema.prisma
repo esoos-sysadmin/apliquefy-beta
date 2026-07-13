@@ -287,10 +287,11 @@ model User {
   createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamp
 
   // Relacionamentos Inversos
-  resumes           Resume[]
-  campaigns         Campaign[]
-  jobApplications   JobApplication[]
-  transaction       Transaction[]
+  resumes         Resume[]
+  campaigns       Campaign[]
+  jobApplications JobApplication[]
+  transaction     Transaction[]
+  abTests         AbTest[]
 
   @@map("users")
 }
@@ -324,21 +325,21 @@ model Resume {
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp
 
   // Relacionamentos
-  user      User      @relation(fields: [userId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
   campaigns Campaign[]
 
   @@map("resumes")
 }
 
 model Campaign {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  resumeId   String   @map("resume_id") @db.Uuid
-  userId     String   @map("user_id")
-  name       String   @db.VarChar
+  id         String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  resumeId   String          @map("resume_id") @db.Uuid
+  userId     String          @map("user_id")
+  name       String          @db.VarChar
   platform   Platform
-  status     status_campaign   @default(inactive)
-  dailyLimit Int?      @default(50) @map("daily_limit")
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp
+  status     status_campaign @default(inactive)
+  dailyLimit Int?            @default(50) @map("daily_limit")
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamp
 
   // Relacionamentos
   resume Resume @relation(fields: [resumeId], references: [id])
@@ -352,16 +353,20 @@ model Campaign {
   jobs            Job[]
   reports         Report[]
 
+  // Teste A/B (a campanha pode ser variante A ou B de no máximo um teste)
+  abTestAsA AbTest? @relation("AbTestVariantA")
+  abTestAsB AbTest? @relation("AbTestVariantB")
+
   @@map("campaigns")
 }
 
 model CampaignLinkedin {
-  id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  campaignId   String           @unique @map("campaign_id") @db.Uuid
-  searchTerms  String?          @map("search_terms") @db.VarChar
-  locationTerm String?          @map("location_term") @db.VarChar
-  sortBy       LinkedinSort?    @default(relevant) @map("sort_by")
-  datePosted   LinkedinDate?    @default(any) @map("date_posted")
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId   String        @unique @map("campaign_id") @db.Uuid
+  searchTerms  String?       @map("search_terms") @db.VarChar
+  locationTerm String?       @map("location_term") @db.VarChar
+  sortBy       LinkedinSort? @default(relevant) @map("sort_by")
+  datePosted   LinkedinDate? @default(any) @map("date_posted")
 
   // Arrays para Multi-select
   expLevel     LinkedinExp[]     @map("exp_level")
@@ -375,13 +380,13 @@ model CampaignLinkedin {
 }
 
 model CampaignInfojobs {
-  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  campaignId    String          @unique @map("campaign_id") @db.Uuid
-  searchTerms   String?         @map("search_terms") @db.VarChar
-  locationState BrazilState?    @map("location_state")
-  kmDeVoce      IjRadius?       @default(km_25) @map("km_de_voce")
-  salaryFilter  IjSalary?       @map("salary_filter")
-  datePosted    IjDatePosted?   @map("date_posted")
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId    String        @unique @map("campaign_id") @db.Uuid
+  searchTerms   String?       @map("search_terms") @db.VarChar
+  locationState BrazilState?  @map("location_state")
+  kmDeVoce      IjRadius?     @default(km_25) @map("km_de_voce")
+  salaryFilter  IjSalary?     @map("salary_filter")
+  datePosted    IjDatePosted? @map("date_posted")
 
   // Arrays para Multi-select
   workModels      IjWorkModel[] @map("work_models")
@@ -414,14 +419,14 @@ model Job {
 }
 
 model Report {
-  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  campaignId           String?  @map("campaign_id") @db.Uuid
-  totalJobsApplications Int     @default(0) @map("total_jobs_applications")
-  successApplications  Int      @default(0) @map("success_applications")
-  failApplications     Int      @default(0) @map("fail_applications")
-  creditsUsed          Int      @default(0) @map("credits_used")
-  creditsRefund        Int      @default(0) @map("credits_refund")
-  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamp
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId            String?  @map("campaign_id") @db.Uuid
+  totalJobsApplications Int      @default(0) @map("total_jobs_applications")
+  successApplications   Int      @default(0) @map("success_applications")
+  failApplications      Int      @default(0) @map("fail_applications")
+  creditsUsed           Int      @default(0) @map("credits_used")
+  creditsRefund         Int      @default(0) @map("credits_refund")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamp
 
   // Relacionamentos
   campaign Campaign? @relation(fields: [campaignId], references: [id])
@@ -442,9 +447,13 @@ model JobApplication {
   appliedAt   DateTime?  @map("applied_at") @db.Timestamp
   createdAt   DateTime?  @default(now()) @map("created_at") @db.Timestamp
 
+  // Tracking manual de resultado (Teste A/B): preenchido pelo usuário
+  gotResponse  Boolean @default(false) @map("got_response")
+  gotInterview Boolean @default(false) @map("got_interview")
+
   // Relacionamentos
-  campaign Campaign?     @relation(fields: [campaignId], references: [id])
-  user     User?         @relation(fields: [userId], references: [id])
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+  user     User?     @relation(fields: [userId], references: [id])
 
   // Índices
   @@index([userId, status])
@@ -471,4 +480,28 @@ model WebhookEvent {
   processedAt DateTime @default(now()) @map("processed_at") @db.Timestamp
 
   @@map("webhook_events")
+}
+
+// ======================= TESTE A/B =======================
+
+// Agrupa duas campanhas (variante A e B) que compartilham a mesma configuração e
+// diferem em uma dimensão (currículo, filtros...). Cada variante é uma Campaign real,
+// então reusa applications/limite diário/engine/relatórios. O usuário registra
+// manualmente resposta/entrevista por candidatura e compara as taxas.
+model AbTest {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id")
+  name       String   @db.VarChar
+  platform   Platform
+  hypothesis String?  @db.VarChar // o que está sendo testado ("mesma linha de tags")
+  variantAId String   @unique @map("variant_a_id") @db.Uuid
+  variantBId String   @unique @map("variant_b_id") @db.Uuid
+  winner     String?  @db.VarChar // "A" | "B" | "tie" | null (em andamento)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp
+
+  user     User     @relation(fields: [userId], references: [id])
+  variantA Campaign @relation("AbTestVariantA", fields: [variantAId], references: [id])
+  variantB Campaign @relation("AbTestVariantB", fields: [variantBId], references: [id])
+
+  @@map("ab_tests")
 }

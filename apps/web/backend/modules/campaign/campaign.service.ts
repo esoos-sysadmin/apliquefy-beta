@@ -362,6 +362,8 @@ export class CampaignService {
             }
 
             await prisma.$transaction([
+                // Se a campanha for variante de um teste A/B, remove o teste antes (FK).
+                prisma.abTest.deleteMany({ where: { OR: [{ variantAId: campaignId }, { variantBId: campaignId }] } }),
                 prisma.campaignLinkedin.deleteMany({ where: { campaignId } }),
                 prisma.campaignInfojobs.deleteMany({ where: { campaignId } }),
                 prisma.report.deleteMany({ where: { campaignId } }),

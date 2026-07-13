@@ -1,4 +1,4 @@
-import type { Resume } from "../../types/resume";
+import type { Resume, ResumeSuggestion, CreateResumeInput } from "../../types/resume";
 
 export function getResumeMeta(resume: Resume) {
     const personalInfo = resume.personalInfo ?? {};
@@ -49,4 +49,42 @@ export function calcResumeProgress(form: {
     const total = filledPersonal + hasExperience + hasEducation + hasSkills;
     const max = fields.length + 3;
     return Math.round((total / max) * 100);
+}
+
+const DANGEROUS_KEYS = new Set(["__proto__", "prototype", "constructor"]);
+
+function setByPath(target: Record<string, unknown>, path: string, value: unknown): void {
+    const keys = path.split(".");
+    let cursor: Record<string, unknown> = target;
+    for (let i = 0; i < keys.length - 1; i++) {
+        const key = keys[i];
+        const nextKey = keys[i + 1];
+        if (!key || DANGEROUS_KEYS.has(key)) return;
+        if (cursor[key] == null || typeof cursor[key] !== "object") {
+            cursor[key] = nextKey && /^\d+$/.test(nextKey) ? [] : {};
+        }
+        cursor = cursor[key] as Record<string, unknown>;
+    }
+    const last = keys[keys.length - 1];
+    if (!last || DANGEROUS_KEYS.has(last)) return;
+    cursor[last] = value;
+}
+
+/** Clona o currículo e aplica só as sugestões escolhidas, devolvendo um payload pronto para salvar. */
+export function applySuggestions(resume: Resume, suggestions: ResumeSuggestion[]): CreateResumeInput {
+    const base: CreateResumeInput = {
+        title: resume.title,
+        personalInfo: { ...(resume.personalInfo ?? {}) },
+        experience: (resume.experience ?? []).map((e) => ({ ...e })),
+        education: (resume.education ?? []).map((e) => ({ ...e })),
+        skills: [...(resume.skills ?? [])],
+        idioms: (resume.idioms ?? []).map((i) => ({ ...i })),
+    };
+
+    for (const s of suggestions) {
+        setByPath(base as unknown as Record<string, unknown>, s.path, s.suggestedValue);
+    }
+
+    base.idioms = (base.idioms ?? []).filter((i) => i.language && i.level);
+    return base;
 }

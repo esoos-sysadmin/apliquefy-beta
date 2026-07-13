@@ -1,5 +1,6 @@
 import type { BrowserWindow } from "electron";
 import { registerAccountsIpc } from "../ipc/accounts";
+import { registerAssistantIpc } from "../ipc/assistant";
 import { registerAuthIpc } from "../ipc/auth";
 import { registerCampaignIpc } from "../ipc/campaigns";
 import { registerCreditIpc } from "../ipc/credits";
@@ -15,6 +16,7 @@ type RegisterIpcHandlersOptions = {
 
 export function registerIpcHandlers(options: RegisterIpcHandlersOptions) {
     registerWindowIpc();
+    registerAssistantIpc();
     registerCampaignIpc();
     registerAccountsIpc();
     registerCreditIpc();

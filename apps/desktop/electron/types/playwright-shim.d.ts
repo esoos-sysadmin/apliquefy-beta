@@ -2,6 +2,7 @@ declare module "playwright" {
     export interface Locator {
         click(options?: { timeout?: number }): Promise<void>;
         first(): Locator;
+        count(): Promise<number>;
     }
 
     export interface Cookie {
@@ -19,6 +20,8 @@ declare module "playwright" {
             options?: { waitUntil?: string; timeout?: number }
         ): Promise<{ status(): number } | null>;
         getByRole(role: string, options?: { name?: string | RegExp }): Locator;
+        locator(selector: string): Locator;
+        waitForTimeout(timeout: number): Promise<void>;
         url(): string;
     }
 

@@ -31,6 +31,8 @@ export const updateJobApplicationSchema = z.preprocess((value) => {
         company_name: p.company_name ?? p.companyName,
         job_title: p.job_title ?? p.jobTitle,
         job_url: p.job_url ?? p.jobUrl,
+        got_response: p.got_response ?? p.gotResponse,
+        got_interview: p.got_interview ?? p.gotInterview,
     }
 }, z.object({
     status: statusEnum.optional(),
@@ -39,7 +41,17 @@ export const updateJobApplicationSchema = z.preprocess((value) => {
     company_name: z.string().optional().nullable(),
     job_title: z.string().optional().nullable(),
     job_url: z.string().url().optional().nullable(),
+    got_response: z.boolean().optional(),
+    got_interview: z.boolean().optional(),
 }))
+
+export const listJobApplicationsQuerySchema = z.object({
+    campaign_id: z.string().uuid().optional(),
+    status: statusEnum.optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+})
 
 export type CreateJobApplicationInput = z.infer<typeof createJobApplicationSchema>
 export type UpdateJobApplicationInput = z.infer<typeof updateJobApplicationSchema>
+export type ListJobApplicationsQuery = z.infer<typeof listJobApplicationsQuerySchema>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronDown, Plus, Search } from "lucide-react";
+import { ChevronDown, Plus, Search, Sparkles } from "lucide-react";
 import { ConfirmDialog } from "../../components/molecules/ConfirmDialog";
 import { ResumeCard } from "../../components/molecules/ResumeCard";
 import { ResumeCardSkeleton } from "../../components/molecules/ResumeCardSkeleton";
@@ -49,9 +49,7 @@ export default function ResumesPage() {
             <div className="flex flex-col gap-4 border-b border-[#1C2333] pb-6 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                        <Link href="/dashboard" className="transition-colors hover:text-slate-300">
-                            Dashboard
-                        </Link>
+                        <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
                         <span>/</span>
                         <span className="text-slate-300">Resumes</span>
                     </div>
@@ -64,13 +62,22 @@ export default function ResumesPage() {
                     </div>
                 </div>
 
-                <Link
-                    href="/curriculos/novo"
-                    className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(37,99,235,0.28)] transition hover:bg-[#1d4ed8]"
-                >
-                    <Plus size={17} />
-                    New Resume
-                </Link>
+                <div className="flex shrink-0 flex-wrap items-center gap-3">
+                    <Link
+                        href="/curriculos/analisar"
+                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 px-5 text-sm font-semibold text-sky-300 transition hover:border-sky-400/40 hover:bg-sky-500/15"
+                    >
+                        <Sparkles size={17} />
+                        Analisar com IA
+                    </Link>
+                    <Link
+                        href="/curriculos/novo"
+                        className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(37,99,235,0.28)] transition hover:bg-[#1d4ed8]"
+                    >
+                        <Plus size={17} />
+                        New Resume
+                    </Link>
+                </div>
             </div>
 
             <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-3 sm:p-4">

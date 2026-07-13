@@ -2,6 +2,7 @@ import { getRunnerState, updateRunnerState } from "../store";
 import { fetchCampaignById, fetchCampaigns, updateCampaignStatus } from "../services/campaign-service";
 import { notifyCampaignActivated, notifyCampaignPaused } from "../services/notification-service";
 import { startCampaignRun } from "../services/campaign-run-service";
+import { getSessionController } from "./session-controller";
 
 function persistCampaigns(campaigns: Awaited<ReturnType<typeof fetchCampaigns>>) {
     const nextState = updateRunnerState((currentState) => ({
@@ -48,7 +49,10 @@ export function createCampaignController() {
                 (await fetchCampaignById(campaignId));
 
             if (targetCampaign) {
-                const session = state.sessions[targetCampaign.platform];
+                // Revalida a sessão AGORA. O status persistido pode estar defasado
+                // (cookie expirado, logout fora do app), o que deixava ativar campanha
+                // "deslogado". check() relê o cookie salvo e repersiste o status real.
+                const session = await getSessionController().check(targetCampaign.platform);
                 if (!session || session.status !== "active") {
                     const error = new Error("Sessão de login inválida ou expirada.") as Error & {
                         code?: number;

@@ -17,8 +17,14 @@ type PlatformConfig = {
     loginUrl: string;
     // Rótulos de botões de consentimento de cookies/termos a fechar no 1º acesso.
     consentButtons: string[];
-    // Decide, a partir dos cookies, se o usuário está autenticado.
+    // Sinal rápido (cookie) de que o login provavelmente concluiu — dispara a
+    // verificação definitiva. NÃO é fonte de verdade sozinho.
     isLoggedIn: (cookies: Cookie[]) => boolean;
+    // Página autenticada usada na verificação definitiva por navegação.
+    verifyUrl: string;
+    // Fonte de verdade: dada a URL final após navegar até verifyUrl e se há form
+    // de login na página, decide se está logado. Deslogado é redirecionado ao IdP.
+    isVerified: (finalUrl: string, hasLoginForm: boolean) => boolean;
 };
 
 function isInfojobsDomain(domain: string) {
@@ -30,8 +36,11 @@ const PLATFORM_CONFIG: Record<RunnerPlatform, PlatformConfig> = {
     linkedin: {
         loginUrl: "https://www.linkedin.com/login",
         consentButtons: [],
-        // li_at é o cookie de autenticação do LinkedIn.
+        // li_at só é setado após login real (visitante anônimo não recebe).
         isLoggedIn: (cookies) => cookies.some((c) => c.name === "li_at" && !!c.value),
+        verifyUrl: "https://www.linkedin.com/feed/",
+        // Deslogado, /feed mostra o form de login (session_key) ou redireciona a /login.
+        isVerified: (finalUrl, hasLoginForm) => !hasLoginForm && /linkedin\.com\/feed/.test(finalUrl),
     },
     infojobs: {
         // A home dispara o fluxo de login (login.infojobs.com.br) e exibe o popup
@@ -44,17 +53,22 @@ const PLATFORM_CONFIG: Record<RunnerPlatform, PlatformConfig> = {
             "Concordar",
             "Aceitar",
         ],
-        // Cookie de sessão (httpOnly) que o app define em www.infojobs.com.br após
-        // o OIDC. O IdP (login.infojobs.com.br) é ignorado para não dar falso
-        // positivo antes do login concluir.
+        // Cookie httpOnly do OWIN/OIDC em www.infojobs.com.br após login. NÃO casar
+        // "session/auth/login": o visitante anônimo já recebe `ab_session_id`
+        // (httpOnly), que casava "session" e dava falso positivo (marcava ativo sem
+        // login). Restrito aos cookies de auth reais (.AspNet.*/.ASPXAUTH/idsrv).
         isLoggedIn: (cookies) =>
             cookies.some(
                 (c) =>
                     c.httpOnly &&
                     isInfojobsDomain(c.domain) &&
                     c.domain.replace(/^\./, "") !== "login.infojobs.com.br" &&
-                    /aspxauth|aspnet|applicationcookie|idsrv|auth|session|login/i.test(c.name)
+                    /aspxauth|aspnet|applicationcookie|idsrv/i.test(c.name)
             ),
+        verifyUrl: "https://www.infojobs.com.br/candidate/",
+        // Deslogado, /candidate/ redireciona para login.infojobs.com.br (form de senha).
+        isVerified: (finalUrl, hasLoginForm) =>
+            !hasLoginForm && /^https:\/\/www\.infojobs\.com\.br\/candidate/i.test(finalUrl),
     },
 };
 
@@ -139,6 +153,32 @@ async function waitForLogin(
     return false;
 }
 
+// Verificação definitiva: navega até a área autenticada na janela HEADED (Chrome
+// real — não dispara o anti-bot como headless) e confirma que não foi redirecionado
+// ao login. Cookie sozinho engana (InfoJobs seta ab_session_id pra anônimo).
+async function verifyLogin(
+    page: import("playwright").Page,
+    config: PlatformConfig,
+    platform: RunnerPlatform
+): Promise<boolean> {
+    try {
+        await page.goto(config.verifyUrl, { waitUntil: "domcontentloaded", timeout: LOGIN_NAV_TIMEOUT_MS });
+        await page.waitForTimeout(1_500);
+    } catch (error) {
+        const message = error instanceof Error ? error.message.split("\n")[0] : "";
+        console.error(`[capture:${platform}] verificação de login falhou ao navegar: ${message}`);
+        return false;
+    }
+
+    const hasLoginForm =
+        (await page.locator("input[name='session_key'], input[type='password']").count()) > 0;
+    const verified = config.isVerified(page.url(), hasLoginForm);
+    console.log(
+        `[capture:${platform}] verificação: url=${page.url()} loginForm=${hasLoginForm} => ${verified ? "LOGADO" : "DESLOGADO"}`
+    );
+    return verified;
+}
+
 export async function captureSession(platform: RunnerPlatform): Promise<SessionResult> {
     if (!isValidPlatform(platform)) {
         return { success: false, code: 400, message: "Plataforma inválida." };
@@ -207,7 +247,19 @@ export async function captureSession(platform: RunnerPlatform): Promise<SessionR
             message: "Tempo de espera para login excedido. Tente novamente.",
         };
     }
-    console.log(`[capture:${platform}] login detectado.`);
+
+    // Confirma o login de verdade navegando à área autenticada. Evita marcar
+    // "ativo" quando o cookie engana (ex.: ab_session_id anônimo no InfoJobs).
+    const verified = await verifyLogin(page, config, platform);
+    if (!verified) {
+        await context.close();
+        return {
+            success: false,
+            code: 401,
+            message: "Login não confirmado. Conclua o login na janela e tente novamente.",
+        };
+    }
+    console.log(`[capture:${platform}] login confirmado.`);
 
     try {
         await context.storageState({ path: getStorageStatePath(platform) });

@@ -13,13 +13,32 @@ export function useSessions(electron: ElectronAPI) {
     useEffect(() => {
         let mounted = true;
 
+        // Assina ANTES de disparar o check(), senão o broadcast do status revalidado
+        // pode chegar antes da assinatura e a UI fica presa no "ativo" defasado.
+        const unsubscribe = electron.sessions.subscribe((map) => {
+            if (mounted) setSessions(map);
+        });
+
         electron.sessions.list().then((map) => {
             if (mounted) setSessions(map);
         });
 
-        const unsubscribe = electron.sessions.subscribe((map) => {
-            setSessions(map);
-        });
+        // list() só devolve o estado persistido (defasado). check() revalida o cookie
+        // salvo; aplicamos o resultado direto (além do broadcast) para não depender de
+        // timing — é o que corrige "Sessão Ativa" que não some ao reabrir.
+        Promise.all([
+            electron.sessions.check("linkedin"),
+            electron.sessions.check("infojobs"),
+        ])
+            .then(([linkedin, infojobs]) => {
+                if (!mounted) return;
+                setSessions((prev) => ({
+                    ...prev,
+                    linkedin: linkedin ?? undefined,
+                    infojobs: infojobs ?? undefined,
+                }));
+            })
+            .catch(() => {});
 
         return () => {
             mounted = false;

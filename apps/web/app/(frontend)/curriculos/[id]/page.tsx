@@ -5,6 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useResume, useResumes } from "../../../hooks/use-resumes";
 import { emptyResumeForm, emptyExperience, emptyEducation, emptyIdiom } from "../../../lib/constants/resume-form";
 import { formatPhone } from "../../../lib/helpers/resume";
+import { downloadResumePdf } from "../../../lib/resume-pdf";
+import Link from "next/link";
+import { Download, Sparkles } from "lucide-react";
 import { ResumeFormPopup } from "../../../components/molecules/ResumeFormPopup";
 import { ResumePersonalDetailsSection } from "../../../components/organisms/ResumePersonalDetailsSection";
 import { ResumeWorkExperienceSection } from "../../../components/organisms/ResumeWorkExperienceSection";
@@ -41,7 +44,7 @@ export default function EditResumePage() {
         if (/^\d{4}-\d{2}$/.test(str)) return str;
         // ISO string ou yyyy-MM-dd → pega só yyyy-MM
         const match = str.match(/^(\d{4}-\d{2})/);
-        return match ? match[1] : "";
+        return match?.[1] ?? "";
     }
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -191,7 +194,7 @@ export default function EditResumePage() {
     }
 
     return (
-        <div style={{ minHeight: "100vh", color: "#fff", fontFamily: "sans-serif" }}>
+        <div className="resume-editor" style={{ minHeight: "100vh", color: "#fff", fontFamily: "sans-serif" }}>
             <div style={{ maxWidth: 1152, margin: "0 auto" }}>
                 <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
@@ -201,11 +204,29 @@ export default function EditResumePage() {
                         </p>
                     </div>
 
-                    {!isEditing && (
-                        <button onClick={() => setIsEditing(true)} style={unlockButtonStyle}>
-                            Editar currículo
-                        </button>
-                    )}
+                    <div style={{ display: "flex", gap: 12 }}>
+                        <Link
+                            href={`/curriculos/analisar?resume=${id}`}
+                            style={{ ...unlockButtonStyle, display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}
+                        >
+                            <Sparkles size={15} />
+                            Analisar com IA
+                        </Link>
+                        {resume && (
+                            <button
+                                onClick={() => downloadResumePdf(resume)}
+                                style={{ ...unlockButtonStyle, display: "inline-flex", alignItems: "center", gap: 8 }}
+                            >
+                                <Download size={15} />
+                                Baixar PDF
+                            </button>
+                        )}
+                        {!isEditing && (
+                            <button onClick={() => setIsEditing(true)} style={unlockButtonStyle}>
+                                Editar currículo
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {isEditing && (

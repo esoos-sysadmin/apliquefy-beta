@@ -81,13 +81,25 @@ class WebApiClient:
         body = await self._patch(f"/api/job-applications/{application_id}", payload)
         return body["data"]
 
-    async def debit_flat(self, *, campaign_id: str, job_application_id: str, idempotency_key: str) -> dict[str, Any]:
+    async def debit_flat(
+        self,
+        *,
+        campaign_id: str,
+        job_application_id: str,
+        idempotency_key: str,
+        questions: int = 0,
+        steps: int = 0,
+    ) -> dict[str, Any]:
+        # questions/steps são o esforço medido pelo agente; o web calcula o custo
+        # (base + peso por pergunta). Ver debitFlat no credits.service.
         body = await self._post(
             "/api/credits/debit-flat",
             {
                 "campaignId": campaign_id,
                 "jobApplicationId": job_application_id,
                 "idempotencyKey": idempotency_key,
+                "questions": questions,
+                "steps": steps,
             },
         )
         return body["data"]

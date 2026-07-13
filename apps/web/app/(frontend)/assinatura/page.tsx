@@ -29,9 +29,7 @@ export default function AssinaturaPage() {
             <div className="border-b border-[#1C2333] pb-6">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                        <Link href="/dashboard" className="transition-colors hover:text-slate-300">
-                            Dashboard
-                        </Link>
+                        <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
                         <span>/</span>
                         <span className="text-slate-300">Assinatura</span>
                     </div>

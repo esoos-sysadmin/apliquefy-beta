@@ -8,6 +8,7 @@ import { handleClientError } from "../lib/handle-client-error";
 import { toast } from "../lib/toast";
 import type { CreateResumeInput, Resume, UpdateResumeInput } from "../types/resume";
 import {
+    analyzeResume as analyzeResumeRequest,
     createResume as createResumeRequest,
     deleteResume as deleteResumeRequest,
     getResume as getResumeRequest,
@@ -67,6 +68,9 @@ export function useResumes() {
             await withClient(async (api) => deleteResumeRequest(api, id));
             await mutate((current) => current?.filter((resume) => resume.id !== id), false);
             toast.success("Currículo removido com sucesso!");
+        },
+        analyzeResume(id: string) {
+            return withClient(async (api) => analyzeResumeRequest(api, id));
         },
     };
 }

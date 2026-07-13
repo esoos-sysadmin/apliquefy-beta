@@ -42,6 +42,18 @@ a {
   display: none !important;
 }
 
+/* Editor de currículo: foco visível e placeholders legíveis sobre o tema escuro.
+   box-shadow não é setado inline nos inputs, então o ring aqui não conflita. */
+.resume-editor input:focus,
+.resume-editor textarea:focus,
+.resume-editor select:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
+.resume-editor input::placeholder,
+.resume-editor textarea::placeholder {
+  color: #61708c;
+}
+
 .imgDark {
   display: none;
 }

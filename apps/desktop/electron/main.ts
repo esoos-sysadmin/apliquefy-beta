@@ -3,6 +3,7 @@ import path from "node:path";
 import { applyRunnerSettings } from "./ipc/settings";
 import { createMainWindow } from "./main/create-main-window";
 import { registerIpcHandlers } from "./main/register-ipc-handlers";
+import { resetActiveCampaignsToPaused } from "./services/campaign-service";
 import { startRpaProcess, stopRpaProcess } from "./services/rpa-process-service";
 import { startSessionHeartbeat, stopSessionHeartbeat } from "./services/session-heartbeat";
 import { getRunnerState } from "./store";
@@ -26,10 +27,22 @@ let mainWindow: BrowserWindow | null = null;
 // ok, remover.
 app.disableHardwareAcceleration()
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
     registerIpcHandlers({
         getMainWindow: () => mainWindow,
     });
+
+    // Reseta campanhas órfãs para PAUSED antes de abrir a janela, para que o feed
+    // não volte "bugado" mostrando ativa uma campanha que não está rodando.
+    // ponytail: cap de 5s para um backend lento não travar o boot; o pior caso é
+    // a janela abrir e o feed atualizar sozinho (bootstrap refaz o list()).
+    await Promise.race([
+        resetActiveCampaignsToPaused().catch((err) => {
+            console.error("[boot] failed to reset campaigns to paused:", err);
+        }),
+        new Promise<void>((resolve) => setTimeout(resolve, 5000)),
+    ]);
+
     mainWindow = createMainWindow(() => {
         if (mainWindow) {
             mainWindow = null;

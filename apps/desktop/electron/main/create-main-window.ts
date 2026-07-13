@@ -6,12 +6,12 @@ const isDev = process.env.NODE_ENV === "development";
 
 export function createMainWindow(onClosed: () => void) {
     const window = new BrowserWindow({
-        width: 380,
-        height: 620,
-        minWidth: 380,
-        minHeight: 620,
-        maxWidth: 380,
-        maxHeight: 620,
+        width: 1000,
+        height: 600,
+        minWidth: 1000,
+        minHeight: 600,
+        maxWidth: 1000,
+        maxHeight: 600,
         frame: false,
         transparent: true,
         resizable: false,
@@ -30,6 +30,13 @@ export function createMainWindow(onClosed: () => void) {
 
     window.setMenuBarVisibility(false);
     window.removeMenu();
+
+    // O Apollo usa o microfone (getUserMedia → Whisper). Sem esses handlers o Chromium
+    // do Electron nega 'media' silenciosamente. Só liberamos mídia; o resto continua negado.
+    window.webContents.session.setPermissionRequestHandler((_wc, permission, callback) => {
+        callback(permission === "media");
+    });
+    window.webContents.session.setPermissionCheckHandler((_wc, permission) => permission === "media");
     window.once("ready-to-show", () => {
         window.show();
         void pushInitialEngineStatus(window);

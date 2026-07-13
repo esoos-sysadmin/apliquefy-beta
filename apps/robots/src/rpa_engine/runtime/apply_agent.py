@@ -22,6 +22,27 @@ logger = logging.getLogger(__name__)
 
 APPLY_MAX_STEPS = 25
 
+# Ações do browser-use que representam responder uma pergunta do formulário
+# dinâmico: texto (`input`) e dropdown (`select_dropdown`). `click` também cobre
+# botões de navegação (Avançar/Enviar), então NÃO conta como pergunta. Proxy de
+# esforço p/ o custo variável por candidatura (calculado no web).
+_QUESTION_ACTIONS = {"input", "select_dropdown"}
+
+
+def _effort(history) -> tuple[int, int]:
+    """(perguntas dinâmicas respondidas, passos totais) extraídos do history."""
+    try:
+        names = list(history.action_names())
+    except Exception:  # noqa: BLE001
+        return 0, 0
+    questions = sum(1 for n in names if n in _QUESTION_ACTIONS)
+    try:
+        steps = int(history.number_of_steps())
+    except Exception:  # noqa: BLE001
+        steps = 0
+    return questions, steps
+
+
 _STATUS_BY_OUTCOME = {
     Outcome.SUCCESS: "applied",
     Outcome.SKIP_UNANSWERABLE: "skipped",
@@ -84,6 +105,7 @@ async def execute_apply(
     )
 
     error_log: str | None = None
+    questions = steps = 0
     try:
         history = await agent.run(max_steps=APPLY_MAX_STEPS)
     except Exception as exc:  # noqa: BLE001
@@ -91,6 +113,7 @@ async def execute_apply(
         outcome = Outcome.PAUSE_RETRY
         error_log = f"agent crashed: {exc}"
     else:
+        questions, steps = _effort(history)
         ok = history.is_successful()
         if ok is True:
             outcome = Outcome.SUCCESS
@@ -112,6 +135,8 @@ async def execute_apply(
             campaign_id=ctx.campaign["id"],
             job_application_id=application_id,
             idempotency_key=f"application:{application_id}",
+            questions=questions,
+            steps=steps,
         )
         await ctx.emit({"runId": ctx.run_id, "type": "applied", "jobApplicationId": application_id})
     else:

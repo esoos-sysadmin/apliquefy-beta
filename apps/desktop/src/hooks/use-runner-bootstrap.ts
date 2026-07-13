@@ -41,25 +41,37 @@ export function useRunnerBootstrap(electron: ElectronAPI) {
 
         void hydrateRunner();
 
-        const unsubscribe = electron.engine.subscribe((status) => {
-            settingsStore.setEngineStatus(status);
-        });
-
-        // Poll credit balance every 60s when authenticated
-        const pollCredits = setInterval(async () => {
-            if (settingsStore.getState().auth.isAuthenticated) {
-                try {
-                    const balance = await electron.credits.getBalance();
-                    creditStore.setBalance(balance);
-                } catch {
-                    // Ignore polling errors
-                }
+        async function refreshCredits() {
+            if (!settingsStore.getState().auth.isAuthenticated) {
+                return;
             }
-        }, 60_000);
+            try {
+                creditStore.setBalance(await electron.credits.getBalance());
+            } catch {
+                // Ignore polling errors
+            }
+        }
+
+        // Saldo em quase tempo real: poll curto + refresh no evento "applied"
+        // (é quando o crédito é de fato consumido pelo envio de uma candidatura).
+        const pollCredits = setInterval(refreshCredits, 15_000);
+        const unsubscribeRpa = electron.rpa.subscribe((event) => {
+            if (event.type === "applied" || event.type === "finished") {
+                void refreshCredits();
+            }
+            // "paused" pode ser sessão expirada detectada no run: o main já pausou a
+            // campanha/removeu a sessão; re-sincroniza o feed para refletir o PAUSED.
+            if (event.type === "paused") {
+                electron.campaigns
+                    .list()
+                    .then(campaignStore.hydrateCampaigns)
+                    .catch(() => {});
+            }
+        });
 
         return () => {
             isMounted = false;
-            unsubscribe();
+            unsubscribeRpa();
             clearInterval(pollCredits);
         };
     }, [electron]);

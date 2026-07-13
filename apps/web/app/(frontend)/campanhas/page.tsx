@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Plus, Search } from "lucide-react";
+import { ChevronDown, FlaskConical, Megaphone, Plus, Search } from "lucide-react";
 import { ConfirmDialog } from "../../components/molecules/ConfirmDialog";
 import { CampaignCard } from "../../components/molecules/CampaignCard";
 import { CampaignCardSkeleton } from "../../components/molecules/CampaignCardSkeleton";
 import { CampaignDetailsModal } from "../../components/organisms/CampaignDetailsModal";
 import { CampaignEditModal } from "../../components/organisms/CampaignEditModal";
+import { AbTestCard } from "../../components/molecules/AbTestCard";
+import { AbTestDetailModal } from "../../components/organisms/AbTestDetailModal";
 import { useCampaigns } from "../../hooks/use-campaigns";
+import { useAbTests } from "../../hooks/use-ab-tests";
 import type { Campaign } from "../../types/campaign";
+import type { AbTest } from "../../types/ab-test";
 
 const statusOptions = [
     { label: "Todos os status", value: "all" },
@@ -25,6 +29,9 @@ const platformOptions = [
 ] as const;
 
 export default function CampaignsPage() {
+    const [tab, setTab] = useState<"campaigns" | "ab">(
+        typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "ab" ? "ab" : "campaigns",
+    );
     const [search, setSearch] = useState("");
     const [selectedPlatform, setSelectedPlatform] = useState<(typeof platformOptions)[number]["value"]>("all");
     const [selectedStatus, setSelectedStatus] = useState<(typeof statusOptions)[number]["value"]>("all");
@@ -34,6 +41,14 @@ export default function CampaignsPage() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [page, setPage] = useState(1);
     const { campaigns, isLoading, error, refetch, deleteCampaign } = useCampaigns();
+
+    // Testes A/B
+    const [abSearch, setAbSearch] = useState("");
+    const [activeAbTest, setActiveAbTest] = useState<AbTest | null>(null);
+    const [abTestToDelete, setAbTestToDelete] = useState<AbTest | null>(null);
+    const [isDeletingAb, setIsDeletingAb] = useState(false);
+    const { abTests, isLoading: isLoadingAb, deleteAbTest } = useAbTests();
+    const filteredAbTests = abTests.filter((t) => t.name.toLowerCase().includes(abSearch.toLowerCase().trim()));
 
     const filteredCampaigns = campaigns.filter((campaign) => {
         const matchesSearch = campaign.name.toLowerCase().includes(search.toLowerCase().trim());
@@ -63,14 +78,23 @@ export default function CampaignsPage() {
         }
     }
 
+    async function handleDeleteAbTest() {
+        if (!abTestToDelete) return;
+        setIsDeletingAb(true);
+        try {
+            await deleteAbTest(abTestToDelete.id);
+            setAbTestToDelete(null);
+        } finally {
+            setIsDeletingAb(false);
+        }
+    }
+
     return (
         <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-white">
             <div className="flex items-start justify-between gap-4 border-b border-[#1C2333] pb-6">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                        <Link href="/dashboard" className="transition-colors hover:text-slate-300">
-                            Dashboard
-                        </Link>
+                        <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
                         <span>/</span>
                         <span className="text-slate-300">Campanhas</span>
                     </div>
@@ -92,6 +116,29 @@ export default function CampaignsPage() {
                 </Link>
             </div>
 
+            <div className="flex gap-2 border-b border-[#1C2333] pb-1">
+                <button
+                    type="button"
+                    onClick={() => setTab("campaigns")}
+                    className={`inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition ${
+                        tab === "campaigns" ? "border-[#2563EB] text-white" : "border-transparent text-slate-400 hover:text-slate-200"
+                    }`}
+                >
+                    <Megaphone size={16} /> Campanhas
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setTab("ab")}
+                    className={`inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition ${
+                        tab === "ab" ? "border-[#2563EB] text-white" : "border-transparent text-slate-400 hover:text-slate-200"
+                    }`}
+                >
+                    <FlaskConical size={16} /> Testes A/B
+                </button>
+            </div>
+
+            {tab === "campaigns" ? (
+            <>
             <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-3 sm:p-4">
                 <div className="flex flex-col gap-3 lg:flex-row">
                     <label className="group flex h-12 flex-1 items-center gap-3 rounded-xl border border-[#2A3445] bg-[#101826] px-4 transition-colors focus-within:border-[#35507E]">
@@ -213,6 +260,65 @@ export default function CampaignsPage() {
                     </button>
                 </div>
             </div>
+            </>
+            ) : (
+            <>
+            <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-3 sm:p-4">
+                <label className="group flex h-12 items-center gap-3 rounded-xl border border-[#2A3445] bg-[#101826] px-4 transition-colors focus-within:border-[#35507E]">
+                    <Search size={17} className="text-slate-500 transition-colors group-focus-within:text-slate-300" />
+                    <input
+                        value={abSearch}
+                        onChange={(event) => setAbSearch(event.target.value)}
+                        placeholder="Buscar testes A/B..."
+                        className="h-full w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+                    />
+                </label>
+            </div>
+
+            <div className="space-y-4">
+                {isLoadingAb ? (
+                    <CampaignCardSkeleton />
+                ) : filteredAbTests.length > 0 ? (
+                    filteredAbTests.map((abTest) => (
+                        <AbTestCard key={abTest.id} abTest={abTest} onView={setActiveAbTest} onDelete={setAbTestToDelete} />
+                    ))
+                ) : abTests.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-[#2A3445] bg-[#131B2A] px-6 py-14 text-center">
+                        <p className="text-lg font-semibold text-white">Nenhum teste A/B criado.</p>
+                        <p className="mt-2 text-sm text-slate-400">
+                            Crie uma campanha e ative a opção <span className="text-slate-200">Teste A/B</span> para comparar dois currículos.
+                        </p>
+                        <Link
+                            href="/campanhas/nova"
+                            className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
+                        >
+                            Criar teste A/B
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="rounded-2xl border border-dashed border-[#2A3445] bg-[#131B2A] px-6 py-14 text-center">
+                        <p className="text-lg font-semibold text-white">Nenhum teste A/B encontrado</p>
+                        <p className="mt-2 text-sm text-slate-400">Ajuste a busca para visualizar outros testes.</p>
+                    </div>
+                )}
+            </div>
+            </>
+            )}
+
+            {activeAbTest ? (
+                <AbTestDetailModal abTestId={activeAbTest.id} onClose={() => setActiveAbTest(null)} />
+            ) : null}
+
+            <ConfirmDialog
+                open={Boolean(abTestToDelete)}
+                title="Excluir teste A/B"
+                description="As duas campanhas variantes, candidaturas e relatórios vinculados serão removidos."
+                confirmLabel="Excluir teste"
+                danger
+                loading={isDeletingAb}
+                onCancel={() => setAbTestToDelete(null)}
+                onConfirm={handleDeleteAbTest}
+            />
 
             {activeCampaign ? (
                 <CampaignDetailsModal

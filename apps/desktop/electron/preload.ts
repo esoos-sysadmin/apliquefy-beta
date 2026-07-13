@@ -5,6 +5,10 @@ const electronAPI: ElectronAPI = {
     window: {
         close: () => ipcRenderer.invoke("window:close"),
     },
+    assistant: {
+        transcribe: (audioBase64: string) => ipcRenderer.invoke("assistant:transcribe", audioBase64),
+        chat: (messages) => ipcRenderer.invoke("assistant:chat", messages),
+    },
     campaigns: {
         list: () => ipcRenderer.invoke("campaigns:list"),
         getById: (id: string) => ipcRenderer.invoke("campaigns:get-by-id", id),

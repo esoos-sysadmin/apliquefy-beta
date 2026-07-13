@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useElectron } from "../../hooks/use-electron";
+import ApolloScreen from "../apollo";
 import { AuthGate } from "../../components/organisms/AuthGate";
 import { CampaignDetails } from "../../components/organisms/CampaignDetails";
 import { CampaignList } from "../../components/organisms/CampaignList";
@@ -28,7 +29,6 @@ export default function RunnerPage() {
     const activeTab = useSettingsStore((state) => state.activeTab);
     const auth = useSettingsStore((state) => state.auth);
     const draftSettings = useSettingsStore((state) => state.draftSettings);
-    const engineStatus = useSettingsStore((state) => state.engineStatus);
     const isHydrated = useSettingsStore((state) => state.isHydrated);
     const isSaving = useSettingsStore((state) => state.isSaving);
     const isAuthenticating = useSettingsStore((state) => state.isAuthenticating);
@@ -36,10 +36,22 @@ export default function RunnerPage() {
     useRunnerBootstrap(electron);
     const { sessions, isValid, capture, capturingPlatform } = useSessions(electron);
     const [sessionModalPlatform, setSessionModalPlatform] = useState<RunnerPlatform | null>(null);
-    const { handleToggleCampaign, handleViewCampaign, handleRefreshCampaigns } = useCampaignActions(electron, {
-        isSessionValid: isValid,
+    // Apollo é a landing pós-login (feature de marketing); o runner clássico fica a um clique.
+    const [view, setView] = useState<"apollo" | "runner">("apollo");
+    const { handleToggleCampaign, handleViewCampaign, handleRefreshCampaigns, pendingId } = useCampaignActions(electron, {
         onSessionMissing: (platform) => setSessionModalPlatform(platform),
     });
+
+    // Autorefresh do feed na primeira vez que fica autenticado. O bootstrap roda
+    // uma vez no mount (às vezes ainda deslogado, feed vazio); sem isto o usuário
+    // teria que atualizar na mão após logar e acharia que bugou.
+    const didAutoRefresh = useRef(false);
+    useEffect(() => {
+        if (auth.isAuthenticated && !didAutoRefresh.current) {
+            didAutoRefresh.current = true;
+            void handleRefreshCampaigns();
+        }
+    }, [auth.isAuthenticated, handleRefreshCampaigns]);
     const { handleSignIn, handleDisconnectAccount } = useAuthActions(electron);
     const { handleToggleSetting, handleSaveSettings } = useSettingsActions(electron);
 
@@ -62,13 +74,24 @@ export default function RunnerPage() {
         await handleConnectAccount(platform);
     };
 
+    if (auth.isAuthenticated && view === "apollo") {
+        return (
+            <ApolloScreen
+                electron={electron}
+                userName={auth.displayName ?? auth.email}
+                onClose={handleClose}
+                onOpenRunner={() => setView("runner")}
+            />
+        );
+    }
+
     return (
         <RunnerShell
             activeTab={activeTab}
-            engineStatus={engineStatus}
             creditBalance={creditBalance}
             isAuthenticated={auth.isAuthenticated}
             onClose={handleClose}
+            onOpenApollo={() => setView("apollo")}
             onChangeTab={settingsStore.setActiveTab}
             overlay={
                 <CampaignDetails
@@ -91,7 +114,7 @@ export default function RunnerPage() {
                     <CampaignList
                         campaigns={campaigns}
                         isLoading={isCampaignsLoading}
-                        engineVersion={engineStatus?.engineVersion}
+                        pendingId={pendingId}
                         isSessionValid={isValid}
                         onView={handleViewCampaign}
                         onToggleStatus={handleToggleCampaign}

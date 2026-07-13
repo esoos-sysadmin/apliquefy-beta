@@ -1,5 +1,5 @@
 import { ApiClient } from "../lib/api-client";
-import type { Resume, CreateResumeInput, UpdateResumeInput } from "../types/resume";
+import type { Resume, CreateResumeInput, UpdateResumeInput, ResumeAnalysis } from "../types/resume";
 import type { ApiSuccessResponse } from "../types/api";
 
 function unwrapResumePayload(payload: unknown) {
@@ -38,4 +38,9 @@ export async function updateResume(api: ApiClient, id: string, body: UpdateResum
 
 export async function deleteResume(api: ApiClient, id: string) {
     return api.delete<ApiSuccessResponse<null>>(`/resumes/${id}`);
+}
+
+export async function analyzeResume(api: ApiClient, id: string) {
+    const response = await api.post<ApiSuccessResponse<ResumeAnalysis>>(`/resumes/${id}/analyze`, {});
+    return unwrapResumePayload(response) as ResumeAnalysis;
 }

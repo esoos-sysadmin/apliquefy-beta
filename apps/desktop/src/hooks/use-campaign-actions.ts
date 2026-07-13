@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import type { ElectronAPI, RunnerCampaign, RunnerPlatform } from "../../shared/runner-types";
 import { campaignStore } from "../stores/campaign-store";
 import { creditStore } from "../stores/credit-store";
@@ -7,36 +8,50 @@ import { creditStore } from "../stores/credit-store";
 const WEB_URL = import.meta.env.VITE_APLIQUEFY_WEB_URL || "http://localhost:3000";
 
 type CampaignActionsOptions = {
-    isSessionValid: (platform: RunnerPlatform) => boolean;
     onSessionMissing: (platform: RunnerPlatform) => void;
 };
 
 export function useCampaignActions(electron: ElectronAPI, options: CampaignActionsOptions) {
-    const handleToggleCampaign = async (campaign: RunnerCampaign) => {
-        if (campaign.status !== "active") {
-            if (!options.isSessionValid(campaign.platform)) {
-                options.onSessionMissing(campaign.platform);
-                return;
-            }
+    // pendingId é para o feedback visual (spinner "subindo campanha"); o ref é o
+    // guarda síncrono contra duplo-clique (o setState não atualiza a tempo entre
+    // dois cliques rápidos no mesmo tick).
+    const [pendingId, setPendingId] = useState<string | null>(null);
+    const pendingRef = useRef(false);
 
-            // Revalida o saldo no momento do clique: o valor do store pode estar
-            // defasado (ex.: o hydrate inicial pegou os 404 do boot, antes do
-            // primeiro poll de 60s atualizar o saldo).
-            let canSend = creditStore.getState().creditBalance.canSend;
-            try {
-                const fresh = await electron.credits.getBalance();
-                creditStore.setBalance(fresh);
-                canSend = fresh.canSend;
-            } catch {
-                // mantém o último valor conhecido se a checagem falhar
-            }
-            if (!canSend) {
-                window.open(`${WEB_URL}/assinatura`, "_blank");
-                return;
-            }
+    const handleToggleCampaign = async (campaign: RunnerCampaign) => {
+        if (pendingRef.current) {
+            return;
         }
+        pendingRef.current = true;
+        setPendingId(campaign.id);
 
         try {
+            if (campaign.status !== "active") {
+                // Revalida a sessão de verdade no clique (o status do store pode estar
+                // defasado). check() relê o cookie salvo e devolve o status real.
+                const session = await electron.sessions.check(campaign.platform);
+                if (session?.status !== "active") {
+                    options.onSessionMissing(campaign.platform);
+                    return;
+                }
+
+                // Revalida o saldo no momento do clique: o valor do store pode estar
+                // defasado (ex.: o hydrate inicial pegou os 404 do boot, antes do
+                // primeiro poll atualizar o saldo).
+                let canSend = creditStore.getState().creditBalance.canSend;
+                try {
+                    const fresh = await electron.credits.getBalance();
+                    creditStore.setBalance(fresh);
+                    canSend = fresh.canSend;
+                } catch {
+                    // mantém o último valor conhecido se a checagem falhar
+                }
+                if (!canSend) {
+                    window.open(`${WEB_URL}/assinatura`, "_blank");
+                    return;
+                }
+            }
+
             const nextCampaigns =
                 campaign.status === "active"
                     ? await electron.campaigns.pause(campaign.id)
@@ -50,6 +65,9 @@ export function useCampaignActions(electron: ElectronAPI, options: CampaignActio
                 return;
             }
             console.error("Failed to toggle campaign:", error);
+        } finally {
+            pendingRef.current = false;
+            setPendingId(null);
         }
     };
 
@@ -78,5 +96,6 @@ export function useCampaignActions(electron: ElectronAPI, options: CampaignActio
         handleToggleCampaign,
         handleViewCampaign,
         handleRefreshCampaigns,
+        pendingId,
     };
 }

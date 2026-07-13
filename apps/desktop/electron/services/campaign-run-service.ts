@@ -7,7 +7,7 @@ import { apiRequest } from "./backend-api-service";
 import { renderResumePdf } from "./resume-pdf-service";
 import { getStorageStatePath } from "./session-service";
 import { getRpaAuthToken, rpaApiRequest, startRpaProcess } from "./rpa-process-service";
-import { subscribeRunEvents } from "./rpa-events-service";
+import { registerRunContext, subscribeRunEvents } from "./rpa-events-service";
 import { resolveCurrentAuthState } from "./auth-service";
 
 /**
@@ -53,6 +53,10 @@ export async function startCampaignRun(campaign: RunnerCampaign): Promise<RpaRun
             webToken,
         }),
     });
+
+    // Mapeia o run à campanha/plataforma para tratar sessão inválida detectada
+    // durante a execução (o run navega e prova se o login ainda vale).
+    registerRunContext(response.runId, { campaignId: campaign.id, platform: campaign.platform });
 
     const token = getRpaAuthToken();
     if (token) {

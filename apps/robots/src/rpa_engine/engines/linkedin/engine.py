@@ -44,11 +44,24 @@ class LinkedinEngine(BaseEngine):
     async def _ensure_logged_in(self) -> None:
         page: Page = self.ctx.page
         await page.goto(f"{self.BASE_URL}/feed", wait_until="domcontentloaded")
-        if await page.locator(S.LOGIN_FALLBACK_INDICATOR).count() > 0:
+        # Cookie morto no servidor redireciona /feed para /login (o layout atual NÃO
+        # tem mais o input[name=session_key], por isso o check antigo deixava passar
+        # deslogado e tentava candidatar). Detecta por URL de auth-wall + campo de
+        # senha — sinal robusto confirmado nos testes de rede.
+        await page.wait_for_timeout(1_500)
+        url = page.url
+        on_auth_wall = any(
+            seg in url for seg in ("/login", "/authwall", "/checkpoint", "/uas")
+        )
+        has_password = (
+            await page.locator("input[type='password'], " + S.LOGIN_FALLBACK_INDICATOR).count() > 0
+        )
+        if on_auth_wall or has_password:
+            logger.warning("linkedin: sessão inválida (url=%s)", url)
             await self.ctx.emit({
                 "runId": self.ctx.run_id,
                 "type": "paused",
-                "reason": "linkedin session invalid",
+                "reason": "session_invalid",
             })
             raise RuntimeError("LinkedIn session invalid")
 

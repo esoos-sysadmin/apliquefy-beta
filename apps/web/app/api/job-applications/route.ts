@@ -27,3 +27,35 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: "Erro interno do servidor" }, { status: 500 })
     }
 }
+
+export async function GET(request: Request) {
+    try {
+        const { userId } = await auth()
+
+        if (!userId) {
+            return NextResponse.json({ message: "Usuário não autenticado" }, { status: 401 })
+        }
+
+        const { searchParams } = new URL(request.url)
+        const query = {
+            campaign_id: searchParams.get("campaign_id") ?? undefined,
+            status: searchParams.get("status") ?? undefined,
+            page: searchParams.get("page") ?? undefined,
+            limit: searchParams.get("limit") ?? undefined,
+        }
+
+        const result = await jobApplicationService.getCampaignMetrics(userId, query as never)
+
+        if (!result.success) {
+            return NextResponse.json(
+                { message: "Parâmetros inválidos", errorDesc: result.errorDesc },
+                { status: 400 }
+            )
+        }
+
+        return NextResponse.json({ data: result.data, pagination: result.pagination }, { status: 200 })
+    } catch (error) {
+        console.error("Erro na rota GET /api/job-applications:", error)
+        return NextResponse.json({ message: "Erro interno do servidor" }, { status: 500 })
+    }
+}

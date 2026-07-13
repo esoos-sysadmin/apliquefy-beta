@@ -16,7 +16,7 @@ export const linkedinExpEnum = z.enum(["internship", "entry", "associate", "mid_
 export const linkedinJobTypeEnum = z.enum(["full_time", "part_time", "contract", "temporary", "volunteer", "internship", "other"]);
 export const linkedinRemoteEnum = z.enum(["remote", "hybrid", "on_site"]);
 
-const linkedinConfigSchema = z.object({
+export const linkedinConfigSchema = z.object({
     searchTerms: z.string().min(2, "O termo de busca deve ter ao menos 2 caracteres"),
     locationTerm: z.string().min(2, "A localização deve ter ao menos 2 caracteres").optional(),
     sortBy: linkedinSortEnum.optional().default("relevant"),
@@ -60,7 +60,7 @@ export const brazilStateEnum = z.enum([
     "roraima", "santa_catarina", "sao_paulo", "sergipe", "tocantins",
 ]);
 
-const infojobsConfigSchema = z.object({
+export const infojobsConfigSchema = z.object({
     searchTerms: z.string().min(2, "O termo de busca deve ter ao menos 2 caracteres"),
     locationState: brazilStateEnum.optional(),
     kmDeVoce: ijRadiusEnum.optional().default("km_25"),

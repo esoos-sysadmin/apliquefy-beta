@@ -110,6 +110,8 @@ export type RpaRunResponse = {
 
 export type RpaEvent =
     | { runId: string; type: "job_found"; jobUrl: string; jobTitle: string | null; companyName: string | null }
+    // Prévia ao vivo: JPEG base64 (sem prefixo data:) capturado pelo engine.
+    | { runId: string; type: "frame"; data: string }
     | { runId: string; type: "applying"; jobApplicationId: string }
     | { runId: string; type: "applied"; jobApplicationId: string }
     | { runId: string; type: "skipped"; jobApplicationId: string; reason: string }
@@ -135,9 +137,32 @@ export type RunnerPersistedState = {
     sessions: RunnerSessionMap;
 };
 
+export type AssistantMessage = {
+    role: "user" | "assistant";
+    content: string;
+};
+
+// Uma ação que o Apollo executou de fato no app (para o feedback visual da UI).
+export type AssistantAction = {
+    tool: string;
+    label: string;
+    ok: boolean;
+};
+
+export type AssistantChatResult = {
+    reply: string;
+    actions: AssistantAction[];
+};
+
 export type ElectronAPI = {
     window: {
         close: () => Promise<void>;
+    };
+    assistant: {
+        // Recebe o áudio como base64 (webm/opus) e devolve o texto transcrito (Whisper).
+        transcribe: (audioBase64: string) => Promise<string>;
+        // Roda o loop do agente (GPT-4o-mini + tools) sobre o histórico e devolve a resposta + ações.
+        chat: (messages: AssistantMessage[]) => Promise<AssistantChatResult>;
     };
     campaigns: {
         list: () => Promise<RunnerCampaign[]>;

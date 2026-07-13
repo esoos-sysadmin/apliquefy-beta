@@ -8,6 +8,8 @@ import {
     getPlanBySlug,
     getPlanStripePriceId,
 } from "../../../app/lib/constants/plans";
+import { sendEmail } from "../../../app/lib/email/client";
+import { PurchaseConfirmation } from "../../../app/lib/email/templates/PurchaseConfirmation";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -167,6 +169,8 @@ export class StripeService {
         if (!metadata?.userId) return;
 
         const userId = metadata.userId;
+        const email = session.customer_details?.email ?? undefined;
+        const name = session.customer_details?.name ?? undefined;
 
         if (metadata.type === "credit_package") {
             const packageSlug = metadata.packageSlug;
@@ -198,6 +202,14 @@ export class StripeService {
                     },
                 }),
             ]);
+
+            if (email) {
+                await sendEmail({
+                    to: email,
+                    subject: `Compra confirmada: ${creditPackage.name}`,
+                    react: PurchaseConfirmation({ name, productName: creditPackage.name, credits: creditPackage.credits, appUrl: APP_URL }),
+                });
+            }
         } else if (metadata.type === "subscription") {
             const subscriptionId =
                 typeof session.subscription === "string"
@@ -213,6 +225,15 @@ export class StripeService {
                         planTier: metadata.planSlug || "starter",
                     },
                 });
+
+                const plan = getPlanBySlug(metadata.planSlug || "starter");
+                if (email && plan) {
+                    await sendEmail({
+                        to: email,
+                        subject: `Assinatura confirmada: ${plan.name}`,
+                        react: PurchaseConfirmation({ name, productName: `plano ${plan.name}`, credits: plan.credits, appUrl: APP_URL }),
+                    });
+                }
             }
         }
     }

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, FileText, Pencil, Trash2 } from "lucide-react";
+import { Download, Eye, FileText, Pencil, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "../../lib/date";
 import { getResumeMeta } from "../../lib/helpers/resume";
+import { downloadResumePdf } from "../../lib/resume-pdf";
 import type { Resume } from "../../types/resume";
 
 export function ResumeCard({
@@ -69,6 +70,14 @@ export function ResumeCard({
                         <Pencil size={15} />
                         Edit Resume
                     </Link>
+                    <button
+                        type="button"
+                        onClick={() => downloadResumePdf(resume)}
+                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#2A3445] bg-transparent px-4 text-sm font-semibold text-slate-300 transition hover:border-[#3b4a63] hover:bg-[#182233] hover:text-white"
+                    >
+                        <Download size={15} />
+                        Baixar PDF
+                    </button>
                 </div>
             </div>
 

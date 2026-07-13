@@ -52,16 +52,16 @@ export function InfojobsParametersForm({
         <div className="space-y-6">
             <div className="flex items-center gap-2">
                 <BriefcaseBusiness size={18} className="text-orange-300" />
-                <h2 className="text-xl font-semibold text-white">InfoJobs Parameters</h2>
+                <h2 className="text-xl font-semibold text-white">Parâmetros do InfoJobs</h2>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-3">
                 <label className="block space-y-2">
-                    <span className="text-sm font-medium text-slate-300">Search Terms</span>
+                    <span className="text-sm font-medium text-slate-300">Termos de busca</span>
                     <TagInput
                         tags={values.searchTerms}
                         onChange={(tags) => onChange("searchTerms", tags)}
-                        placeholder="Ex: Desenvolvedor Front-end"
+                        placeholder="ex.: Desenvolvedor Front-end"
                     />
                 </label>
 

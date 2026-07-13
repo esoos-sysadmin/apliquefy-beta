@@ -71,3 +71,20 @@ export interface CreateResumeInput {
 }
 
 export type UpdateResumeInput = CreateResumeInput;
+
+export interface ResumeSuggestion {
+    id: string;
+    section: string;
+    title: string;
+    rationale: string;
+    path: string;
+    currentValue: string;
+    suggestedValue: string | string[];
+}
+
+export interface ResumeAnalysis {
+    overallFeedback: string;
+    suggestions: ResumeSuggestion[];
+    creditsDebited?: number;
+    newBalance?: number;
+}
