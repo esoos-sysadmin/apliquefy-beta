@@ -262,15 +262,17 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   border-radius: 8px;
   min-width: 0;
-  padding: 8px 10px;
+  padding: 8px 6px;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
   transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+  /* coluna de ~77px: label sem ícone cabe; reticências evitam vazar da caixa */
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tab-bar__button:hover {
@@ -531,6 +533,66 @@ a {
 
 .icon-button--play:not(.icon-button--disabled):not(:disabled):hover svg {
   transform: scale(1.12);
+}
+
+/* Tooltip do motivo do bloqueio. Fica num wrapper porque o opacity do
+   botão desabilitado apagaria o pseudo-elemento junto. */
+.tip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.tip-wrap[data-tip]::after,
+.tip-wrap[data-tip]::before {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.tip-wrap[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: -4px;
+  z-index: 10;
+  width: max-content;
+  max-width: 200px;
+  transform: translateY(4px);
+  border: 1px solid rgba(106, 163, 255, 0.28);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #1c2333, #12161f);
+  padding: 8px 11px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Seta: quadrado girado, encostado na base do balão para esconder a emenda. */
+.tip-wrap[data-tip]::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 14px;
+  z-index: 11;
+  height: 8px;
+  width: 8px;
+  transform: translateY(4px) rotate(45deg);
+  border-right: 1px solid rgba(106, 163, 255, 0.28);
+  border-bottom: 1px solid rgba(106, 163, 255, 0.28);
+  background: #12161f;
+}
+
+.tip-wrap[data-tip]:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tip-wrap[data-tip]:hover::before {
+  opacity: 1;
+  transform: translateY(0) rotate(45deg);
 }
 
 .campaign-card--pending {

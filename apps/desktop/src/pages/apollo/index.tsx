@@ -19,6 +19,12 @@ const STATUS_LABEL: Record<string, string> = {
     speaking: "Respondendo…",
 };
 
+// As marcações de emoção ([sarcastic], [laughing]…) são instruções pro TTS da fish.audio,
+// não fala: saem da bolha e ficam só no texto que vai pro speak().
+function stripVoiceTags(text: string) {
+    return text.replace(/\[[^\][]{1,24}\]/g, "").replace(/\s{2,}/g, " ").trim();
+}
+
 const SUGGESTIONS = [
     "Liste minhas campanhas",
     "Crie um currículo Dev Frontend",
@@ -70,7 +76,7 @@ export default function ApolloScreen({ electron, userName, onClose, onOpenRunner
                     <div className="apollo__transcript" ref={transcriptRef}>
                         {messages.map((m, i) => (
                             <div key={i} className={`apollo__bubble apollo__bubble--${m.role}`}>
-                                <span>{m.content}</span>
+                                <span>{m.role === "assistant" ? stripVoiceTags(m.content) : m.content}</span>
                                 {m.actions?.length ? (
                                     <div className="apollo__chips">
                                         {m.actions.map((a, j) => (

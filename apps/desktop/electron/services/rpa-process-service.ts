@@ -55,7 +55,8 @@ function resolvePython(): { command: string; args: string[]; cwd: string } {
     }
 
     const resourcesPath = process.resourcesPath ?? "";
-    const packagedEngine = path.join(resourcesPath, "robots", "robots");
+    const binName = process.platform === "win32" ? "robots.exe" : "robots";
+    const packagedEngine = path.join(resourcesPath, "robots", binName);
     return {
         command: packagedEngine,
         args: [],

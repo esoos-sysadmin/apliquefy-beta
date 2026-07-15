@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 import type { AssistantMessage } from "../../shared/runner-types";
-import { runAssistant, transcribeAudio } from "../services/assistant-service";
+import { runAssistant, speakText, transcribeAudio } from "../services/assistant-service";
 
 let isAssistantIpcRegistered = false;
 
@@ -16,5 +16,9 @@ export function registerAssistantIpc() {
 
     ipcMain.handle("assistant:chat", async (_event, messages: AssistantMessage[]) => {
         return runAssistant(messages);
+    });
+
+    ipcMain.handle("assistant:speak", async (_event, text: string) => {
+        return speakText(text);
     });
 }

@@ -47,3 +47,6 @@ dist-react
 .env
 .DS_Store
 ngrok.yml
+# Desktop build outputs
+apps/desktop/release
+apps/desktop/build/robots-dist

@@ -47,23 +47,27 @@ export function CampaignCard({ campaign, sessionValid, isPending, onView, onTogg
                 >
                     <Eye size={16} />
                 </button>
-                <button
-                    type="button"
-                    className={`icon-button icon-button--play no-drag${playDisabled ? " icon-button--disabled" : ""}`}
-                    aria-label={isActive ? `Pause ${campaign.name}` : `Resume ${campaign.name}`}
-                    aria-disabled={playDisabled || isPending}
-                    disabled={isPending}
-                    title={playDisabled ? "Faça login para iniciar" : undefined}
-                    onClick={() => onToggleStatus(campaign)}
+                <span
+                    className="tip-wrap"
+                    data-tip={playDisabled ? "Para ativar a campanha você precisa fazer login primeiro" : undefined}
                 >
-                    {isPending ? (
-                        <Loader2 size={16} className="spin" />
-                    ) : isActive ? (
-                        <Pause size={16} />
-                    ) : (
-                        <Play size={16} />
-                    )}
-                </button>
+                    <button
+                        type="button"
+                        className={`icon-button icon-button--play no-drag${playDisabled ? " icon-button--disabled" : ""}`}
+                        aria-label={isActive ? `Pause ${campaign.name}` : `Resume ${campaign.name}`}
+                        aria-disabled={playDisabled || isPending}
+                        disabled={isPending}
+                        onClick={() => onToggleStatus(campaign)}
+                    >
+                        {isPending ? (
+                            <Loader2 size={16} className="spin" />
+                        ) : isActive ? (
+                            <Pause size={16} />
+                        ) : (
+                            <Play size={16} />
+                        )}
+                    </button>
+                </span>
             </div>
         </article>
     );

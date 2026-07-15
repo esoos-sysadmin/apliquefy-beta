@@ -1,0 +1,47 @@
+name: Release Desktop
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install python deps
+        working-directory: apps/robots
+        run: uv sync --dev
+
+      - name: Install node deps
+        run: npm ci
+
+      # A tag manda na versão do instalador; package.json fica só como fallback local.
+      - name: Sync version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        working-directory: apps/desktop
+        shell: bash
+        run: npm version --no-git-tag-version --allow-same-version "${GITHUB_REF_NAME#v}"
+
+      - name: Build & publish
+        working-directory: apps/desktop
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+          # Sem cert da Apple: não tenta assinar, senão o electron-builder aborta.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npm run release

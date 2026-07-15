@@ -66,6 +66,10 @@ export function ApolloOrb({ level, state, size = 320 }: ApolloOrbProps) {
 
             ctx.clearRect(0, 0, size, size);
             ctx.globalCompositeOperation = "lighter";
+            // tremor rápido (~22 Hz) proporcional à amplitude real da fala — sub-pixel, vibra sem saltar
+            const tremor = s === "speaking" ? smooth : 0;
+            ctx.save();
+            ctx.translate(Math.sin(t / 7) * tremor * 0.5, Math.cos(t / 9) * tremor * 0.4);
 
             // halo de fundo
             const glow = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.9);
@@ -142,6 +146,7 @@ export function ApolloOrb({ level, state, size = 320 }: ApolloOrbProps) {
             ctx.arc(cx, cy, R * (0.5 + smooth * 0.3), 0, Math.PI * 2);
             ctx.fill();
 
+            ctx.restore();
             ctx.globalCompositeOperation = "source-over";
             raf = requestAnimationFrame(render);
         };

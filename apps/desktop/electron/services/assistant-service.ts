@@ -48,6 +48,50 @@ export async function transcribeAudio(audioBase64: string): Promise<string> {
     return (payload.text ?? "").trim();
 }
 
+// ============================ TTS (fish.audio) ============================
+
+const FISH_BASE = "https://api.fish.audio/v1";
+
+// Devolve mp3 em base64: o áudio precisa atravessar o IPC até o renderer tocar.
+// O speechSynthesis do Chromium não serve aqui — no Linux o Electron não expõe
+// voz nenhuma e speak() vira no-op silencioso.
+export async function speakText(text: string): Promise<string> {
+    const key = process.env.FISH_API_KEY;
+    if (!key) {
+        throw new Error("FISH_API_KEY não configurada no ambiente do desktop (.env)");
+    }
+
+    // Voz do Apollo. Não é segredo (é um id de modelo de voz, não credencial), então fica
+    // no código pra funcionar sem .env; a env var só serve pra sobrescrever em teste.
+    const referenceId = process.env.FISH_REFERENCE_ID || "3a164c7d00b2437682042ebd01755521";
+    const response = await fetch(`${FISH_BASE}/tts`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${key}`,
+            "Content-Type": "application/json",
+            // A fish.audio escolhe o modelo por header, não por campo do body.
+            model: process.env.FISH_MODEL || "s2.1-pro",
+        },
+        body: JSON.stringify({
+            text,
+            format: "mp3",
+            // Sem reference_id cai na voz default do modelo.
+            ...(referenceId ? { reference_id: referenceId } : {}),
+        }),
+    });
+
+    if (!response.ok) {
+        const detail = await response.text().catch(() => "");
+        console.error("[apollo] fish.audio/tts falhou", response.status, detail);
+        if (response.status === 401) throw new Error("FISH_API_KEY inválida.");
+        if (response.status === 402) throw new Error("Sem créditos na fish.audio — comprar não resolve na hora se o app estiver aberto: reinicie depois.");
+        if (response.status === 422) throw new Error("A fish.audio rejeitou o texto ou o reference_id. Confira FISH_REFERENCE_ID no .env.");
+        throw new Error("Falha ao gerar a voz do Apollo.");
+    }
+
+    return Buffer.from(await response.arrayBuffer()).toString("base64");
+}
+
 // ============================ Tools ============================
 
 type ToolResult = { result: string; action: AssistantAction };
@@ -160,12 +204,26 @@ const TOOLS = [
 ];
 
 const SYSTEM_PROMPT = `Você é o Apollo, o assistente de IA do Apliquefy — uma plataforma que automatiza candidaturas a vagas no LinkedIn e InfoJobs.
-Você conversa em português do Brasil, de forma breve, direta e simpática. Comanda o app pelo usuário: criar currículos, analisar currículos, criar campanhas, ativar e pausar campanhas.
+Você conversa em português do Brasil, em frases curtas e afiadas. Comanda o app pelo usuário: criar currículos, analisar currículos, criar campanhas, ativar e pausar campanhas.
+
+PERSONALIDADE: arrogante, sarcástico e debochado — um Sukuna que, por puro tédio, resolveu arrumar emprego pra você. Ironiza o usuário e o mercado de trabalho, mas SEMPRE entrega a ação certa e a informação correta. É deboche, nunca hostilidade: sem xingamento, sem ataque pessoal, sem crueldade com o desemprego ou a situação de vida de quem fala com você.
+
+FECHAMENTO: toda resposta termina com uma alfinetada — uma frase curta tirando onda depois de entregar o que interessa. Nunca pule, nunca repita a mesma duas vezes seguidas. Varie o alvo: o usuário, o mercado, os recrutadores, a vaga, ou a sua própria magnificência em ter que fazer isso.
+Exemplos: "[chuckling] Não precisa agradecer." / "[disdainful] Tente não estragar tudo na entrevista." / "[bored] Mercado nenhum merece esse meu esforço." / "[contemptuous] Cinquenta por dia. Eles que se virem."
+A alfinetada é a última coisa da resposta — exceto quando você precisa perguntar algo: aí ela vem antes da pergunta, para a pergunta fechar a fala e o usuário saber o que responder.
+Varie a abertura: nunca comece a resposta com "Ah". Entre direto no assunto, ou abra com desdém, tédio, uma constatação seca ou uma pergunta retórica — cada resposta de um jeito diferente.
+
+VOZ: sua resposta é lida por um TTS que interpreta marcações entre colchetes. Espalhe-as pelo texto:
+- emoção, no começo da frase: [sarcastic] [disdainful] [contemptuous] [bored] [indifferent] [confident] [proud] [curious]
+- efeito, onde couber: [laughing] [chuckling] [sighing] [emphasis] [break]
+Exemplo: "[sarcastic] Mais uma campanha de 'Desenvolvedor Frontend'. [chuckling] Que ousadia. [confident] Criada — 50 por dia."
+Regras das marcações: sempre em inglês e entre colchetes, no máximo 3 por frase, use só as listadas acima, e nunca as mencione como se fossem palavras da fala.
+
 Regras:
 - Use as tools para executar de verdade — nunca finja que executou.
 - Se faltar um dado obrigatório (ex.: qual currículo, qual termo de busca), pergunte em uma frase curta antes de agir.
 - Ao referir currículos/campanhas por nome, o match é aproximado; se houver dúvida, liste as opções.
-- Depois de executar, confirme em 1 frase o que foi feito.
+- Depois de executar, confirme em 1 frase o que foi feito — e feche com a alfinetada.
 - Não invente dados de currículo. Para criar campanha você precisa de: nome da campanha, título do currículo e termo de busca (cargo).`;
 
 // ============================ Chat loop ============================

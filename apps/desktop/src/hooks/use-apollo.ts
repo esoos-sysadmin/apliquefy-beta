@@ -13,19 +13,62 @@ function blobToBase64(blob: Blob): Promise<string> {
     });
 }
 
-function speak(text: string, onStart: () => void, onEnd: () => void) {
-    if (typeof window === "undefined" || !window.speechSynthesis) {
-        onEnd();
-        return;
-    }
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = "pt-BR";
-    utter.rate = 1.05;
-    utter.onstart = onStart;
-    utter.onend = onEnd;
-    utter.onerror = onEnd;
-    window.speechSynthesis.speak(utter);
+// RMS do sinal a cada frame, normalizado em 0..1. Serve tanto pro microfone quanto
+// pra saída do TTS — os dois viram a "amplitude" que faz o orbe respirar.
+function trackLevel(analyser: AnalyserNode, gain: number, onLevel: (v: number) => void): () => void {
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    let raf = 0;
+    const tick = () => {
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+            const v = (data[i] - 128) / 128;
+            sum += v * v;
+        }
+        onLevel(Math.min(1, Math.sqrt(sum / data.length) * gain));
+        raf = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(raf);
+}
+
+// Toca o mp3 que a fish.audio devolveu (base64 via IPC). Resolve quando a fala
+// termina — ou na hora, se o áudio falhar: o texto já está na tela, voz muda não
+// pode travar a conversa.
+function playSpeech(
+    base64: string,
+    onStart: () => void,
+    onLevel: (v: number) => void,
+): { audio: HTMLAudioElement; done: Promise<void> } {
+    // blob: em vez de data: — createMediaElementSource só entrega amostras se a mídia
+    // for same-origin; com data: o analyser corre o risco de só ler silêncio.
+    const url = URL.createObjectURL(
+        new Blob([Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))], { type: "audio/mpeg" }),
+    );
+    const audio = new Audio(url);
+
+    // Mede a própria saída do TTS: é o que sincroniza o orbe com a fala de verdade.
+    const audioCtx = new AudioContext();
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    audioCtx.createMediaElementSource(audio).connect(analyser);
+    analyser.connect(audioCtx.destination); // sem isto o áudio emudece: o source deixa de chegar na saída
+    const stopLevel = trackLevel(analyser, 3.2, onLevel);
+
+    const done = new Promise<void>((resolve) => {
+        audio.onplay = onStart;
+        audio.onended = () => resolve();
+        audio.onerror = () => resolve();
+        audio.onpause = () => resolve(); // fala cortada por uma nova: não deixa o await pendurado
+    }).finally(() => {
+        stopLevel();
+        onLevel(0);
+        URL.revokeObjectURL(url);
+        void audioCtx.close().catch(() => undefined);
+    });
+
+    void audio.play().catch(() => undefined);
+    return { audio, done };
 }
 
 export function useApollo(electron: ElectronAPI, voiceReplies: boolean) {
@@ -39,15 +82,16 @@ export function useApollo(electron: ElectronAPI, voiceReplies: boolean) {
     const streamRef = useRef<MediaStream | null>(null);
     const recorderRef = useRef<MediaRecorder | null>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
-    const rafRef = useRef<number | null>(null);
+    const stopLevelRef = useRef<(() => void) | null>(null);
     const chunksRef = useRef<Blob[]>([]);
+    const speechRef = useRef<HTMLAudioElement | null>(null);
     // guarda a conversa mais recente para o áudio ser enviado com o histórico certo
     const messagesRef = useRef<ApolloTurn[]>([]);
     messagesRef.current = messages;
 
     const cleanupAudio = useCallback(() => {
-        if (rafRef.current) cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
+        stopLevelRef.current?.();
+        stopLevelRef.current = null;
         streamRef.current?.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
         void audioCtxRef.current?.close().catch(() => undefined);
@@ -68,11 +112,17 @@ export function useApollo(electron: ElectronAPI, voiceReplies: boolean) {
             try {
                 const { reply, actions } = await electron.assistant.chat(history);
                 setMessages((prev) => [...prev, { role: "assistant", content: reply, actions }]);
-                if (voiceReplies) {
-                    speak(reply, () => setOrbState("speaking"), () => setOrbState("idle"));
-                } else {
+                if (!voiceReplies) {
                     setOrbState("idle");
+                    return;
                 }
+                // Corta a fala anterior antes de começar a próxima.
+                speechRef.current?.pause();
+                const base64 = await electron.assistant.speak(reply);
+                const { audio, done } = playSpeech(base64, () => setOrbState("speaking"), setLevel);
+                speechRef.current = audio;
+                await done;
+                setOrbState("idle");
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Falha ao falar com o Apollo.");
                 setOrbState("idle");
@@ -114,20 +164,7 @@ export function useApollo(electron: ElectronAPI, voiceReplies: boolean) {
             const analyser = audioCtx.createAnalyser();
             analyser.fftSize = 512;
             source.connect(analyser);
-            const data = new Uint8Array(analyser.frequencyBinCount);
-
-            const tick = () => {
-                analyser.getByteTimeDomainData(data);
-                let sum = 0;
-                for (let i = 0; i < data.length; i++) {
-                    const v = (data[i] - 128) / 128;
-                    sum += v * v;
-                }
-                const rms = Math.sqrt(sum / data.length);
-                setLevel(Math.min(1, rms * 3.2)); // ganho para a fala normal encher o orbe
-                rafRef.current = requestAnimationFrame(tick);
-            };
-            tick();
+            stopLevelRef.current = trackLevel(analyser, 3.2, setLevel); // ganho p/ a fala normal encher o orbe
 
             chunksRef.current = [];
             const recorder = new MediaRecorder(stream);

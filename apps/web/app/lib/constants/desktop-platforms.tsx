@@ -1,29 +1,34 @@
+// URL estável: aponta sempre para o asset da última release publicada pelo CI.
+const RELEASES = "https://github.com/ESOOS-Tech-Company/apliquefy-releases/releases/latest/download";
+
 export const desktopPlatforms = [
     {
         name: "Windows",
-        version: "v1.0.0 — Windows 10/11 (64-bit)",
+        version: "Windows 10/11 (64-bit)",
         requirement: "Requer Windows 10 ou superior",
+        downloadUrl: `${RELEASES}/Apliquefy-Setup.exe`,
         systemRequirements: [
             "Windows 10 / 11 (64-bit)",
+            "Google Chrome instalado",
             "4 GB de RAM",
             "500 MB de espaço em disco",
-            "Conexão com internet",
         ],
         icon: (
             <svg viewBox="0 0 24 24" fill="currentColor" width={32} height={32}>
                 <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" />
             </svg>
         ),
-        available: false,
+        available: true,
     },
     {
         name: "macOS",
-        version: "v1.0.0 — macOS 12+ (Apple Silicon & Intel)",
+        version: "macOS 12+ (Apple Silicon)",
         requirement: "Requer macOS Monterey ou superior",
+        downloadUrl: `${RELEASES}/Apliquefy.dmg`,
         systemRequirements: [
             "macOS 12 Monterey ou superior",
-            "Apple Silicon ou Intel",
-            "4 GB de RAM",
+            "Apple Silicon (M1 ou superior)",
+            "Google Chrome instalado",
             "500 MB de espaço em disco",
         ],
         icon: (
@@ -31,16 +36,17 @@ export const desktopPlatforms = [
                 <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
             </svg>
         ),
-        available: false,
+        available: true,
     },
     {
         name: "Linux",
-        version: "v1.0.0 — AppImage (x64)",
+        version: "AppImage (x64)",
         requirement: "Requer Ubuntu 20.04+ ou equivalente",
+        downloadUrl: `${RELEASES}/Apliquefy.AppImage`,
         systemRequirements: [
             "Ubuntu 20.04+ ou equivalente",
+            "Google Chrome instalado",
             "4 GB de RAM",
-            "500 MB de espaço em disco",
             "AppImage (sem instalação)",
         ],
         icon: (
@@ -48,6 +54,6 @@ export const desktopPlatforms = [
                 <path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.4-.178-.86-.492-1.322a1.353 1.353 0 00-.18-.218c.051-.271.045-.54-.029-.797-.338-.13-1.077.022-1.839.386-1.913-.296-3.765-1.104-5.223C16.751 2.082 14.758.207 12.504 0z" />
             </svg>
         ),
-        available: false,
+        available: true,
     },
 ] as const;

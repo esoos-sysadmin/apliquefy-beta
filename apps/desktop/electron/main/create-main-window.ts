@@ -52,7 +52,8 @@ export function createMainWindow(onClosed: () => void) {
     if (isDev) {
         void window.loadURL("http://localhost:5173");
     } else {
-        void window.loadFile(path.join(__dirname, "../../dist-react/index.html"));
+        // __dirname = dist-electron/electron/main → 3 níveis até a raiz do app
+        void window.loadFile(path.join(__dirname, "../../../dist-react/index.html"));
     }
 
     return window;

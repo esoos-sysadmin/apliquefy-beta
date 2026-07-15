@@ -1,4 +1,3 @@
-import { Link2, Rocket, Settings2 } from "lucide-react";
 import type { RunnerTab } from "../../../shared/runner-types";
 
 type TabBarProps = {
@@ -14,7 +13,6 @@ export function TabBar({ activeTab, onChange }: TabBarProps) {
                 onClick={() => onChange("campaigns")}
                 className={`tab-bar__button no-drag ${activeTab === "campaigns" ? "tab-bar__button--active" : ""}`}
             >
-                <Rocket size={14} />
                 Campaigns
             </button>
             <button
@@ -22,7 +20,6 @@ export function TabBar({ activeTab, onChange }: TabBarProps) {
                 onClick={() => onChange("settings")}
                 className={`tab-bar__button no-drag ${activeTab === "settings" ? "tab-bar__button--active" : ""}`}
             >
-                <Settings2 size={14} />
                 Settings
             </button>
             <button
@@ -30,7 +27,6 @@ export function TabBar({ activeTab, onChange }: TabBarProps) {
                 onClick={() => onChange("integration")}
                 className={`tab-bar__button no-drag ${activeTab === "integration" ? "tab-bar__button--active" : ""}`}
             >
-                <Link2 size={14} />
                 Integração
             </button>
         </nav>

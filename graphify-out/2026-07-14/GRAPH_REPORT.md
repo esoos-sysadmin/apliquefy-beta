@@ -1,18 +1,13 @@
-# Graph Report - apliquefy  (2026-07-14)
+# Graph Report - .  (2026-07-11)
 
 ## Corpus Check
-- 311 files · ~309,514 words
+- 308 files · ~289,943 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1778 nodes · 3067 edges · 155 communities (118 shown, 37 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 20 edges (avg confidence: 0.78)
-- Token cost: 0 input · 0 output
-
-## Graph Freshness
-- Built from commit: `c0508ae4`
-- Run `git rev-parse HEAD` and compare to check if the graph is stale.
-- Run `graphify update .` after code changes (no API cost).
+- 1559 nodes · 2650 edges · 137 communities (102 shown, 35 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 31 edges (avg confidence: 0.78)
+- Token cost: 345,753 input · 0 output
 
 ## Community Hubs (Navigation)
 - Campaign Service & API
@@ -126,52 +121,38 @@
 - Fluxograma Runner Local (Diagrama)
 - Apliquefy Modelo Lógico (ER Diagram)
 - rpa-engine
-- linux
-- Handoff — feat/login-desktop-session
-- mac
-- win
-- README.md
-- nsis
-- react
-- resend
-- svix
-- @types/react-dom
-- behavior.md
-- post-commit
-- README.md
-- handoff.sh
-- Apliquefy Runner HTML Entry
-- apps/web Next.js create-next-app README
-- @turbo/eslint-config
 
 ## God Nodes (most connected - your core abstractions)
-1. `electron/**/*` - 24 edges
-2. `getRunnerState()` - 23 edges
-3. `globalEnv` - 21 edges
-4. `updateRunnerState()` - 17 edges
-5. `compilerOptions` - 17 edges
-6. `StripeService` - 17 edges
-7. `createApiClient()` - 16 edges
-8. `ApiClient` - 16 edges
-9. `RunnerPlatform` - 15 edges
-10. `WebApiClient` - 15 edges
+1. `getRunnerState()` - 23 edges
+2. `electron/**/*` - 23 edges
+3. `compilerOptions` - 17 edges
+4. `StripeService` - 17 edges
+5. `WebApiClient` - 15 edges
+6. `CampaignService` - 15 edges
+7. `compilerOptions` - 15 edges
+8. `RunnerPlatform` - 14 edges
+9. `startRpaProcess()` - 13 edges
+10. `updateRunnerState()` - 13 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `fetchCampaigns()` --indirect_call--> `mapCampaign()`  [INFERRED]
-  apps/desktop/electron/services/campaign-service.ts → apps/desktop/electron/helpers/campaign-mappers.ts
-- `ResumesPage()` --calls--> `useResumes()`  [EXTRACTED]
-  apps/web/app/(frontend)/curriculos/page.tsx → apps/web/app/hooks/use-resumes.ts
-- `persistCampaigns()` --calls--> `updateRunnerState()`  [EXTRACTED]
-  apps/desktop/electron/controllers/campaign-controller.ts → apps/desktop/electron/store.ts
-- `persistSession()` --calls--> `updateRunnerState()`  [EXTRACTED]
-  apps/desktop/electron/controllers/session-controller.ts → apps/desktop/electron/store.ts
-- `registerSessionsIpc()` --calls--> `getSessionController()`  [EXTRACTED]
-  apps/desktop/electron/ipc/sessions.ts → apps/desktop/electron/controllers/session-controller.ts
+- `Turborepo Starter README` --conceptually_related_to--> `Turborepo Monorepo (npm workspaces)`  [INFERRED]
+  README.md → Docs/ai/claude.md
+- `apps/web Next.js create-next-app README` --conceptually_related_to--> `apps/web (Next.js panel + API)`  [INFERRED]
+  apps/web/README.md → Docs/ai/claude.md
+- `Apliquefy Runner HTML Entry` --conceptually_related_to--> `apps/desktop (Electron runner)`  [INFERRED]
+  apps/desktop/index.html → Docs/ai/claude.md
+- `Apliquefy Visual Cognitive Agent` --conceptually_related_to--> `apps/desktop (Electron runner)`  [INFERRED]
+  apps/robots/src/rpa_engine/cognitive/prompts/system.md → Docs/ai/claude.md
+- `Apliquefy Visual Cognitive Agent` --shares_data_with--> `Prisma Data Models`  [INFERRED]
+  apps/robots/src/rpa_engine/cognitive/prompts/system.md → Docs/ai/claude.md
 
 ## Import Cycles
 - None detected.
 
 ## Hyperedges (group relationships)
+- **Casca/Alma AI Assistant Protocol** — docs_ai_backend_insctructions_dev_contract, docs_ai_frontend_instructions_output_guidelines, docs_ai_claude_service_controller_pattern [INFERRED 0.80]
+- **Apliquefy Monorepo Architecture** — docs_ai_claude_apliquefy, docs_ai_claude_monorepo, docs_ai_claude_apps_web, docs_ai_claude_apps_desktop, docs_ai_claude_packages_database [INFERRED 0.85]
+- **Credits Billing Flow** — docs_ai_claude_credits_system, docs_ai_claude_stripe_billing, docs_ai_claude_prisma_models [INFERRED 0.80]
 - **Local RPA Subsystem** — docs_arquitetura_apliquefy_arquitetura_drawio_runner_electron, docs_arquitetura_apliquefy_arquitetura_drawio_bot_engine_playwright, docs_arquitetura_apliquefy_arquitetura_drawio_local_storage [EXTRACTED 1.00]
 - **Cloud Backend Subsystem (Vercel)** — docs_arquitetura_apliquefy_arquitetura_drawio_web_app_api, docs_arquitetura_apliquefy_arquitetura_drawio_auth_service, docs_arquitetura_apliquefy_arquitetura_drawio_postgres_neon [EXTRACTED 1.00]
 - **External Service Integrations** — docs_arquitetura_apliquefy_arquitetura_drawio_web_app_api, docs_arquitetura_apliquefy_arquitetura_drawio_cakto_gateway, docs_arquitetura_apliquefy_arquitetura_drawio_ai_api_gemini, docs_arquitetura_apliquefy_arquitetura_drawio_email_service [EXTRACTED 1.00]
@@ -191,71 +172,71 @@
 - **Task Card Controls Region** — docs_design_compact_window_shell_tray_app_simulation_applications_counter, docs_design_compact_window_shell_tray_app_simulation_view_button, docs_design_compact_window_shell_tray_app_simulation_pause_button [EXTRACTED 1.00]
 - **Engine Status Footer Region** — docs_design_compact_window_shell_tray_app_simulation_engine_running_uptime, docs_design_compact_window_shell_tray_app_simulation_memory_indicator, docs_design_compact_window_shell_tray_app_simulation_version_indicator [EXTRACTED 1.00]
 
-## Communities (155 total, 37 thin omitted)
+## Communities (137 total, 35 thin omitted)
 
 ### Community 0 - "Campaign Service & API"
-Cohesion: 0.18
-Nodes (11): CampaignResponseError, CampaignResponseSuccess, CampaignWithInfojobs, CampaignWithLinkedin, CampaignWithRelations, CreateInfojobsCampaignInput, CreateLinkedinCampaignInput, UpdateCampaignInput (+3 more)
+Cohesion: 0.06
+Nodes (31): CampaignResponse, CampaignResponseError, CampaignResponseSuccess, CampaignWithInfojobs, CampaignWithLinkedin, CampaignWithRelations, CreateInfojobsCampaignInput, CreateLinkedinCampaignInput (+23 more)
 
 ### Community 1 - "Web Resume Form UI"
 Cohesion: 0.11
-Nodes (40): cellStyle(), formatDisplay(), iconBtnStyle, MONTHS_PT, MonthYearPicker(), MonthYearPickerProps, parseValue(), textBtnStyle (+32 more)
+Nodes (42): cellStyle(), formatDisplay(), iconBtnStyle, MONTHS_PT, MonthYearPicker(), MonthYearPickerProps, parseValue(), textBtnStyle (+34 more)
 
 ### Community 2 - "Campaign Parameter Forms"
 Cohesion: 0.06
 Nodes (46): SelectField(), TagInput(), FormErrorBanner(), FormErrorBannerProps, InfojobsAreaValue, InfojobsContractValue, InfojobsDateValue, InfojobsFormValues (+38 more)
 
 ### Community 3 - "Stripe Billing & Plans"
-Cohesion: 0.21
-Nodes (3): getPlanByStripePriceId(), getPlanStripePriceId(), StripeService
+Cohesion: 0.08
+Nodes (20): ClerkUserCreatedEvent, UpsellModal(), UpsellModalProps, PlanosPage(), CreditPackage, formatBRL(), getNextPlan(), getPackageBySlug() (+12 more)
 
 ### Community 4 - "Turborepo Build Config"
 Cohesion: 0.05
-Nodes (42): APLIQUEFY_WEB_TOKEN, APLIQUEFY_WEB_URL, ^build, ^check-types, CLERK_DESKTOP_JWT_TEMPLATE, CLERK_WEBHOOK_SECRET, COST_PER_APPLICATION, CREDIT_COST_MAX_PER_APPLICATION (+34 more)
+Nodes (38): geistMono, geistSans, metadata, AuthProvider(), APLIQUEFY_WEB_TOKEN, APLIQUEFY_WEB_URL, ^build, ^check-types (+30 more)
 
 ### Community 5 - "Desktop RPA Process Orchestration"
 Cohesion: 0.12
-Nodes (32): registerRpaIpc(), startCampaignRun(), renderResumePdf(), RenderResumeResponse, ResumeApiPayload, broadcast(), registerRunContext(), RunContext (+24 more)
+Nodes (30): registerRpaIpc(), startCampaignRun(), renderResumePdf(), RenderResumeResponse, ResumeApiPayload, broadcast(), sockets, subscribeRunEvents() (+22 more)
 
 ### Community 6 - "Desktop package.json Deps"
 Cohesion: 0.06
 Nodes (33): dotenv, dotenv-cli, dependencies, dotenv, pg, @prisma/adapter-pg, @prisma/client, devDependencies (+25 more)
 
 ### Community 7 - "Browser Session Capture"
-Cohesion: 0.13
-Nodes (19): broadcastSessions(), createSessionController(), persistSession(), SessionController, captureSession(), dismissConsentPopup(), getPlatformSessionDir(), getStorageStatePath() (+11 more)
+Cohesion: 0.09
+Nodes (18): captureSession(), dismissConsentPopup(), getPlatformSessionDir(), getStorageStatePath(), isValidPlatform(), PLATFORM_CONFIG, PlatformConfig, removeSessionFiles() (+10 more)
 
 ### Community 8 - "ESLint Config Package"
 Cohesion: 0.06
 Nodes (31): eslint-config-prettier, @eslint/js, eslint-plugin-only-warn, eslint-plugin-react, eslint-plugin-react-hooks, eslint-plugin-turbo, globals, @next/eslint-plugin-next (+23 more)
 
 ### Community 9 - "Credits Service & API"
-Cohesion: 0.14
-Nodes (11): CheckBalanceData, CreditsPagination, CreditsResponseError, CreditsResponseSuccess, CreditsServiceResponse, DebitCreditsData, CreditHistoryFilters, creditHistoryFiltersSchema (+3 more)
+Cohesion: 0.11
+Nodes (13): CheckBalanceData, CreditsPagination, CreditsResponseError, CreditsResponseSuccess, CreditsServiceResponse, DebitCreditsData, CreditHistoryFilters, creditHistoryFiltersSchema (+5 more)
 
 ### Community 10 - "Python Apply-Flow Engine"
 Cohesion: 0.12
-Nodes (18): ABC, BaseEngine, EngineContext, Common engine contract and shared types., Infojobs mechanical engine.  Critical: location must be picked via the autocompl, Infojobs selectors centralized for maintenance., LinkedIn mechanical engine.  Login is assumed (storage_state). Flow:   1. Open `, LinkedIn selectors centralized for maintenance. (+10 more)
+Nodes (19): Infojobs mechanical engine.  Critical: location must be picked via the autocompl, Infojobs selectors centralized for maintenance., LinkedIn mechanical engine.  Login is assumed (storage_state). Flow:   1. Open `, LinkedIn selectors centralized for maintenance., _apply_action(), execute_apply(), Cognitive apply loop shared by every engine.  Sequence per job:   1. POST /api/j, Drive the visual agent until a terminal status_code, returning the outcome. (+11 more)
 
 ### Community 11 - "Shared Package Deps"
 Cohesion: 0.07
 Nodes (28): dependencies, react, react-dom, devDependencies, eslint, @repo/eslint-config, @repo/typescript-config, @types/node (+20 more)
 
 ### Community 12 - "Runner Types & Sessions"
-Cohesion: 0.13
-Nodes (18): electronAPI, ElectronAPI, RpaEvent, RunnerEngineStatus, RunnerPlatform, RunnerSessionMap, SessionResult, SessionResultCode (+10 more)
+Cohesion: 0.12
+Nodes (19): electronAPI, ElectronAPI, RunnerPlatform, RunnerSessionMap, SessionResult, SessionResultCode, SessionStatus, LABELS (+11 more)
 
 ### Community 13 - "Resume Service & API"
 Cohesion: 0.11
 Nodes (12): CreateResumeError, CreateResumeResponse, CreateResumeSucess, ResumeData, certificationsSchema, educationSchema, experienceSchema, idiomsSchema (+4 more)
 
 ### Community 14 - "Web Campaign Hooks"
-Cohesion: 0.21
-Nodes (17): activateCampaign(), createInfojobsCampaign(), createLinkedinCampaign(), deleteCampaign(), getCampaigns(), pauseCampaign(), unwrapCampaignPayload(), updateCampaign() (+9 more)
+Cohesion: 0.17
+Nodes (21): activateCampaign(), createInfojobsCampaign(), createLinkedinCampaign(), deleteCampaign(), getCampaigns(), pauseCampaign(), unwrapCampaignPayload(), updateCampaign() (+13 more)
 
 ### Community 15 - "RPA Cognitive Agent (Python)"
-Cohesion: 0.26
-Nodes (9): load_settings(), Runtime configuration loaded from environment variables., Settings, main(), _pick_port(), Entry point.  Binds an asyncio TCP socket to port 0, prints the chosen port to s, build_app(), FastAPI (+1 more)
+Cohesion: 0.14
+Nodes (16): AgentDecision, BaseModel, Strict JSON contract for the visual agent (R12)., Any, OpenAI GPT-4o vision client for the cognitive loop.  Sends an annotated screensh, VisualAgent, load_settings(), Runtime configuration loaded from environment variables. (+8 more)
 
 ### Community 16 - "Tray App Shell Mockup"
 Cohesion: 0.09
@@ -267,75 +248,75 @@ Nodes (23): compilerOptions, allowJs, allowSyntheticDefaultImports, esModuleInte
 
 ### Community 18 - "Root Workspace package.json"
 Cohesion: 0.08
-Nodes (25): devDependencies, prettier, turbo, @types/node, typescript, engines, node, turbo (+17 more)
+Nodes (23): devDependencies, prettier, turbo, @types/node, typescript, engines, node, turbo (+15 more)
 
 ### Community 19 - "Runner Auth & Settings Page"
-Cohesion: 0.15
-Nodes (18): PLATFORM_LABEL, SessionRequiredModal(), SessionRequiredModalProps, useAuthActions(), useElectron(), useRunnerBootstrap(), useSessions(), useSettingsActions() (+10 more)
+Cohesion: 0.16
+Nodes (18): RunnerAuthState, AccountCard(), AccountCardProps, useAuthActions(), useElectron(), useRunnerBootstrap(), useSessions(), useSettingsActions() (+10 more)
 
 ### Community 20 - "API Client & Clerk Auth"
-Cohesion: 0.15
-Nodes (15): getBalance(), getCreditHistory(), createCheckoutSession(), createPortalSession(), SidebarSession(), withToken(), useResume(), ApiClient (+7 more)
+Cohesion: 0.17
+Nodes (15): getCreditHistory(), getReport(), getReports(), createCheckoutSession(), createPortalSession(), aggregateReports(), useCampaignMetrics(), useResume() (+7 more)
 
 ### Community 21 - "Web Resume Hooks"
-Cohesion: 0.14
-Nodes (22): analyzeResume(), createResume(), deleteResume(), getResume(), getResumes(), unwrapResumePayload(), updateResume(), AnalyzeResumeInner() (+14 more)
+Cohesion: 0.19
+Nodes (16): createResume(), deleteResume(), getResume(), getResumes(), unwrapResumePayload(), updateResume(), ResumeCard(), ResumeCardSkeleton() (+8 more)
 
 ### Community 22 - "Report Service & API"
-Cohesion: 0.06
-Nodes (25): ClerkUserCreatedEvent, JobData, JobPagination, JobResponse, JobResponseError, JobResponseSuccess, ReportData, ReportPagination (+17 more)
+Cohesion: 0.16
+Nodes (11): ReportData, ReportPagination, ReportResponse, ReportResponseError, ReportResponseSuccess, ReportWithCampaign, CreateReportInput, createReportSchema (+3 more)
 
 ### Community 23 - "Job Service & API"
-Cohesion: 0.15
-Nodes (24): createAbTest(), deleteAbTest(), getAbTest(), getAbTests(), setApplicationOutcome(), unwrap(), updateAbTest(), AbTestDetailModal() (+16 more)
+Cohesion: 0.16
+Nodes (10): JobData, JobPagination, JobResponse, JobResponseError, JobResponseSuccess, CreateJobInput, createJobSchema, ListJobsQuery (+2 more)
 
 ### Community 24 - "Monorepo Architecture Concepts"
-Cohesion: 0.20
-Nodes (9): Apps and Packages, Build, Develop, Remote Caching, Turborepo starter, Useful Links, Using this example, Utilities (+1 more)
+Cohesion: 0.13
+Nodes (20): Apliquefy Runner HTML Entry, Apliquefy Visual Cognitive Agent, apps/web Next.js create-next-app README, Backend Development Contract (casca), Hyper-Direct Playwright Engineer Behavior, Apliquefy Platform, apps/desktop (Electron runner), apps/web (Next.js panel + API) (+12 more)
 
 ### Community 25 - "Python Run Orchestrator"
-Cohesion: 0.19
-Nodes (9): BaseModel, Request, Run lifecycle endpoints (start/stop/status)., run_events(), RunRequest, RunResponse, start_run(), Orchestrator (+1 more)
+Cohesion: 0.13
+Nodes (11): BaseModel, Request, Run lifecycle endpoints (start/stop/status)., run_events(), RunRequest, RunResponse, start_run(), Orchestrator (+3 more)
 
 ### Community 26 - "Base TS Config"
 Cohesion: 0.10
 Nodes (19): compilerOptions, declaration, declarationMap, esModuleInterop, incremental, isolatedModules, lib, module (+11 more)
 
 ### Community 27 - "Desktop Dev Deps"
-Cohesion: 0.06
-Nodes (33): devDependencies, autoprefixer, concurrently, cross-env, electron, electron-builder, postcss, tailwindcss (+25 more)
+Cohesion: 0.11
+Nodes (19): devDependencies, autoprefixer, concurrently, cross-env, ts-node, @types/react, @types/react-dom, @types/ws (+11 more)
 
 ### Community 28 - "Python Resume PDF Render"
 Cohesion: 0.21
 Nodes (17): BaseModel, Request, Resume PDF rendering endpoint (M3)., render_resume_endpoint(), RenderResumeRequest, RenderResumeResponse, _build_styles(), _coerce_list() (+9 more)
 
 ### Community 29 - "Job Application Service"
-Cohesion: 0.13
-Nodes (11): CreateJobApplicationInput, createJobApplicationSchema, ListJobApplicationsQuery, listJobApplicationsQuerySchema, platformEnum, statusEnum, UpdateJobApplicationInput, updateJobApplicationSchema (+3 more)
+Cohesion: 0.16
+Nodes (8): CreateJobApplicationInput, createJobApplicationSchema, platformEnum, statusEnum, UpdateJobApplicationInput, updateJobApplicationSchema, JobApplicationService, ServiceResponse
 
 ### Community 30 - "Credits & Subscription Hooks"
-Cohesion: 0.10
-Nodes (14): AppProviders(), CreditGateContext, CreditGateContextType, CreditGateProvider(), geistMono, geistSans, metadata, AuthProvider() (+6 more)
+Cohesion: 0.21
+Nodes (11): SidebarCredits(), AppProviders(), CreditGateContext, CreditGateContextType, CreditGateProvider(), PacotesPage(), AssinaturaPage(), useCredits() (+3 more)
 
 ### Community 31 - "TS Config"
 Cohesion: 0.11
 Nodes (18): compilerOptions, declaration, declarationMap, esModuleInterop, lib, module, skipLibCheck, sourceMap (+10 more)
 
 ### Community 32 - "Shared API Types"
-Cohesion: 0.17
-Nodes (14): getApplicationMetrics(), dayLabel(), formatDate(), ReportsPage(), statusClass, statusLabel, EMPTY, useApplicationMetrics() (+6 more)
+Cohesion: 0.18
+Nodes (10): getBalance(), ApiSuccessResponse, PaginatedResponse, CreditBalance, CreditTransaction, CreditWeightConfig, DebitCreditsPayload, DebitCreditsResult (+2 more)
 
 ### Community 33 - "Runner Local Flowchart"
 Cohesion: 0.13
 Nodes (18): Analisar Pergunta, Playwright: Buscar Vagas (Filtro Easy Apply), Chamar API LLM (Contexto: Currículo), Clicar 'Candidatura Simplificada', Email para equipe de desenvolvimento, Enviar Candidatura, Início: Runner Detecta Campanha Ativa, Iterar sobre Lista de Vagas (+10 more)
 
 ### Community 34 - "Electron IPC Registration"
-Cohesion: 0.14
-Nodes (19): createAuthController(), createCampaignController(), AuthIpcOptions, registerAuthIpc(), registerCampaignIpc(), registerCreditIpc(), broadcastEngineStatus(), buildEngineStatus() (+11 more)
+Cohesion: 0.22
+Nodes (10): createAuthController(), createCampaignController(), AuthIpcOptions, registerAuthIpc(), registerCampaignIpc(), registerSessionsIpc(), registerWindowIpc(), registerIpcHandlers() (+2 more)
 
 ### Community 35 - "Desktop Auth Flow"
-Cohesion: 0.14
-Nodes (24): AuthControllerOptions, AuthSessionPayload, createAuthenticatedState(), isAuthStateValid(), decodeJwtExpiration(), clearDesktopAuthCookies(), fetchDesktopSessionWithCookies(), persistAuthState() (+16 more)
+Cohesion: 0.29
+Nodes (13): AuthControllerOptions, AuthSessionPayload, createAuthenticatedState(), isAuthStateValid(), decodeJwtExpiration(), clearDesktopAuthCookies(), fetchDesktopSessionWithCookies(), persistAuthState() (+5 more)
 
 ### Community 36 - "Runner Zustand Stores"
 Cohesion: 0.18
@@ -343,51 +324,51 @@ Nodes (11): CampaignActionsOptions, useCampaignActions(), baseStore, campaignSto
 
 ### Community 37 - "Web App Dependencies"
 Cohesion: 0.12
-Nodes (17): dependencies, @clerk/nextjs, jspdf, lucide-react, react-dom, @react-email/components, @repo/database, stripe (+9 more)
+Nodes (17): dependencies, @clerk/nextjs, lucide-react, react, react-dom, @repo/database, stripe, svix (+9 more)
 
 ### Community 38 - "Web Dev Dependencies"
-Cohesion: 0.11
-Nodes (19): devDependencies, autoprefixer, eslint, postcss, @repo/eslint-config, @repo/typescript-config, tailwindcss, @types/node (+11 more)
+Cohesion: 0.12
+Nodes (17): devDependencies, autoprefixer, eslint, @repo/eslint-config, @repo/typescript-config, @types/node, @types/react, @types/react-dom (+9 more)
 
 ### Community 39 - "Resume Management Mockup"
 Cohesion: 0.14
 Nodes (17): Dark Themed Sectioned Card Layout, Education Section (Add Degree, empty state), Empty State Pattern (No education added yet + CTA), Experience Entry Card (Title, Company, Start/End Date, Description), Import PDF Action, Apliquefy Local-First Agent Branding, Personal Details Section, Professional Summary Textarea (240/500 characters) (+9 more)
 
 ### Community 40 - "Session Controller & Heartbeat"
-Cohesion: 0.07
-Nodes (28): API Routes (`app/api/`), Apliquefy — Contexto do Projeto para Claude, apps/desktop — Electron + React, apps/robots — Engine RPA (Python), apps/web — Next.js (App Router), Autenticação, Backend interno (`backend/modules/`), Camada de cliente (`app/`) (+20 more)
+Cohesion: 0.26
+Nodes (14): broadcastSessions(), createSessionController(), getSessionController(), persistSession(), SessionController, fetchCampaigns(), updateCampaignStatus(), pauseCampaignsForPlatform() (+6 more)
 
 ### Community 41 - "Runner Campaign List UI"
 Cohesion: 0.19
 Nodes (11): RunnerCampaign, RunnerCampaignStatus, StatusBadge(), StatusBadgeProps, CampaignCard(), CampaignCardProps, CampaignDetails(), CampaignDetailsProps (+3 more)
 
 ### Community 42 - "Runner State & Settings IPC"
-Cohesion: 0.18
-Nodes (23): persistCampaigns(), getSessionController(), registerAccountsIpc(), applyRunnerSettings(), registerSettingsIpc(), SettingsIpcOptions, maybeShowRunnerNotification(), fetchCampaigns() (+15 more)
+Cohesion: 0.32
+Nodes (10): persistCampaigns(), registerAccountsIpc(), applyRunnerSettings(), registerSettingsIpc(), SettingsIpcOptions, maybeShowRunnerNotification(), notifyCampaignActivated(), notifyCampaignPaused() (+2 more)
 
 ### Community 43 - "Runner Settings UI"
-Cohesion: 0.17
-Nodes (10): RunnerAccountState, RunnerAuthState, AccountCard(), AccountCardProps, fallbackAccount, fallbackAuth, fallbackCampaigns, fallbackElectronAPI (+2 more)
+Cohesion: 0.14
+Nodes (12): RunnerAccountState, RunnerSettings, ToggleSwitch(), ToggleSwitchProps, GeneralSettings(), GeneralSettingsProps, fallbackAccount, fallbackAuth (+4 more)
 
 ### Community 44 - "Runner Shell UI"
-Cohesion: 0.16
-Nodes (12): RunnerCreditBalance, RunnerTab, TabBar(), TabBarProps, TitleBar(), TitleBarProps, LivePreview(), STATUS_LABELS (+4 more)
+Cohesion: 0.19
+Nodes (11): RunnerCreditBalance, RunnerEngineStatus, RunnerTab, TabBar(), TabBarProps, TitleBar(), TitleBarProps, StatusBar() (+3 more)
 
 ### Community 45 - "Web Sidebar Navigation"
-Cohesion: 0.20
-Nodes (7): NavItem(), NavItemProps, SidebarCredits(), SidebarLogo(), navItems, SidebarNav(), Sidebar()
+Cohesion: 0.19
+Nodes (8): NavItem(), NavItemProps, SidebarLogo(), navItems, SidebarNav(), SidebarSession(), Sidebar(), useSessionUser()
 
 ### Community 46 - "Next.js TS Config"
 Cohesion: 0.14
 Nodes (13): compilerOptions, jsx, plugins, exclude, extends, include, node_modules, next.config.js (+5 more)
 
 ### Community 47 - "Runner State Persistence"
-Cohesion: 0.12
-Nodes (11): abTestBase, CreateAbTestInput, createAbTestSchema, UpdateAbTestInput, updateAbTestSchema, infojobsConfigSchema, linkedinConfigSchema, AbTestService (+3 more)
+Cohesion: 0.21
+Nodes (11): clone(), defaultAccount, defaultAuth, defaultCreditBalance, defaultSessions, defaultSettings, getStateFilePath(), readStateFromDisk() (+3 more)
 
 ### Community 48 - "Client Error & Toast"
-Cohesion: 0.18
-Nodes (18): matchByName(), registerAssistantIpc(), campaignController, chatCompletion(), executeTool(), findResumeId(), getApiKey(), getChatModel() (+10 more)
+Cohesion: 0.17
+Nodes (8): ApiError, handleClientError(), Listener, listeners, toast, ToastContext, ToastItem, ToastVariant
 
 ### Community 49 - "Architecture Diagram"
 Cohesion: 0.26
@@ -398,40 +379,36 @@ Cohesion: 0.18
 Nodes (13): Account Connection Section, Close (X) Button, Connected Account Card (Alex Morgan, Local Node), Dark Themed Modal Window Layout, Desktop Notifications Toggle (Off), Disconnect Account Button, General Settings Section, Save Changes Button (Gradient CTA) (+5 more)
 
 ### Community 51 - "Python Engine Base"
-Cohesion: 0.19
-Nodes (8): Run orchestration: coordinates engines, agent, debit, daily limit., Screenshot periódico da página → evento `frame` (JPEG base64) p/ a prévia     ao, RunHandle, _stream_frames(), BrowserBridge, open_browser_context(), Browser bootstrap: browser-use sobe o Chrome; Playwright conecta via CDP.  O bro, Queue
-
-### Community 52 - "Python Web API Client"
-Cohesion: 0.21
-Nodes (5): Daily limit enforcement against the web backend., remaining_for_campaign(), Any, Async HTTP client for the Apliquefy Next.js backend., WebApiClient
+Cohesion: 0.23
+Nodes (7): ABC, BaseEngine, EngineContext, Common engine contract and shared types., Run orchestration: coordinates engines, agent, debit, daily limit., open_browser_context(), Browser context bootstrap from a Playwright storage_state.json.
 
 ### Community 53 - "Campaigns Page & Modals"
-Cohesion: 0.21
-Nodes (10): AbTestCard(), winnerLabel, CampaignCardSkeleton(), CampaignEditModal(), NewCampaignPage(), CampaignsPage(), platformOptions, statusOptions (+2 more)
+Cohesion: 0.26
+Nodes (8): CampaignCardSkeleton(), ConfirmDialog(), ConfirmDialogProps, CampaignEditModal(), CampaignsPage(), platformOptions, statusOptions, useCampaigns()
 
 ### Community 54 - "Desktop Download Page"
 Cohesion: 0.23
 Nodes (6): DesktopDownloadTab(), DesktopHowItWorksTab(), Tab, tabs, desktopPlatforms, desktopSteps
 
 ### Community 55 - "Electron Main & Engine IPC"
-Cohesion: 0.18
-Nodes (15): AssistantAction, ApolloOrb(), ApolloOrbProps, OrbState, PALETTE, ApolloTurn, blobToBase64(), playSpeech() (+7 more)
+Cohesion: 0.33
+Nodes (8): broadcastEngineStatus(), buildEngineStatus(), engineStartedAt, formatUptime(), pushInitialEngineStatus(), registerEngineIpc(), createMainWindow(), stopSessionHeartbeat()
 
 ### Community 56 - "Desktop Runtime Deps"
 Cohesion: 0.18
 Nodes (11): dependencies, playwright, react, react-dom, react-router-dom, ws, react, react-dom (+3 more)
 
 ### Community 57 - "Clerk Session & Dashboard"
-Cohesion: 0.44
-Nodes (5): GET(), getAuthSession(), getCurrentSessionUser(), getDesktopSessionToken(), Home()
+Cohesion: 0.40
+Nodes (6): GET(), Dashboard(), getAuthSession(), getCurrentSessionUser(), getDesktopSessionToken(), Home()
 
 ### Community 58 - "Shared Next.js TS Config"
 Cohesion: 0.18
 Nodes (10): compilerOptions, allowJs, jsx, module, moduleResolution, noEmit, plugins, extends (+2 more)
 
 ### Community 59 - "Campaign Mappers"
-Cohesion: 0.24
-Nodes (10): brazilStateLabels, formatDistanceToNow(), mapCampaign(), mapCampaignLocation(), mapCampaignNotes(), apiRequest(), getApiUrl(), getAuthToken() (+2 more)
+Cohesion: 0.33
+Nodes (7): brazilStateLabels, formatDistanceToNow(), mapCampaign(), mapCampaignLocation(), mapCampaignNotes(), fetchCampaignById(), RunnerCampaignApiModel
 
 ### Community 60 - "Web package.json"
 Cohesion: 0.20
@@ -462,8 +439,8 @@ Cohesion: 0.28
 Nodes (9): campaign_infojobs, campaign_linkedin, campaigns, job_applications, jobs, reports, resumes, Transaction (+1 more)
 
 ### Community 67 - "Desktop Backend API Client"
-Cohesion: 0.18
-Nodes (12): ConfirmDialog(), ConfirmDialogProps, ResumeCard(), ResumeCardSkeleton(), ResumesPage(), getResumeMeta(), BLUE, DARK (+4 more)
+Cohesion: 0.43
+Nodes (5): registerCreditIpc(), apiRequest(), getApiUrl(), getAuthToken(), fetchCreditBalance()
 
 ### Community 69 - "ESLint Flat Config"
 Cohesion: 0.39
@@ -474,12 +451,12 @@ Cohesion: 0.29
 Nodes (6): license, name, private, publishConfig, access, version
 
 ### Community 71 - "Electron Builder Config"
-Cohesion: 0.20
-Nodes (10): build, appId, directories, extraResources, files, productName, publish, output (+2 more)
+Cohesion: 0.33
+Nodes (6): build, appId, extraResources, files, dist/**, dist-electron/**
 
 ### Community 72 - "Root Scripts"
-Cohesion: 0.25
-Nodes (8): scripts, build, build:robots, dev, dist, electron:dev, release, setup:chrome
+Cohesion: 0.33
+Nodes (6): scripts, build, build:robots, dev, electron:dev, postinstall
 
 ### Community 73 - "Prisma Seed"
 Cohesion: 0.33
@@ -490,8 +467,8 @@ Cohesion: 0.33
 Nodes (5): compilerOptions, jsx, extends, ./base.json, $schema
 
 ### Community 75 - "Campaign Details Modal"
-Cohesion: 0.26
-Nodes (10): getReport(), getReports(), CampaignDetailsModal(), aggregateReports(), useCampaignMetrics(), formatDateTime(), formatDistanceToNow(), CampaignMetrics (+2 more)
+Cohesion: 0.80
+Nodes (3): CampaignDetailsModal(), formatDateTime(), formatDistanceToNow()
 
 ### Community 76 - "Sequence Diagram Actors"
 Cohesion: 0.60
@@ -501,81 +478,25 @@ Nodes (5): Gateway (Cakto), LinkedIn/Infojobs (WebView), Runner (Electron), Usua
 Cohesion: 0.50
 Nodes (4): Apliquefy - Diagrama de Sequencia (UML), Fase 1: Aquisicao, Fase 3: Configuracao, Fase 2: Instalacao e Vinculo
 
-### Community 86 - "electron"
-Cohesion: 0.12
-Nodes (16): brazilStateEnum, campaignBaseSchema, ijContractEnum, ijDatePostedEnum, ijJobAreaEnum, ijPcdEnum, ijRadiusEnum, ijSalaryEnum (+8 more)
-
-### Community 88 - "postcss"
-Cohesion: 0.18
-Nodes (5): getPackageBySlug(), getPackageStripePriceId(), sendEmail(), PurchaseConfirmation(), stripe
-
-### Community 89 - "tailwindcss"
-Cohesion: 0.14
-Nodes (4): Cookie, Locator, Page, playwright
-
-### Community 90 - "@types/node"
-Cohesion: 0.14
-Nodes (13): body, brandName, brandTag, button, container, footer, h1, header (+5 more)
-
-### Community 91 - "typescript"
-Cohesion: 0.35
-Nodes (10): UpsellModal(), UpsellModalProps, PlanosPage(), CreditPackage, formatBRL(), getNextPlan(), getPlanBySlug(), isMaxPlan() (+2 more)
-
-### Community 92 - "vite"
-Cohesion: 0.31
-Nodes (7): POST(), aiAnalysisSchema, aiSuggestionSchema, ALLOWED_ROOTS, analyzeResume(), DANGEROUS, isSafePath()
-
-### Community 106 - "postcss"
-Cohesion: 0.61
-Nodes (5): PacotesPage(), AssinaturaPage(), useCredits(), useSubscription(), CREDIT_PACKAGES
-
-### Community 107 - "tailwindcss"
-Cohesion: 0.33
-Nodes (5): RunnerSettings, ToggleSwitch(), ToggleSwitchProps, GeneralSettings(), GeneralSettingsProps
-
-### Community 137 - "linux"
-Cohesion: 0.40
-Nodes (5): linux, artifactName, category, target, AppImage
-
-### Community 138 - "Handoff — feat/login-desktop-session"
-Cohesion: 0.40
-Nodes (4): Arquivos modificados, Handoff — feat/login-desktop-session, O que foi alterado, Pontos de atenção e próximos passos
-
-### Community 139 - "mac"
-Cohesion: 0.50
-Nodes (4): mac, artifactName, category, target
-
-### Community 140 - "win"
-Cohesion: 0.50
-Nodes (4): win, artifactName, target, nsis
-
-### Community 142 - "README.md"
-Cohesion: 0.50
-Nodes (3): Deploy on Vercel, Getting Started, Learn More
-
-### Community 143 - "nsis"
-Cohesion: 0.67
-Nodes (3): nsis, allowToChangeInstallationDirectory, oneClick
-
 ## Knowledge Gaps
-- **577 isolated node(s):** `AuthControllerOptions`, `SessionController`, `brazilStateLabels`, `AuthIpcOptions`, `engineStartedAt` (+572 more)
+- **475 isolated node(s):** `AuthControllerOptions`, `SessionController`, `brazilStateLabels`, `AuthIpcOptions`, `engineStartedAt` (+470 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **37 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **35 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `dependencies` connect `Web App Dependencies` to `next`, `@repo/ui`, `react`, `resend`, `svix`, `Web package.json`?**
-  _High betweenness centrality (0.028) - this node is a cross-community bridge._
-- **Why does `downloadResumePdf()` connect `Desktop Backend API Client` to `Web Resume Form UI`, `Web App Dependencies`?**
-  _High betweenness centrality (0.027) - this node is a cross-community bridge._
-- **Why does `jspdf` connect `Web App Dependencies` to `Desktop Backend API Client`?**
-  _High betweenness centrality (0.027) - this node is a cross-community bridge._
 - **What connects `AuthControllerOptions`, `SessionController`, `brazilStateLabels` to the rest of the system?**
-  _598 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _498 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Campaign Service & API` be split into smaller, more focused modules?**
+  _Cohesion score 0.05779220779220779 - nodes in this community are weakly interconnected._
 - **Should `Web Resume Form UI` be split into smaller, more focused modules?**
-  _Cohesion score 0.11320754716981132 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1063973063973064 - nodes in this community are weakly interconnected._
 - **Should `Campaign Parameter Forms` be split into smaller, more focused modules?**
   _Cohesion score 0.061495457721872815 - nodes in this community are weakly interconnected._
+- **Should `Stripe Billing & Plans` be split into smaller, more focused modules?**
+  _Cohesion score 0.07673469387755102 - nodes in this community are weakly interconnected._
 - **Should `Turborepo Build Config` be split into smaller, more focused modules?**
-  _Cohesion score 0.046511627906976744 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.04878048780487805 - nodes in this community are weakly interconnected._
+- **Should `Desktop RPA Process Orchestration` be split into smaller, more focused modules?**
+  _Cohesion score 0.12162162162162163 - nodes in this community are weakly interconnected._

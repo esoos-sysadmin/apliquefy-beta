@@ -163,6 +163,8 @@ export type ElectronAPI = {
         transcribe: (audioBase64: string) => Promise<string>;
         // Roda o loop do agente (GPT-4o-mini + tools) sobre o histórico e devolve a resposta + ações.
         chat: (messages: AssistantMessage[]) => Promise<AssistantChatResult>;
+        // Sintetiza a fala na fish.audio e devolve o mp3 em base64 pro renderer tocar.
+        speak: (text: string) => Promise<string>;
     };
     campaigns: {
         list: () => Promise<RunnerCampaign[]>;
