@@ -35,5 +35,11 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}) {
         throw new Error(message);
     }
 
+    // Resposta ok mas sem JSON = o middleware do Clerk devolveu o HTML do /login (sessão
+    // expirada). Sem isso o null vaza pros callers e estoura como ".data of null" longe daqui.
+    if (payload === null) {
+        throw new Error(`Resposta inválida de ${path} — sessão do desktop expirada, faça login novamente.`);
+    }
+
     return payload as T;
 }

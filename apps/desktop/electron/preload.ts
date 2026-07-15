@@ -7,8 +7,8 @@ const electronAPI: ElectronAPI = {
     },
     assistant: {
         transcribe: (audioBase64: string) => ipcRenderer.invoke("assistant:transcribe", audioBase64),
-        chat: (messages) => ipcRenderer.invoke("assistant:chat", messages),
-        speak: (text: string) => ipcRenderer.invoke("assistant:speak", text),
+        chat: (messages, persona) => ipcRenderer.invoke("assistant:chat", messages, persona),
+        speak: (text, persona) => ipcRenderer.invoke("assistant:speak", text, persona),
     },
     campaigns: {
         list: () => ipcRenderer.invoke("campaigns:list"),

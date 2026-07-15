@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { AssistantAction, AssistantMessage, ElectronAPI } from "../../shared/runner-types";
+import type { AssistantAction, AssistantMessage, ElectronAPI, PersonaId } from "../../shared/runner-types";
 import type { OrbState } from "../components/organisms/ApolloOrb";
 
 export type ApolloTurn = AssistantMessage & { actions?: AssistantAction[] };
@@ -71,7 +71,7 @@ function playSpeech(
     return { audio, done };
 }
 
-export function useApollo(electron: ElectronAPI, voiceReplies: boolean) {
+export function useApollo(electron: ElectronAPI, voiceReplies: boolean, persona: PersonaId) {
     const [messages, setMessages] = useState<ApolloTurn[]>([]);
     const [orbState, setOrbState] = useState<OrbState>("idle");
     const [level, setLevel] = useState(0);
@@ -110,7 +110,7 @@ export function useApollo(electron: ElectronAPI, voiceReplies: boolean) {
             setBusy(true);
             setOrbState("thinking");
             try {
-                const { reply, actions } = await electron.assistant.chat(history);
+                const { reply, actions } = await electron.assistant.chat(history, persona);
                 setMessages((prev) => [...prev, { role: "assistant", content: reply, actions }]);
                 if (!voiceReplies) {
                     setOrbState("idle");
@@ -118,7 +118,7 @@ export function useApollo(electron: ElectronAPI, voiceReplies: boolean) {
                 }
                 // Corta a fala anterior antes de começar a próxima.
                 speechRef.current?.pause();
-                const base64 = await electron.assistant.speak(reply);
+                const base64 = await electron.assistant.speak(reply, persona);
                 const { audio, done } = playSpeech(base64, () => setOrbState("speaking"), setLevel);
                 speechRef.current = audio;
                 await done;
@@ -130,7 +130,7 @@ export function useApollo(electron: ElectronAPI, voiceReplies: boolean) {
                 setBusy(false);
             }
         },
-        [electron, voiceReplies],
+        [electron, voiceReplies, persona],
     );
 
     const sendText = useCallback(

@@ -85,7 +85,7 @@
 
 .apollo__wordmark {
     position: absolute;
-    bottom: 22px;
+    top: 22px;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.42em;
@@ -263,6 +263,18 @@
     background: rgba(75, 139, 245, 0.18);
     color: #fff;
     box-shadow: 0 0 0 1px rgba(75, 139, 245, 0.4) inset;
+}
+
+/* Mesma pílula do .apollo__mode, mas com rótulo em texto: o tom da voz não cabe num ícone. */
+.apollo__voice {
+    height: 34px;
+    padding: 0 13px;
+    border-radius: 999px;
+    color: var(--text-secondary, #8b949e);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 150ms ease;
 }
 
 .apollo__mic {

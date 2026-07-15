@@ -142,6 +142,13 @@ export type AssistantMessage = {
     content: string;
 };
 
+// A voz do Apollo e a personalidade dele são a mesma escolha: "jarvis" é o padrão
+// (formal e seco), "sukuna" é o ácido. Trocar aqui troca o reference_id da fish.audio
+// e o system prompt de uma vez só.
+export type PersonaId = "jarvis" | "sukuna";
+
+export const DEFAULT_PERSONA: PersonaId = "jarvis";
+
 // Uma ação que o Apollo executou de fato no app (para o feedback visual da UI).
 export type AssistantAction = {
     tool: string;
@@ -162,9 +169,9 @@ export type ElectronAPI = {
         // Recebe o áudio como base64 (webm/opus) e devolve o texto transcrito (Whisper).
         transcribe: (audioBase64: string) => Promise<string>;
         // Roda o loop do agente (GPT-4o-mini + tools) sobre o histórico e devolve a resposta + ações.
-        chat: (messages: AssistantMessage[]) => Promise<AssistantChatResult>;
+        chat: (messages: AssistantMessage[], persona: PersonaId) => Promise<AssistantChatResult>;
         // Sintetiza a fala na fish.audio e devolve o mp3 em base64 pro renderer tocar.
-        speak: (text: string) => Promise<string>;
+        speak: (text: string, persona: PersonaId) => Promise<string>;
     };
     campaigns: {
         list: () => Promise<RunnerCampaign[]>;

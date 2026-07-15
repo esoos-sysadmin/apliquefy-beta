@@ -12,12 +12,21 @@ function isSafePath(path: string): boolean {
     return segs.every((s) => s.length > 0 && !DANGEROUS.has(s));
 }
 
+export function currentValueToText(value: unknown): string {
+    if (typeof value === "string") return value;
+    if (Array.isArray(value)) return value.filter((v) => typeof v === "string" || typeof v === "number").join(", ");
+    if (value == null) return "";
+    return typeof value === "object" ? "" : String(value);
+}
+
 const aiSuggestionSchema = z.object({
     section: z.string().min(1),
     title: z.string().min(1),
     rationale: z.string().min(1),
     path: z.string().min(1),
-    currentValue: z.string().default(""),
+    // Só vira texto riscado na UI. O modelo manda array aqui (path "skills", cuja lista
+    // atual é uma lista), e um z.string() estrito derrubava a análise inteira por isso.
+    currentValue: z.unknown().transform(currentValueToText),
     suggestedValue: z.union([z.string(), z.array(z.string())]),
 });
 
@@ -119,7 +128,9 @@ export async function analyzeResume(resume: unknown): Promise<ResumeAnalysis> {
 
     const parsed = aiAnalysisSchema.safeParse(JSON.parse(content));
     if (!parsed.success) {
-        console.error("Saída da IA em formato inesperado", parsed.error.format());
+        // JSON.stringify e não o objeto cru: o console trunca em profundidade 2 e some
+        // justamente com a mensagem do campo que falhou.
+        console.error("Saída da IA em formato inesperado", JSON.stringify(parsed.error.format()));
         throw new Error("A IA retornou um formato inesperado");
     }
 

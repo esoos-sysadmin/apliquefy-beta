@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Keyboard, Mic, Send, Sparkles, Square } from "lucide-react";
-import type { ElectronAPI } from "../../../shared/runner-types";
+import type { ElectronAPI, PersonaId } from "../../../shared/runner-types";
+import { DEFAULT_PERSONA } from "../../../shared/runner-types";
 import { TitleBar } from "../../components/atoms/TitleBar";
 import { ApolloOrb } from "../../components/organisms/ApolloOrb";
 import { useApollo } from "../../hooks/use-apollo";
@@ -31,12 +32,20 @@ const SUGGESTIONS = [
     "Analise meu currículo",
 ];
 
+// Rótulo pelo tom, não pelo nome da voz: o usuário escolhe como o Apollo fala com ele.
+const PERSONAS: Array<{ id: PersonaId; label: string; hint: string }> = [
+    { id: "jarvis", label: "Sério", hint: "Voz formal e direta" },
+    { id: "sukuna", label: "Ácido", hint: "Voz sarcástica, com deboche" },
+];
+
 export default function ApolloScreen({ electron, userName, onClose, onOpenRunner }: ApolloScreenProps) {
     const [mode, setMode] = useState<"voice" | "text">("voice");
+    const [persona, setPersona] = useState<PersonaId>(DEFAULT_PERSONA);
     const [draft, setDraft] = useState("");
     const { messages, orbState, level, listening, busy, error, sendText, toggleListening } = useApollo(
         electron,
         mode === "voice",
+        persona,
     );
 
     const transcriptRef = useRef<HTMLDivElement | null>(null);
@@ -119,6 +128,21 @@ export default function ApolloScreen({ electron, userName, onClose, onOpenRunner
                     >
                         <Keyboard size={15} />
                     </button>
+                </div>
+
+                <div className="apollo__modes" role="group" aria-label="Voz do Apollo">
+                    {PERSONAS.map((p) => (
+                        <button
+                            key={p.id}
+                            type="button"
+                            className={`apollo__voice${persona === p.id ? " apollo__mode--active" : ""}`}
+                            onClick={() => setPersona(p.id)}
+                            aria-pressed={persona === p.id}
+                            title={p.hint}
+                        >
+                            {p.label}
+                        </button>
+                    ))}
                 </div>
 
                 {mode === "voice" ? (
