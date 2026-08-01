@@ -20,8 +20,8 @@ export async function POST(request: Request) {
             return NextResponse.json(
                 {
                     message: "Erro: Campos inválidos falha ao tentar criar um curriculo",
-                    errorS: newCV.errorDesc 
-                    
+                    errorS: newCV.errorDesc
+
                  },
                 { status: 400 }
             )

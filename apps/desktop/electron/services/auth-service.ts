@@ -149,6 +149,13 @@ export async function runDesktopSignInFlow(parentWindow: BrowserWindow | null) {
             handleNavigation(url);
         });
 
+        // Clerk redireciona pelo router do Next (History API): só este evento dispara.
+        authWindow?.webContents.on("did-navigate-in-page", (_event, url, isMainFrame) => {
+            if (isMainFrame) {
+                handleNavigation(url);
+            }
+        });
+
         authWindow?.on("closed", () => {
             authWindow = null;
             void resolveCurrentAuthState().then(finish);

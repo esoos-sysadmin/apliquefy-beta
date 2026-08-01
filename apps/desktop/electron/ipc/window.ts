@@ -1,4 +1,4 @@
-import { app, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 
 let isWindowIpcRegistered = false;
 
@@ -11,5 +11,9 @@ export function registerWindowIpc() {
 
     ipcMain.handle("window:close", async () => {
         app.quit();
+    });
+
+    ipcMain.handle("window:minimize", async (event) => {
+        BrowserWindow.fromWebContents(event.sender)?.minimize();
     });
 }

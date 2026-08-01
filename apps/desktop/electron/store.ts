@@ -4,8 +4,10 @@ import path from "node:path";
 import type {
     RunnerAccountState,
     RunnerAuthState,
+    RunnerCreditBalance,
     RunnerPersistedState,
     RunnerPlatform,
+    RunnerSessionMap,
     RunnerSettings,
 } from "../shared/runner-types";
 
@@ -23,6 +25,9 @@ const defaultSettings: RunnerSettings = {
     startWithWindows: false,
     desktopNotifications: false,
     alwaysOnTop: false,
+    // Ligado por padrão, com aviso claro e desligamento a um clique (SDD §7.7).
+    // O merge com `raw.settings` no read faz instalações antigas herdarem isto.
+    errorReports: true,
 };
 
 const defaultAuth: RunnerAuthState = {
@@ -33,6 +38,14 @@ const defaultAuth: RunnerAuthState = {
     token: null,
     expiresAt: null,
 };
+
+const defaultCreditBalance: RunnerCreditBalance = {
+    balance: 0,
+    canSend: false,
+    plan: "free",
+};
+
+const defaultSessions: RunnerSessionMap = {};
 
 // --- Persistence ---
 
@@ -53,13 +66,22 @@ function readStateFromDisk(): RunnerPersistedState {
                 account: raw.account ? { ...defaultAccount, ...raw.account } : defaultAccount,
                 settings: raw.settings ? { ...defaultSettings, ...raw.settings } : defaultSettings,
                 auth: raw.auth ? { ...defaultAuth, ...raw.auth } : defaultAuth,
+                creditBalance: raw.creditBalance ? { ...defaultCreditBalance, ...raw.creditBalance } : defaultCreditBalance,
+                sessions: raw.sessions ?? defaultSessions,
             };
         }
     } catch (error) {
         console.error("Failed to read runner state:", error);
     }
 
-    return { campaigns: [], account: defaultAccount, settings: defaultSettings, auth: defaultAuth };
+    return {
+        campaigns: [],
+        account: defaultAccount,
+        settings: defaultSettings,
+        auth: defaultAuth,
+        creditBalance: defaultCreditBalance,
+        sessions: defaultSessions,
+    };
 }
 
 function writeStateToDisk(state: RunnerPersistedState) {
@@ -108,6 +130,9 @@ export function getPlatformLoginUrl(platform: RunnerPlatform) {
     return "https://www.infojobs.com.br/login";
 }
 
+// ponytail: URL de prod fixa no código. Trocar por env do CI se um dia houver staging.
+const PROD_WEB_URL = "https://apliquefy.vercel.app";
+
 export function getDesktopWebUrl() {
-    return process.env.APLIQUEFY_WEB_URL ?? "http://localhost:3000";
+    return process.env.APLIQUEFY_WEB_URL ?? (app.isPackaged ? PROD_WEB_URL : "http://localhost:3000");
 }

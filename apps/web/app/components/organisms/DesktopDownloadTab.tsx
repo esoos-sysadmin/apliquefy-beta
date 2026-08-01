@@ -12,9 +12,13 @@ export function DesktopDownloadTab() {
                     </svg>
                 </div>
                 <div>
-                    <p className="font-semibold text-blue-300">Aplicativo em desenvolvimento</p>
+                    <p className="font-semibold text-blue-300">O Apliquefy Desktop precisa do Google Chrome</p>
                     <p className="mt-1 text-sm text-slate-400">
-                        O Apliquefy Desktop ainda está sendo desenvolvido. Assim que a primeira versão for lançada, você receberá uma notificação e os botões de download serão ativados automaticamente.
+                        As candidaturas são feitas num Chrome real instalado na sua máquina. Se você ainda não tem, instale o{" "}
+                        <a href="https://www.google.com/chrome/" target="_blank" rel="noreferrer" className="underline hover:text-blue-300">
+                            Google Chrome
+                        </a>{" "}
+                        antes de abrir o app.
                     </p>
                 </div>
             </div>
@@ -37,17 +41,17 @@ export function DesktopDownloadTab() {
 
                         <p className="text-xs text-slate-500">{platform.requirement}</p>
 
-                        <button
-                            disabled
-                            className="mt-auto flex h-10 items-center justify-center gap-2 rounded-xl border border-[#2A3445] bg-[#101826] text-sm font-semibold text-slate-600 cursor-not-allowed opacity-50"
+                        <a
+                            href={platform.downloadUrl}
+                            className="mt-auto flex h-10 items-center justify-center gap-2 rounded-xl border border-[#2A3445] bg-[#101826] text-sm font-semibold text-slate-300 transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-300"
                         >
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                 <polyline points="7 10 12 15 17 10" />
                                 <line x1="12" y1="15" x2="12" y2="3" />
                             </svg>
-                            Em breve
-                        </button>
+                            Baixar para {platform.name}
+                        </a>
                     </div>
                 ))}
             </div>

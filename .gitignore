@@ -5,7 +5,7 @@ node_modules
 .pnp
 .pnp.js
 
-# Local env files
+# Local env files (o .env.example é versionado de propósito)
 .env
 .env.local
 .env.development.local
@@ -21,12 +21,27 @@ coverage
 # Vercel
 .vercel
 
-# Build Outputs
+# Build outputs
 .next/
 out/
 build
 dist
+dist-electron
+dist-react
+apps/desktop/release
+apps/desktop/build/robots-dist
 
+# Python (apps/robots)
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# graphify — grafo é derivado do código, cada dev roda `graphify update .`
+# (2MB de JSON conflitam em todo merge; para compartilhar, use `graphify merge-driver` + .gitattributes)
+graphify-out/
 
 # Debug
 npm-debug.log*
@@ -36,14 +51,7 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
-
-# trash of apps
-node_modules
-.turbo
-.next
-dist
-dist-electron
-dist-react
-.env
-.DS_Store
 ngrok.yml
+
+# preview local do PDF do currículo (gerado por apps/web/scripts/preview-resume-pdf.ts)
+.preview/

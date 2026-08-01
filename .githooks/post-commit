@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Atualiza o handoff após cada commit, em background para não travar o commit.
+command -v claude >/dev/null 2>&1 || exit 0
+( npm run --silent handoff >/dev/null 2>&1 & )

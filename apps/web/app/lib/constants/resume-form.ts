@@ -40,6 +40,9 @@ export const emptyResumeForm: ResumeFormData = {
     idioms: [],
 };
 
+// handoff do PDF importado (/curriculos) para o formulário (/curriculos/novo)
+export const RESUME_IMPORT_STORAGE_KEY = "resume-import-draft";
+
 export const seniorityOptions = ["Estagiário", "Júnior", "Pleno", "Sênior", "Especialista", "Gerente", "Diretor"] as const;
 
 export const idiomLevelOptions = ["Básico", "Intermediário", "Avançado", "Fluente", "Nativo"] as const;

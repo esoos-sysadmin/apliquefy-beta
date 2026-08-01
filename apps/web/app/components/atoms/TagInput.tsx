@@ -39,7 +39,7 @@ export function TagInput({
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={tags.length === 0 ? placeholder : "Add more..."}
+                    placeholder={tags.length === 0 ? placeholder : "Adicionar mais..."}
                     className="h-8 w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
                 />
             </div>

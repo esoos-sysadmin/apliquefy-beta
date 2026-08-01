@@ -65,7 +65,7 @@ export async function DELETE(request: Request, resumeId: { params: Promise<{id: 
         if (deleteResume.success != true) {
             return NextResponse.json(
                 {
-                    message: "Erro ao tentar deletar o curriculo",
+                    message: deleteResume.message ?? "Erro ao tentar deletar o curriculo",
                     errorDesc: deleteResume.errorDesc
                  },
                 {status: 400}

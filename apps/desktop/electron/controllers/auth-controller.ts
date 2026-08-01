@@ -1,4 +1,5 @@
 import type { BrowserWindow } from "electron";
+import { identifyUser } from "../observability";
 import { resolveCurrentAuthState, runDesktopSignInFlow, signOutDesktopAuth } from "../services/auth-service";
 
 type AuthControllerOptions = {
@@ -10,11 +11,17 @@ export function createAuthController(options: AuthControllerOptions) {
         getState() {
             return resolveCurrentAuthState();
         },
-        signIn() {
-            return runDesktopSignInFlow(options.getMainWindow());
+        async signIn() {
+            const state = await runDesktopSignInFlow(options.getMainWindow());
+            // Sem isto, quem instala e loga na mesma sessão fica com todos os
+            // erros dessa sessão sem dono no Sentry.
+            identifyUser(state.userId);
+            return state;
         },
-        signOut() {
-            return signOutDesktopAuth();
+        async signOut() {
+            const state = await signOutDesktopAuth();
+            identifyUser(null);
+            return state;
         },
     };
 }

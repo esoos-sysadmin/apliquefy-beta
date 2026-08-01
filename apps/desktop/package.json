@@ -4,18 +4,84 @@
   "description": "",
   "main": "dist-electron/electron/main.js",
   "scripts": {
-    "build": "tsc && vite build",
-    "dev": "concurrently -k \"vite\" \"npm run electron:dev\"",
-    "electron:dev": "wait-on tcp:5173 && tsc && cross-env NODE_ENV=development electron dist-electron/electron/main.js"
+    "build:deps": "tsc -p ../../packages/observability",
+    "check-types": "npm run build:deps && tsc --noEmit",
+    "build": "npm run build:deps && tsc && vite build",
+    "build:robots": "cd ../robots && uv run pyinstaller --clean --distpath ../desktop/build/robots-dist build.spec",
+    "sentry:sourcemaps": "node scripts/sentry-sourcemaps.mjs",
+    "dist": "npm run build:robots && npm run build && electron-builder --publish never",
+    "release": "npm run build:robots && npm run build && npm run sentry:sourcemaps && electron-builder --publish always",
+    "dev": "concurrently -k --success first \"vite\" \"npm run electron:dev\"",
+    "electron:dev": "wait-on tcp:5173 && npm run build:deps && tsc && cross-env NODE_ENV=development electron dist-electron/electron/main.js",
+    "setup:chrome": "playwright install chrome"
+  },
+  "build": {
+    "appId": "com.apliquefy.desktop",
+    "productName": "Apliquefy",
+    "files": [
+      "dist-electron/**",
+      "dist-react/**"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "extraResources": [
+      {
+        "from": "build/robots-dist/robots",
+        "to": "robots",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "ESOOS-Tech-Company",
+        "repo": "apliquefy-releases"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "Apliquefy-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "artifactName": "Apliquefy.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility",
+      "artifactName": "Apliquefy.${ext}"
+    }
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@sentry/cli": "^3.6.2",
+    "@sentry/vite-plugin": "^5.4.0",
     "@types/node": "^22.19.3",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "@types/ws": "^8.5.12",
     "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.19",
     "concurrently": "^9.2.1",
@@ -30,8 +96,12 @@
     "wait-on": "^9.0.3"
   },
   "dependencies": {
+    "@repo/observability": "*",
+    "@sentry/electron": "^7.16.0",
+    "playwright": "^1.59.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-router-dom": "^7.11.0"
+    "react-router-dom": "^7.11.0",
+    "ws": "^8.18.0"
   }
 }

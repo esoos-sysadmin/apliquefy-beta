@@ -31,6 +31,7 @@ const defaultSettings: RunnerSettings = {
     startWithWindows: true,
     desktopNotifications: false,
     alwaysOnTop: false,
+    errorReports: true,
 };
 
 const defaultAuth: RunnerAuthState = {

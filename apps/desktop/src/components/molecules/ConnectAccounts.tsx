@@ -1,12 +1,17 @@
-import { ExternalLink, Zap } from "lucide-react";
-import type { RunnerPlatform } from "../../../shared/runner-types";
+import { ExternalLink, Loader2, Zap } from "lucide-react";
+import type { RunnerPlatform, RunnerSessionMap } from "../../../shared/runner-types";
+import { SessionBadge } from "../atoms/SessionBadge";
 import { LoginButton } from "./LoginButton";
 
 type ConnectAccountsProps = {
+    sessions: RunnerSessionMap;
+    capturingPlatform: RunnerPlatform | null;
     onConnect: (platform: RunnerPlatform) => void;
 };
 
-export function ConnectAccounts({ onConnect }: ConnectAccountsProps) {
+const PLATFORMS: RunnerPlatform[] = ["linkedin", "infojobs"];
+
+export function ConnectAccounts({ sessions, capturingPlatform, onConnect }: ConnectAccountsProps) {
     return (
         <section className="settings-empty">
             <div className="settings-empty__hero">
@@ -16,15 +21,27 @@ export function ConnectAccounts({ onConnect }: ConnectAccountsProps) {
             </div>
 
             <div className="settings-empty__content">
-                <h2 className="settings-empty__title">Connect Your Accounts</h2>
+                <h2 className="settings-empty__title">Conecte suas contas</h2>
                 <p className="settings-empty__description">
-                    Login to your platforms to start the automation.
+                    Faça login nas suas plataformas para iniciar a automação.
                 </p>
             </div>
 
             <div className="settings-empty__actions">
-                <LoginButton platform="linkedin" onClick={onConnect} />
-                <LoginButton platform="infojobs" onClick={onConnect} />
+                {PLATFORMS.map((platform) => (
+                    <div key={platform} className="settings-empty__platform">
+                        <LoginButton platform={platform} onClick={onConnect} />
+                        <div className="settings-empty__platform-status">
+                            {capturingPlatform === platform ? (
+                                <span className="status-badge status-badge--paused">
+                                    <Loader2 size={12} className="spin" /> Capturando...
+                                </span>
+                            ) : (
+                                <SessionBadge status={sessions[platform]?.status ?? "pending"} />
+                            )}
+                        </div>
+                    </div>
+                ))}
             </div>
 
             <a
@@ -33,7 +50,7 @@ export function ConnectAccounts({ onConnect }: ConnectAccountsProps) {
                 rel="noreferrer"
                 className="settings-empty__support no-drag"
             >
-                Help &amp; Support <ExternalLink size={12} />
+                Ajuda e suporte <ExternalLink size={12} />
             </a>
         </section>
     );

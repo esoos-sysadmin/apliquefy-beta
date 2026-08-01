@@ -10,7 +10,7 @@ export function AccountCard({ auth, onDisconnect }: AccountCardProps) {
     return (
         <section className="settings-section">
             <div className="section-header section-header--stacked">
-                <h2 className="section-header__title section-header__title--small">Account Connection</h2>
+                <h2 className="section-header__title section-header__title--small">Conexão da conta</h2>
             </div>
 
             {auth.isAuthenticated ? (
@@ -21,10 +21,10 @@ export function AccountCard({ auth, onDisconnect }: AccountCardProps) {
                         </div>
                         <div className="account-card__info">
                             <strong className="account-card__name">
-                                {auth.displayName ?? auth.email ?? "Authenticated User"}
+                                {auth.displayName ?? auth.email ?? "Usuário autenticado"}
                             </strong>
                             <span className="account-card__label">
-                                {auth.email ?? "Authenticated via Clerk"}
+                                {auth.email ?? "Autenticado via Clerk"}
                             </span>
                         </div>
                         <span className="account-card__status-dot" />
@@ -36,14 +36,14 @@ export function AccountCard({ auth, onDisconnect }: AccountCardProps) {
                         className="secondary-button secondary-button--full no-drag"
                     >
                         <Power size={14} />
-                        Disconnect Account
+                        Desconectar conta
                     </button>
                 </div>
             ) : (
                 <div className="account-card account-card--empty">
-                    <strong className="account-card__name">No account connected</strong>
+                    <strong className="account-card__name">Nenhuma conta conectada</strong>
                     <p className="account-card__empty-copy">
-                        Sign in with Clerk to unlock the runner and access local automation controls.
+                        Entre com o Clerk para desbloquear o runner e acessar os controles de automação local.
                     </p>
                 </div>
             )}

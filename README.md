@@ -1,135 +1,95 @@
-# Turborepo starter
+# Apliquefy
 
-This Turborepo starter is maintained by the Turborepo core team.
+Plataforma de automação de candidaturas a vagas. O usuário configura currículo, filtros
+e limites diários no painel web; um agente desktop executa as candidaturas no LinkedIn e
+no InfoJobs enquanto o computador estiver ligado.
 
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+A automação roda num engine RPA em Python (Playwright + agente de visão), iniciado como
+processo filho pelo app Electron.
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+web  ──REST + Clerk──▶  desktop  ──HTTP 127.0.0.1 + WS──▶  robots (engine RPA)
+ ▲                                                              │
+ └──────────────── registra candidatura / debita crédito ───────┘
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## Estrutura
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+| Pacote | O que é |
+|---|---|
+| `apps/web` | Next.js 16 — painel + API REST (backend) |
+| `apps/desktop` | Electron + React — shell local, sessões de login, orquestra o engine |
+| `apps/robots` | Python (uv) — FastAPI + Playwright + agente de visão |
+| `packages/database` | Prisma + PostgreSQL (Neon) |
+| `packages/observability` | Sentry compartilhado + scrubbing de PII |
+| `packages/ui` | Componentes compartilhados |
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+## Como rodar
 
-### Develop
+Pré-requisitos: Node 22, [uv](https://docs.astral.sh/uv/), Google Chrome instalado
+(as sessões usam o Chrome real — Chromium headless é detectado e deslogado pelas
+plataformas) e acesso a um banco PostgreSQL.
 
-To develop all apps and packages, run the following command:
+```bash
+npm install
 
-```
-cd my-turborepo
+# 1. ambiente — veja .env.example para o mapa dos quatro arquivos
+cp apps/web/.env.example          apps/web/.env
+cp packages/database/.env.example packages/database/.env
+cp apps/desktop/.env.example      apps/desktop/.env
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+# 2. banco
+cd packages/database && npx prisma migrate deploy && npx prisma db seed && cd ../..
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+# 3. engine RPA
+cd apps/robots && uv sync --dev && cd ../..
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+# 4. web + desktop em paralelo
+npm run dev
 ```
 
-### Remote Caching
+O painel sobe em `http://localhost:3000`. O app desktop abre junto e pede login pelo
+Clerk; depois é preciso conectar as contas de LinkedIn/InfoJobs pelo próprio app, que
+abre um Chrome real e salva a sessão localmente.
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## Comandos
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+```bash
+npm run dev          # web + desktop
+npm run build        # build completo
+npm run lint
+npm run check-types
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+cd apps/robots  && uv run pytest        # testes do engine
+cd apps/desktop && npm run dist         # instalador local (sem publicar)
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## Banco de dados
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+Migrations ficam em `packages/database/prisma/migrations`. **Nunca use `prisma db push`
+em banco compartilhado** — o schema fica à frente das migrations e o deploy em outro
+ambiente nasce sem as tabelas. O job `migrations` do CI falha quando isso acontece.
 
+```bash
+cd packages/database
+npx prisma migrate dev --name descricao_curta   # cria e aplica
+npx prisma migrate deploy                       # aplica em homolog/prod
+npx prisma db seed                              # pesos de crédito (CreditWeight)
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
+## Deploy
 
-## Useful Links
+O passo a passo completo — Neon, Clerk, Stripe, Vercel, Sentry, Resend e build do
+desktop — está em [docs/CHECKLIST-GO-LIVE.md](docs/CHECKLIST-GO-LIVE.md).
 
-Learn more about the power of Turborepo:
+- **web**: Vercel. `main` → produção, `dev` → homolog.
+- **desktop**: tag `v*` dispara [desktop-release.yml](.github/workflows/desktop-release.yml),
+  que builda nos 3 SOs e publica no repo de releases.
+- **robots**: empacotado por PyInstaller dentro do instalador do desktop.
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+## Documentação
+
+- [CLAUDE.md](CLAUDE.md) — arquitetura detalhada e convenções
+- [docs/SDD-observabilidade.md](docs/SDD-observabilidade.md) — Sentry, LGPD, scrubbing
+- [docs/DOCUMENTACAO-NEGOCIOS.md](docs/DOCUMENTACAO-NEGOCIOS.md) — regras de negócio
+- [docs/CHECKLIST-GO-LIVE.md](docs/CHECKLIST-GO-LIVE.md) — subir para produção

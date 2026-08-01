@@ -21,6 +21,7 @@ const fallbackSettings: RunnerSettings = {
     startWithWindows: true,
     desktopNotifications: false,
     alwaysOnTop: false,
+    errorReports: true,
 };
 
 const fallbackAuth: RunnerAuthState = {
@@ -45,6 +46,12 @@ const fallbackEngineStatus: RunnerEngineStatus = {
 const fallbackElectronAPI: ElectronAPI = {
     window: {
         close: async () => undefined,
+        minimize: async () => undefined,
+    },
+    assistant: {
+        transcribe: async () => "",
+        chat: async () => ({ reply: "Electron indisponível.", actions: [] }),
+        speak: async () => "",
     },
     campaigns: {
         list: async () => fallbackCampaigns,
@@ -68,6 +75,24 @@ const fallbackElectronAPI: ElectronAPI = {
     },
     engine: {
         getStatus: async () => fallbackEngineStatus,
+        subscribe: () => () => undefined,
+    },
+    credits: {
+        getBalance: async () => ({ balance: 0, canSend: false, plan: "free" }),
+    },
+    sessions: {
+        capture: async () => ({ success: false, code: 500, message: "Electron unavailable." }),
+        check: async () => null,
+        list: async () => ({}),
+        remove: async () => ({}),
+        subscribe: () => () => undefined,
+    },
+    rpa: {
+        status: async () => ({ running: false, port: null, pid: null }),
+        ensureStarted: async () => ({ running: false, port: null, pid: null }),
+        stop: async () => ({ running: false, port: null, pid: null }),
+        startRun: async () => ({ runId: "", status: "started" }),
+        stopRun: async () => ({ success: false }),
         subscribe: () => () => undefined,
     },
 };

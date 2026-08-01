@@ -8,6 +8,6 @@ export default async function Home() {
   if (!userId) {
     redirect("/lp")
   } else {
-    redirect("/dashboard")
+    redirect("/relatorios")
   }
 }

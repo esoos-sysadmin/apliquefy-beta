@@ -82,7 +82,8 @@ export function mapCampaign(campaign: RunnerCampaignApiModel): RunnerCampaign {
         location: mapCampaignLocation(campaign),
         applications: campaign._count?.jobApplications ?? 0,
         dailyLimit: campaign.dailyLimit ?? 0,
-        resumeTitle: campaign.resume?.title ?? "Resume not informed",
+        resumeTitle: campaign.resume?.title ?? "Currículo removido",
+        hasResume: Boolean(campaign.resume?.id),
         lastUpdated: formatDistanceToNow(campaign.createdAt),
         notes: mapCampaignNotes(campaign),
     };

@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node:
+    name: Lint + types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # O client do Prisma é importado pelo web; sem generate o tsc não acha os tipos.
+      - run: npx prisma generate
+        working-directory: packages/database
+
+      - run: npm run lint
+      - run: npm run check-types
+
+  python:
+    name: Engine RPA
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - run: uv sync --dev
+        working-directory: apps/robots
+
+      - run: uv run pytest -q
+        working-directory: apps/robots
+
+  migrations:
+    name: Migrations x schema
+    runs-on: ubuntu-latest
+    # Pega o caso em que alguém alterou o schema.prisma e subiu via `db push`
+    # sem gerar migration — o deploy em homolog/prod nasceria sem as tabelas.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shadow
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/shadow
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Aplicar migrations num banco limpo
+        run: npx prisma migrate deploy
+        working-directory: packages/database
+
+      - name: Falhar se o schema divergir das migrations
+        # --exit-code: 0 se o diff for vazio, 2 se houver diferença.
+        run: npx prisma migrate diff --from-config-datasource --to-schema ./prisma/schema.prisma --exit-code
+        working-directory: packages/database

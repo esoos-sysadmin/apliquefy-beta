@@ -5,6 +5,9 @@
     "moduleResolution": "node16",
     "outDir": "./dist-electron",
     "rootDir": ".",
+    // Sem isto não existe source map do processo main para o scripts/sentry-sourcemaps.mjs
+    // subir, e o stack trace do main chega ilegível no Sentry (SDD §10.2).
+    "sourceMap": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": false,
     "skipLibCheck": true,

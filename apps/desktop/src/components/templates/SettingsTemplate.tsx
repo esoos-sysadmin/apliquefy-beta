@@ -18,7 +18,7 @@ export function SettingsTemplate({ children, isSaving, onSave }: SettingsTemplat
                     onClick={onSave}
                     disabled={isSaving}
                 >
-                    {isSaving ? "Saving..." : "Save Changes"}
+                    {isSaving ? "Salvando..." : "Salvar alterações"}
                 </GradientButton>
             </div>
         </div>

@@ -27,7 +27,7 @@ export function ResumeIdiomsSection({
                 <h2 style={{ ...sectionTitle, marginBottom: 0 }}>Idiomas</h2>
                 {isEditing && (
                     <button onClick={onAdd} style={addButtonStyle}>
-                        + Add Idioma
+                        + Adicionar idioma
                     </button>
                 )}
             </div>

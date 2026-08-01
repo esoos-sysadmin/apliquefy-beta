@@ -1,6 +1,7 @@
 "use client";
 
 import { inputStyle, sectionStyle, sectionTitle, labelStyle, gridTwo, addButtonStyle, removeButtonStyle } from "../../lib/constants/resume-styles";
+import { MonthYearPicker } from "../molecules/MonthYearPicker";
 import type { ResumeFormEducation } from "../../types/resume-form";
 
 export function ResumeEducationSection({
@@ -23,10 +24,10 @@ export function ResumeEducationSection({
     return (
         <section style={sectionStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <h2 style={{ ...sectionTitle, marginBottom: 0 }}>Education</h2>
+                <h2 style={{ ...sectionTitle, marginBottom: 0 }}>Formação acadêmica</h2>
                 {isEditing && (
                     <button onClick={onAdd} style={addButtonStyle}>
-                        + Add Degree
+                        + Adicionar formação
                     </button>
                 )}
             </div>
@@ -55,11 +56,21 @@ export function ResumeEducationSection({
                         </div>
                         <div>
                             <label style={labelStyle}>Data de início</label>
-                            <input type={isEditing ? "month" : "text"} value={edu.StartDateOfGraduation} onChange={(e) => onChange(i, "StartDateOfGraduation", e.target.value)} onClick={onUnlock} readOnly={frozen} style={inputStyle(false, frozen)} />
+                            <MonthYearPicker
+                                value={edu.StartDateOfGraduation}
+                                onChange={(v) => onChange(i, "StartDateOfGraduation", v)}
+                                onOpen={onUnlock}
+                                readOnly={frozen}
+                            />
                         </div>
                         <div>
                             <label style={labelStyle}>Data de conclusão</label>
-                            <input type={isEditing ? "month" : "text"} value={edu.EndDateOfGraduation} onChange={(e) => onChange(i, "EndDateOfGraduation", e.target.value)} onClick={onUnlock} readOnly={frozen} style={inputStyle(false, frozen)} />
+                            <MonthYearPicker
+                                value={edu.EndDateOfGraduation}
+                                onChange={(v) => onChange(i, "EndDateOfGraduation", v)}
+                                onOpen={onUnlock}
+                                readOnly={frozen}
+                            />
                         </div>
                     </div>
                 </div>

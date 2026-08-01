@@ -16,9 +16,9 @@ export function AuthGate({ isAuthenticating, onSignIn }: AuthGateProps) {
             </div>
 
             <div className="auth-gate__content">
-                <h2 className="auth-gate__title">Sign in to continue</h2>
+                <h2 className="auth-gate__title">Entre para continuar</h2>
                 <p className="auth-gate__description">
-                    The desktop runner is locked until you authenticate your Apliquefy account with Clerk.
+                    O runner do desktop fica bloqueado até você autenticar sua conta Apliquefy com o Clerk.
                 </p>
             </div>
 
@@ -28,7 +28,7 @@ export function AuthGate({ isAuthenticating, onSignIn }: AuthGateProps) {
                 disabled={isAuthenticating}
             >
                 <LockKeyhole size={16} />
-                {isAuthenticating ? "Opening sign in..." : "Sign in with Clerk"}
+                {isAuthenticating ? "Abrindo login..." : "Entrar com o Clerk"}
             </GradientButton>
         </section>
     );

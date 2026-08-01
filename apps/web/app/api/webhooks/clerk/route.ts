@@ -56,7 +56,8 @@ export async function POST(request: Request) {
             data: {
                 id,
                 email,
-                credits: 100,
+                credits: 0,
+                subscriptionStatus: "pending",
                 gatewayCustomerId: "",
             },
         });

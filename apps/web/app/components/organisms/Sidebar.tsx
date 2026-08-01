@@ -1,5 +1,6 @@
 import { SidebarLogo } from "../molecules/SidebarLogo";
 import { SidebarNav } from "../molecules/SidebarNav";
+import { SidebarCredits } from "../molecules/SidebarCredits";
 import { SidebarSession } from "../molecules/SidebarSession";
 
 export function Sidebar() {
@@ -20,6 +21,7 @@ export function Sidebar() {
             <div>
                 <SidebarLogo />
                 <SidebarNav />
+                <SidebarCredits />
             </div>
             <SidebarSession />
         </aside>

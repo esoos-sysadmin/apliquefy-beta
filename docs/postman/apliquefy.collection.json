@@ -1,0 +1,557 @@
+{
+  "info": {
+    "name": "Apliquefy API",
+    "_postman_id": "apliquefy-collection-v1",
+    "description": "Collection completa da API da Apliquefy. Configure a variável `baseUrl` com a URL do servidor (ex: http://localhost:3000).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "resumeId",
+      "value": "uuid-do-resume-aqui",
+      "type": "string"
+    },
+    {
+      "key": "campaignId",
+      "value": "uuid-da-campaign-aqui",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "uuid-do-job-aqui",
+      "type": "string"
+    },
+    {
+      "key": "reportId",
+      "value": "uuid-do-report-aqui",
+      "type": "string"
+    },
+    {
+      "key": "clerk_token",
+      "value": "YOUR_CLERK_TOKEN_HERE",
+      "type": "string"
+    },
+    {
+      "key": "stripe_signature",
+      "value": "YOUR_STRIPE_SIGNATURE_HERE",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Test",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "test"]
+            },
+            "description": "Verifica se a API está respondendo."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Resumes",
+      "item": [
+        {
+          "name": "Create Resume",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Currículo Dev Full Stack\",\n  \"personalInfo\": {\n    \"name\": \"Luiz Belispetre\",\n    \"jobTitle\": \"Desenvolvedor Full Stack\",\n    \"email\": \"luiz@email.com\",\n    \"contact\": \"11999999999\",\n    \"portfolio\": \"\",\n    \"github\": \"\"\n  },\n  \"education\": [\n    {\n      \"nameOfInstitution\": \"Universidade XYZ\",\n      \"nameOfGraduation\": \"Ciência da Computação\",\n      \"StartDateOfGraduation\": \"2018-01-01\",\n      \"EndDateOfGraduation\": \"2022-12-01\"\n    }\n  ],\n  \"experience\": [\n    {\n      \"companyName\": \"Empresa ABC\",\n      \"jobType\": \"CLT\",\n      \"description\": \"Desenvolvimento de sistemas web\",\n      \"jobArea\": \"Tecnologia\",\n      \"jobStartDate\": \"2022-01-01\",\n      \"jobEndDate\": null,\n      \"isActualJob\": true,\n      \"certifications\": []\n    }\n  ],\n  \"skills\": [\"TypeScript\", \"React\", \"Node.js\", \"PostgreSQL\"],\n  \"idioms\": [\n    { \"language\": \"Inglês\", \"level\": \"Avançado\" }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"]
+            },
+            "description": "Cria um novo currículo para o usuário autenticado."
+          }
+        },
+        {
+          "name": "Get All Resumes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"]
+            },
+            "description": "Lista todos os currículos do usuário autenticado."
+          }
+        },
+        {
+          "name": "Get Resume by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/{{resumeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", "{{resumeId}}"]
+            },
+            "description": "Busca um currículo específico pelo ID."
+          }
+        },
+        {
+          "name": "Update Resume",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"personalInfo\": {\n    \"name\": \"Luiz Belispetre\",\n    \"jobTitle\": \"Engenheiro de Software\",\n    \"email\": \"luiz@email.com\",\n    \"contact\": \"11999999999\",\n    \"portfolio\": \"\",\n    \"github\": \"\"\n  },\n  \"education\": [],\n  \"experience\": [],\n  \"skills\": [\"TypeScript\", \"Next.js\"],\n  \"idioms\": [\n    { \"language\": \"Inglês\", \"level\": \"Fluente\" }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/{{resumeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", "{{resumeId}}"]
+            },
+            "description": "Atualiza um currículo existente pelo ID."
+          }
+        },
+        {
+          "name": "Delete Resume",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/{{resumeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", "{{resumeId}}"]
+            },
+            "description": "Deleta um currículo pelo ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Campaigns",
+      "item": [
+        {
+          "name": "Create LinkedIn Campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Campanha Dev Full Stack - LinkedIn\",\n  \"resumeId\": \"{{resumeId}}\",\n  \"dailyLimit\": 30,\n  \"linkedinConfig\": {\n    \"searchTerms\": \"Desenvolvedor Full Stack\",\n    \"locationTerm\": \"São Paulo\",\n    \"sortBy\": \"relevant\",\n    \"datePosted\": \"past_week\",\n    \"expLevel\": [\"mid_senior\", \"associate\"],\n    \"jobType\": [\"full_time\"],\n    \"remoteFilter\": [\"remote\", \"hybrid\"]\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/linkedin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "linkedin"]
+            },
+            "description": "Cria uma nova campanha para o LinkedIn Easy Apply."
+          }
+        },
+        {
+          "name": "Create InfoJobs Campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Campanha Dev - InfoJobs\",\n  \"resumeId\": \"{{resumeId}}\",\n  \"dailyLimit\": 20,\n  \"infojobsConfig\": {\n    \"searchTerms\": \"Desenvolvedor TypeScript\",\n    \"locationState\": \"sao_paulo\",\n    \"kmDeVoce\": \"km_50\",\n    \"salaryFilter\": \"brl_5000\",\n    \"datePosted\": \"ultima_semana\",\n    \"workModels\": [\"home_office\", \"hibrido\"],\n    \"jobAreas\": [\"informatica_ti_telecomunicacoes\"],\n    \"contractTypes\": [\"clt\", \"pj\"],\n    \"workSchedules\": [\"periodo_integral\"],\n    \"seniorityLevels\": [\"analista\", \"especialista\"],\n    \"pcdTypes\": []\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/infojobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "infojobs"]
+            },
+            "description": "Cria uma nova campanha para o InfoJobs."
+          }
+        },
+        {
+          "name": "Get All Campaigns",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns"]
+            },
+            "description": "Lista todas as campanhas do usuário autenticado."
+          }
+        },
+        {
+          "name": "Update Campaign",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Campanha Renomeada\",\n  \"resumeId\": \"{{resumeId}}\",\n  \"dailyLimit\": 50\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaignId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaignId}}"]
+            },
+            "description": "Atualiza campos editáveis da campanha: name, resumeId e/ou dailyLimit. Ao menos um campo deve ser enviado."
+          }
+        },
+        {
+          "name": "Pause Campaign",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaignId}}/pause",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaignId}}", "pause"]
+            },
+            "description": "Pausa uma campanha ativa."
+          }
+        },
+        {
+          "name": "Activate Campaign",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaignId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaignId}}", "activate"]
+            },
+            "description": "Ativa uma campanha pausada."
+          }
+        },
+        {
+          "name": "Delete Campaign",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaignId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaignId}}"]
+            },
+            "description": "Deleta uma campanha e seus registros dependentes."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "Create Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campaign_id\": \"{{campaignId}}\",\n  \"link\": \"https://linkedin.com/jobs/view/123456\",\n  \"company_name\": \"Empresa X\",\n  \"position\": \"Desenvolvedor Full Stack\",\n  \"expiration_date\": \"2026-05-01T00:00:00Z\",\n  \"number_of_applications\": 42\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"]
+            },
+            "description": "Persiste uma vaga encontrada pelo engine de automação durante a execução de uma campanha.\n\nValidações:\n- campaign_id obrigatório e deve pertencer ao usuário\n- link obrigatório, URL válida e única (409 se duplicado)\n- position obrigatório\n- company_name, expiration_date e number_of_applications opcionais"
+          }
+        },
+        {
+          "name": "Get All Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs?page=1&limit=20&sort=created_at_desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"],
+              "query": [
+                { "key": "campaign_id", "value": "", "disabled": true, "description": "Filtrar por campanha específica (UUID)" },
+                { "key": "page", "value": "1", "description": "Página (default: 1)" },
+                { "key": "limit", "value": "20", "description": "Itens por página (default: 20, max: 100)" },
+                { "key": "sort", "value": "created_at_desc", "description": "Ordenação: created_at_asc | created_at_desc" }
+              ]
+            },
+            "description": "Lista todos os jobs das campanhas do usuário autenticado com paginação.\n\nQuery params opcionais:\n- campaign_id: filtra por campanha\n- page: default 1\n- limit: default 20, max 100\n- sort: created_at_asc | created_at_desc (default: created_at_desc)"
+          }
+        },
+        {
+          "name": "Get Job by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}"]
+            },
+            "description": "Retorna um job específico pelo UUID.\n\nRetorna 404 se não encontrado, 403 se pertence a outro usuário."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Create Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campaign_id\": \"{{campaignId}}\",\n  \"total_jobs_applications\": 150,\n  \"success_applications\": 120,\n  \"fail_applications\": 25,\n  \"credits_used\": 150,\n  \"credits_refund\": 5\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports"]
+            },
+            "description": "Persiste um snapshot de relatório ao final de um ciclo de execução de campanha.\n\nValidações:\n- campaign_id obrigatório e deve pertencer ao usuário\n- Campos numéricos opcionais, default 0, inteiros >= 0\n- success_applications + fail_applications não pode exceder total_jobs_applications"
+          }
+        },
+        {
+          "name": "Get All Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports?page=1&limit=20&sort=created_at_desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports"],
+              "query": [
+                { "key": "campaign_id", "value": "", "disabled": true, "description": "Filtrar por campanha específica (UUID)" },
+                { "key": "page", "value": "1", "description": "Página (default: 1)" },
+                { "key": "limit", "value": "20", "description": "Itens por página (default: 20, max: 100)" },
+                { "key": "sort", "value": "created_at_desc", "description": "Ordenação: created_at_asc | created_at_desc" }
+              ]
+            },
+            "description": "Lista todos os relatórios das campanhas do usuário autenticado com paginação.\n\nCada item retorna campaign_name e campaign_platform além dos dados do report."
+          }
+        },
+        {
+          "name": "Get Report by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/{{reportId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "{{reportId}}"]
+            },
+            "description": "Retorna um relatório específico pelo UUID, incluindo campaign_name e campaign_platform.\n\nRetorna 404 se não encontrado, 403 se pertence a outro usuário."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stripe",
+      "item": [
+        {
+          "name": "Create Subscription Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planSlug\": \"starter\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stripe", "checkout"]
+            },
+            "description": "Cria uma sessão de checkout Stripe para planos de assinatura (Starter, Professional, Enterprise)"
+          }
+        },
+        {
+          "name": "Create Credit Package Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"packageSlug\": \"package_50\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stripe", "checkout"]
+            },
+            "description": "Cria uma sessão de checkout Stripe para pacotes de créditos avulsos (50, 100, 200 créditos)"
+          }
+        },
+        {
+          "name": "Create Billing Portal Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stripe"]
+            },
+            "description": "Cria uma sessão do Stripe Customer Portal para gerenciar assinaturas e faturas"
+          }
+        },
+        {
+          "name": "Stripe Webhook (teste local)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "stripe-signature", "value": "{{stripe_signature}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_test_...\",\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"cs_test_...\",\n      \"customer\": \"cus_...\",\n      \"metadata\": {\n        \"userId\": \"user_...\",\n        \"planSlug\": \"starter\",\n        \"type\": \"subscription\"\n      }\n    }\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/webhooks/stripe",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "webhooks", "stripe"]
+            },
+            "description": "Webhook endpoint para eventos Stripe. Use 'stripe listen --forward-to localhost:3000/api/webhooks/stripe' para testes locais"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Credits",
+      "item": [
+        {
+          "name": "Check Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "balance"]
+            },
+            "description": "Retorna saldo de créditos, status de assinatura e informações do plano do usuário"
+          }
+        },
+        {
+          "name": "Debit Credits",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"questions\": [\n    {\n      \"id\": \"q1\",\n      \"stages\": [\"input\", \"rag\", \"output\", \"judge\"]\n    },\n    {\n      \"id\": \"q2\",\n      \"stages\": [\"input\", \"rag\", \"output\", \"judge\", \"fallback\"]\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/debit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "debit"]
+            },
+            "description": "Debita créditos da conta do usuário com base nos estágios ponderados do pipeline. Idempotente via idempotencyKey"
+          }
+        },
+        {
+          "name": "Get Credit History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/history?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "history"],
+              "query": [
+                { "key": "type", "value": "PURCHASE", "disabled": true, "description": "Filtrar por tipo: PURCHASE, SUBSCRIPTION_CREDIT, BONUS, REFUND" },
+                { "key": "startDate", "value": "2026-04-01", "disabled": true, "description": "Data de início (YYYY-MM-DD)" },
+                { "key": "endDate", "value": "2026-04-30", "disabled": true, "description": "Data de fim (YYYY-MM-DD)" },
+                { "key": "page", "value": "1", "description": "Página (default: 1)" },
+                { "key": "limit", "value": "10", "description": "Itens por página (default: 10)" }
+              ]
+            },
+            "description": "Retorna histórico paginado de transações de créditos com filtros opcionais (tipo, intervalo de datas)"
+          }
+        },
+        {
+          "name": "Get Credit Weights Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/weights",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "weights"]
+            },
+            "description": "Retorna a configuração atual de pesos para cada estágio do pipeline (input, rag, output, judge, fallback)"
+          }
+        }
+      ]
+    }
+  ]
+}

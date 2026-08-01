@@ -1,11 +1,13 @@
-import type { RunnerCampaign } from "../../../shared/runner-types";
+import { RefreshCw } from "lucide-react";
+import type { RunnerCampaign, RunnerPlatform } from "../../../shared/runner-types";
 import { getVisibleCampaigns } from "../../helpers/get-visible-campaigns";
 import { CampaignCard } from "../molecules/CampaignCard";
 
 type CampaignListProps = {
     campaigns: RunnerCampaign[];
     isLoading: boolean;
-    engineVersion?: string;
+    pendingId: string | null;
+    isSessionValid: (platform: RunnerPlatform) => boolean;
     onView: (campaign: RunnerCampaign) => void;
     onToggleStatus: (campaign: RunnerCampaign) => void;
     onRefresh: () => void;
@@ -14,7 +16,8 @@ type CampaignListProps = {
 export function CampaignList({
     campaigns,
     isLoading,
-    engineVersion,
+    pendingId,
+    isSessionValid,
     onView,
     onToggleStatus,
     onRefresh,
@@ -24,19 +27,17 @@ export function CampaignList({
     return (
         <section className="campaign-list">
             <div className="section-header">
-                <h2 className="section-header__title">Active Tasks</h2>
-                <div className="section-header__actions">
-                    <button
-                        type="button"
-                        onClick={onRefresh}
-                        disabled={isLoading}
-                        className="refresh-btn"
-                        aria-label="Refresh campaigns"
-                    >
-                        ↻
-                    </button>
-                    {engineVersion && <span className="section-header__meta">{engineVersion}</span>}
-                </div>
+                <h2 className="section-header__title">Tarefas ativas</h2>
+                <button
+                    type="button"
+                    onClick={onRefresh}
+                    disabled={isLoading}
+                    className="refresh-btn no-drag"
+                    aria-label="Atualizar campanhas"
+                >
+                    <RefreshCw size={13} className={isLoading ? "spin" : undefined} />
+                    Atualizar
+                </button>
             </div>
 
             {isLoading ? (
@@ -50,6 +51,8 @@ export function CampaignList({
                         <CampaignCard
                             key={campaign.id}
                             campaign={campaign}
+                            sessionValid={isSessionValid(campaign.platform)}
+                            isPending={pendingId === campaign.id}
                             onView={onView}
                             onToggleStatus={onToggleStatus}
                         />
@@ -57,9 +60,9 @@ export function CampaignList({
                 </div>
             ) : (
                 <div className="empty-state">
-                    <p className="empty-state__title">No active tasks right now</p>
+                    <p className="empty-state__title">Nenhuma tarefa ativa no momento</p>
                     <p className="empty-state__description">
-                        New local campaigns will appear here as soon as the runner receives them.
+                        Novas campanhas locais aparecem aqui assim que o runner recebê-las.
                     </p>
                 </div>
             )}

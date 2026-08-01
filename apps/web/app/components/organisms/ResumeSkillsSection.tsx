@@ -26,7 +26,7 @@ export function ResumeSkillsSection({
 
     return (
         <section style={sectionStyle}>
-            <h2 style={sectionTitle}>Skills</h2>
+            <h2 style={sectionTitle}>Habilidades</h2>
 
             {isEditing && (
                 <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#1C2333", borderRadius: 8, padding: "8px 12px", marginBottom: 12 }}>
@@ -35,7 +35,7 @@ export function ResumeSkillsSection({
                         value={skillInput}
                         onChange={(e) => setSkillInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Type a skill and press Enter (e.g. JavaScript)"
+                        placeholder="Digite uma habilidade e pressione Enter (ex.: JavaScript)"
                         style={{ background: "transparent", border: "none", outline: "none", color: "#fff", flex: 1, fontSize: 14 }}
                     />
                 </div>
@@ -56,7 +56,7 @@ export function ResumeSkillsSection({
                     </span>
                 ))}
                 {skills.length === 0 && (
-                    <p style={{ color: "#555", fontSize: 14 }}>Nenhuma skill adicionada.</p>
+                    <p style={{ color: "#555", fontSize: 14 }}>Nenhuma habilidade adicionada.</p>
                 )}
             </div>
         </section>

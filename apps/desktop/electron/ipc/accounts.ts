@@ -1,7 +1,7 @@
-import { ipcMain, shell } from "electron";
+import { ipcMain } from "electron";
 import type { RunnerPlatform } from "../../shared/runner-types";
 import { maybeShowRunnerNotification } from "../notifications";
-import { getPlatformLoginUrl, getRunnerState, updateRunnerState } from "../store";
+import { getRunnerState, updateRunnerState } from "../store";
 
 let isAccountsIpcRegistered = false;
 
@@ -17,21 +17,24 @@ export function registerAccountsIpc() {
     });
 
     ipcMain.handle("accounts:connect", async (_event, platform: RunnerPlatform) => {
-        void shell.openExternal(getPlatformLoginUrl(platform));
+        const session = getRunnerState().sessions[platform];
+        const isSessionActive = session?.status === "active";
 
         const nextState = updateRunnerState((currentState) => ({
             ...currentState,
             account: {
                 ...currentState.account,
-                connected: true,
-                platform,
+                connected: isSessionActive,
+                platform: isSessionActive ? platform : currentState.account.platform,
             },
         }));
 
-        maybeShowRunnerNotification(
-            "Account connected",
-            `Mock connection enabled for ${platform === "linkedin" ? "LinkedIn" : "InfoJobs"}.`
-        );
+        if (isSessionActive) {
+            maybeShowRunnerNotification(
+                "Account connected",
+                `Sessão ativa para ${platform === "linkedin" ? "LinkedIn" : "InfoJobs"}.`
+            );
+        }
 
         return nextState.account;
     });
