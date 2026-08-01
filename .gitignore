@@ -50,3 +50,6 @@ ngrok.yml
 # Desktop build outputs
 apps/desktop/release
 apps/desktop/build/robots-dist
+
+# preview local do PDF do currículo (gerado por apps/web/scripts/preview-resume-pdf.ts)
+.preview/

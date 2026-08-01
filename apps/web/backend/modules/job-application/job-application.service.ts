@@ -36,17 +36,34 @@ export class JobApplicationService {
                 return { success: false, message: "Campanha não pertence ao usuário", code: "FORBIDDEN" }
             }
 
-            const application = await prisma.jobApplication.create({
-                data: {
-                    campaignId: campaign_id,
-                    userId,
-                    platform,
-                    companyName: company_name ?? null,
-                    jobTitle: job_title ?? null,
-                    jobUrl: job_url ?? null,
-                    status: "pending",
-                },
-            })
+            const data = {
+                campaignId: campaign_id,
+                userId,
+                platform,
+                companyName: company_name ?? null,
+                jobTitle: job_title ?? null,
+                jobUrl: job_url ?? null,
+                status: "pending" as const,
+            }
+
+            // (userId, jobUrl) é único: o usuário já pode ter candidatura nesta vaga.
+            // Upsert em vez de create + catch(P2002): vira um INSERT ... ON CONFLICT, sem
+            // exceção como fluxo de controle e sem o `prisma:error` assustando no log.
+            // jobUrl é opcional no schema, e índice único no Postgres não colide em NULL —
+            // sem URL não há o que reaproveitar, então cai no create simples.
+            const application = job_url
+                ? await prisma.jobApplication.upsert({
+                      where: { userId_jobUrl: { userId, jobUrl: job_url } },
+                      create: data,
+                      update: {}, // já existe: reaproveita a linha sem tocar nela
+                  })
+                : await prisma.jobApplication.create({ data })
+
+            // Run anterior caiu no meio: a linha pendente é reaproveitada. Já enviada de
+            // verdade: o engine pula a vaga.
+            if (application.status === "applied") {
+                return { success: false, message: "Você já se candidatou a esta vaga", code: "DUPLICATE" }
+            }
 
             return { success: true, data: application }
         } catch (error) {
@@ -272,9 +289,20 @@ export class JobApplicationService {
                 .sort((x, y) => y.count - x.count)
                 .slice(0, 6)
 
-            // --- créditos gastos (USAGE grava reference_id = campaignId); REFUND ainda não existe no código
+            // --- créditos gastos (USAGE grava reference_id = campaignId)
+            // Nem todo USAGE é candidatura: a análise de currículo com IA também debita
+            // (debitFixed). Sem esse filtro, "Todas as campanhas" (campaign_id vazio)
+            // somava esses débitos aqui e o costPerApplication saía inflado.
+            // O discriminador é metadata.jobApplicationId, que o debitFlat grava do lado
+            // do servidor — e não a idempotencyKey, que é a string que o engine mandou e
+            // pode mudar lá sem ninguém perceber aqui. Mesmo critério do refund (l. 152).
             const usageAgg = await prisma.transaction.aggregate({
-                where: { userId, type: "USAGE", ...(campaign_id && { reference_id: campaign_id }) },
+                where: {
+                    userId,
+                    type: "USAGE",
+                    metadata: { path: ["jobApplicationId"], not: Prisma.DbNull },
+                    ...(campaign_id && { reference_id: campaign_id }),
+                },
                 _sum: { amount: true },
             })
             const creditsUsed = Math.abs(usageAgg._sum.amount ?? 0)

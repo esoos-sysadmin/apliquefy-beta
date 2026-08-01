@@ -11,11 +11,17 @@ type NavItemProps = {
 
 export function NavItem({ href, label, icon }: NavItemProps) {
     const pathname = usePathname();
-    const isActive = pathname === href || pathname.startsWith(href + "/");
+    // Links externos (portal do Featurebase) nunca casam com a rota atual,
+    // então nem calculamos "ativo" pra eles.
+    const isExternal = href.startsWith("http");
+    const isActive = !isExternal && (pathname === href || pathname.startsWith(href + "/"));
 
     return (
         <Link
             href={href}
+            className="nav-item"
+            data-active={isActive}
+            {...(isExternal && { target: "_blank", rel: "noopener noreferrer" })}
             style={{
                 display: "flex",
                 alignItems: "center",

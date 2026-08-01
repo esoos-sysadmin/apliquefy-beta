@@ -30,7 +30,7 @@ export interface CampaignInfojobsConfig {
 export interface Campaign {
     id: string;
     name: string;
-    resumeId: string;
+    resumeId: string | null;
     userId?: string;
     platform: CampaignPlatform;
     status: CampaignStatus;

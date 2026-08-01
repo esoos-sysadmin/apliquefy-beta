@@ -40,6 +40,7 @@ export interface ResumeExperience {
     jobStartDate?: string;
     jobEndDate?: string;
     isActualJob?: boolean;
+    certifications?: { titulo?: string; link?: string }[];
 }
 
 export interface ResumeIdiom {

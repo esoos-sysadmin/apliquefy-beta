@@ -16,7 +16,13 @@ from urllib.parse import quote
 
 from playwright.async_api import Page, TimeoutError as PlaywrightTimeout
 
-from ..base import BaseEngine
+from ..base import BaseEngine, SessionInvalidError
+from ...observability import (
+    MIN_JOBS_FOR_SELECTOR_ALARM,
+    breadcrumb,
+    capture_selector_break,
+    job_ref,
+)
 from ...runtime.apply_agent import execute_apply
 from ...runtime.daily_limit import remaining_for_campaign
 from ...runtime.state_machine import Outcome
@@ -63,7 +69,9 @@ class LinkedinEngine(BaseEngine):
                 "type": "paused",
                 "reason": "session_invalid",
             })
-            raise RuntimeError("LinkedIn session invalid")
+            # BusinessError: o desktop já reage ao evento acima removendo a sessão
+            # e pausando a campanha. Não é bug — não vai para o Sentry (ADR-04).
+            raise SessionInvalidError("LinkedIn session invalid")
 
     async def _goto_jobs_search(self, cfg: dict[str, Any]) -> None:
         page: Page = self.ctx.page
@@ -88,6 +96,13 @@ class LinkedinEngine(BaseEngine):
             "els => Array.from(new Set(els.map(e => e.href.split('?')[0])))",
         )
         logger.info("coletadas %s URLs de vaga", len(self._job_urls))
+
+        # SDD §6.4: sem isto, JOB_CARD quebrado deixa o run terminar "com sucesso"
+        # e zero candidaturas — a falha mais cara do produto é também a mais
+        # silenciosa. Busca legítima sem resultado nenhum é rara o bastante para
+        # que o falso positivo custe 1 evento e o falso negativo custe um mês.
+        if not self._job_urls:
+            capture_selector_break("job_search", "JOB_CARD", "linkedin")
 
     async def _apply_filters(self, cfg: dict[str, Any]) -> None:
         # Granular filter clicks intentionally minimal here; the URL `f_*`
@@ -123,8 +138,9 @@ class LinkedinEngine(BaseEngine):
         page: Page = self.ctx.page
         job_urls: list[str] = getattr(self, "_job_urls", [])
         logger.info("iterando %s vagas", len(job_urls))
+        timeouts = 0
 
-        for job_url in job_urls:
+        for index, job_url in enumerate(job_urls):
             remaining = await remaining_for_campaign(self.ctx.client, self.ctx.campaign["id"])
             if remaining <= 0:
                 await self.ctx.emit({
@@ -133,6 +149,8 @@ class LinkedinEngine(BaseEngine):
                     "reason": "dailyLimit reached",
                 })
                 return
+
+            breadcrumb("job_iteration", "abrindo vaga", job_ref=job_ref(job_url), index=index)
 
             try:
                 # Navega direto para a vaga em vez de clicar no card (a lista é
@@ -151,6 +169,9 @@ class LinkedinEngine(BaseEngine):
                 })
 
                 await page.click(S.APPLY_BUTTON)
+                # Entregar pro agente antes do modal montar fazia o primeiro snapshot ser
+                # o da página da vaga: todos os índices nasciam mortos.
+                await page.wait_for_selector(S.APPLY_MODAL, timeout=10_000)
                 outcome = await execute_apply(
                     self.ctx,
                     platform="linkedin",
@@ -161,5 +182,14 @@ class LinkedinEngine(BaseEngine):
                 if outcome is Outcome.PAUSE_SESSION_INVALID:
                     return
             except PlaywrightTimeout:
+                timeouts += 1
                 logger.info("vaga sem Easy Apply/timeout, pulando: %s", job_url)
                 continue
+
+        # SDD §6.4: uma vaga cair aqui é rotina; TODAS caírem é o APPLY_BUTTON (ou
+        # o APPLY_MODAL) tendo mudado. Um evento por run, não por vaga — senão um
+        # único usuário com 40 vagas gera 40 eventos da mesma causa.
+        if timeouts and timeouts == len(job_urls) and timeouts >= MIN_JOBS_FOR_SELECTOR_ALARM:
+            capture_selector_break(
+                "apply_open", "APPLY_BUTTON", "linkedin", total_jobs=len(job_urls)
+            )

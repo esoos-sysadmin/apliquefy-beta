@@ -23,10 +23,10 @@ export function persistCampaigns(campaigns: RunnerCampaign[]) {
 }
 
 /**
- * Uma campanha só é "ativa" enquanto o app está de pé rodando o run. Se o app foi
- * fechado (ou crashou), o backend pode ter ficado com campanhas "active" órfãs que
- * voltariam como ativas no próximo boot. Reseta todas para PAUSED (o default) no
- * boot; o usuário reativa manualmente com o play. No-op rápido se não houver login.
+ * Uma campanha só é "ativa" enquanto o app está de pé rodando o run. Chamado no
+ * quit (caminho normal) e no boot (rede de segurança para crash/kill -9, quando o
+ * quit não rodou). Reseta todas para PAUSED; o usuário reativa manualmente com o
+ * play. No-op rápido se não houver login.
  */
 export async function resetActiveCampaignsToPaused() {
     let campaigns: RunnerCampaign[];

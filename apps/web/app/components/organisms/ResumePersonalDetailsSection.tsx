@@ -21,10 +21,10 @@ export function ResumePersonalDetailsSection({
 
     return (
         <section style={sectionStyle}>
-            <h2 style={sectionTitle}>Personal Details</h2>
+            <h2 style={sectionTitle}>Dados pessoais</h2>
             <div style={gridTwo}>
                 <div>
-                    <label style={labelStyle}>Full Name *</label>
+                    <label style={labelStyle}>Nome completo *</label>
                     <input
                         value={personalInfo.name}
                         onChange={(e) => onChange("name", e.target.value)}
@@ -37,20 +37,20 @@ export function ResumePersonalDetailsSection({
                 </div>
 
                 <div>
-                    <label style={labelStyle}>Professional Headline *</label>
+                    <label style={labelStyle}>Título profissional *</label>
                     <input
                         value={personalInfo.jobTitle}
                         onChange={(e) => onChange("jobTitle", e.target.value)}
                         onClick={onUnlock}
                         readOnly={frozen}
                         style={inputStyle(!!errors.jobTitle, frozen)}
-                        placeholder="Ex: Senior Frontend Engineer"
+                        placeholder="Ex: Desenvolvedor Frontend Sênior"
                     />
                     {errors.jobTitle && <span style={errorStyle}>{errors.jobTitle}</span>}
                 </div>
 
                 <div>
-                    <label style={labelStyle}>Email Address *</label>
+                    <label style={labelStyle}>E-mail *</label>
                     <input
                         type="email"
                         value={personalInfo.email}
@@ -64,7 +64,7 @@ export function ResumePersonalDetailsSection({
                 </div>
 
                 <div>
-                    <label style={labelStyle}>Phone Number *</label>
+                    <label style={labelStyle}>Telefone *</label>
                     <input
                         value={personalInfo.contact}
                         onChange={(e) => onChange("contact", e.target.value)}
@@ -89,7 +89,7 @@ export function ResumePersonalDetailsSection({
                 </div>
 
                 <div>
-                    <label style={labelStyle}>Salário Desejado</label>
+                    <label style={labelStyle}>Salário desejado</label>
                     <input
                         value={personalInfo.desiredSalary}
                         onChange={(e) => onChange("desiredSalary", e.target.value)}
@@ -117,7 +117,7 @@ export function ResumePersonalDetailsSection({
                 </div>
 
                 <div>
-                    <label style={labelStyle}>LinkedIn URL</label>
+                    <label style={labelStyle}>URL do LinkedIn</label>
                     <input
                         value={personalInfo.linkedinUrl}
                         onChange={(e) => onChange("linkedinUrl", e.target.value)}
@@ -129,7 +129,7 @@ export function ResumePersonalDetailsSection({
                 </div>
 
                 <div>
-                    <label style={labelStyle}>Portfolio URL</label>
+                    <label style={labelStyle}>URL do portfólio</label>
                     <input
                         value={personalInfo.portfolio}
                         onChange={(e) => onChange("portfolio", e.target.value)}
@@ -141,7 +141,7 @@ export function ResumePersonalDetailsSection({
                 </div>
 
                 <div style={{ gridColumn: "1 / -1" }}>
-                    <label style={labelStyle}>Professional Summary</label>
+                    <label style={labelStyle}>Resumo profissional</label>
                     <textarea
                         value={personalInfo.professionalSummary}
                         onChange={(e) => onChange("professionalSummary", e.target.value)}

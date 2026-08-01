@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { app } from "electron";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { Sentry } from "../observability";
 import { getDesktopWebUrl, getRunnerState } from "../store";
 
 const PORT_LINE_RE = /^RPA_ENGINE_PORT=(\d+)$/m;
@@ -65,9 +66,24 @@ function resolvePython(): { command: string; args: string[]; cwd: string } {
 }
 
 function buildEnv(token: string): NodeJS.ProcessEnv {
-    const auth = getRunnerState().auth;
+    const { auth, settings } = getRunnerState();
+
+    // O engine reporta no mesmo projeto Sentry do Runner, separado pela tag
+    // `surface` (ADR-05). O DSN vazio desativa o SDK do lado Python — é assim que
+    // o toggle de consentimento desliga o engine junto (§7.7). Como o processo
+    // filho só relê o env ao subir, mudar o toggle vale no próximo boot.
+    const sentryEnv =
+        app.isPackaged && settings.errorReports && process.env.SENTRY_DSN_RUNNER
+            ? {
+                  SENTRY_DSN_RUNNER: process.env.SENTRY_DSN_RUNNER,
+                  SENTRY_RELEASE: `apliquefy-runner@${app.getVersion()}`,
+                  SENTRY_USER_ID: auth.userId ?? "",
+              }
+            : { SENTRY_DSN_RUNNER: "" };
+
     return {
         ...process.env,
+        ...sentryEnv,
         RPA_AUTH_TOKEN: token,
         RPA_USER_DATA_DIR: app.getPath("userData"),
         APLIQUEFY_WEB_URL: getDesktopWebUrl(),
@@ -166,7 +182,17 @@ function scheduleRestart() {
     const delay = RESTART_BACKOFF_MS[Math.min(attempt, RESTART_BACKOFF_MS.length - 1)] ?? 10_000;
     state.restartAttempts = attempt + 1;
     setTimeout(() => {
-        startRpaProcess().catch((err) => console.error("[robots] restart failed:", err));
+        startRpaProcess().catch((err) => {
+            console.error("[robots] restart failed:", err);
+            // Só a partir do 3º: um flap isolado no boot é comum e capturar todo
+            // ciclo do backoff geraria um evento por tentativa, para sempre.
+            if (attempt >= 2) {
+                Sentry.captureException(err, {
+                    tags: { automation_step: "engine_boot" },
+                    contexts: { engine: { restart_attempt: attempt + 1 } },
+                });
+            }
+        });
     }, delay);
 }
 

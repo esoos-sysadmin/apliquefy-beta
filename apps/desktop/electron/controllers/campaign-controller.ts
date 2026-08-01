@@ -1,6 +1,6 @@
 import { getRunnerState, updateRunnerState } from "../store";
 import { fetchCampaignById, fetchCampaigns, updateCampaignStatus } from "../services/campaign-service";
-import { notifyCampaignActivated, notifyCampaignPaused } from "../services/notification-service";
+import { notifyCampaignActivated, notifyCampaignPaused, notifyRunFailed } from "../services/notification-service";
 import { startCampaignRun } from "../services/campaign-run-service";
 import { getSessionController } from "./session-controller";
 
@@ -74,6 +74,11 @@ export function createCampaignController() {
                     await startCampaignRun(activatedCampaign);
                 } catch (error) {
                     console.error(`[rpa] falha ao iniciar run da campanha ${campaignId}:`, error);
+                    // sem isto a campanha aparece "ativa" e nada roda (ex.: currículo excluído)
+                    notifyRunFailed(
+                        activatedCampaign.name,
+                        error instanceof Error ? error.message : "Erro ao iniciar a automação."
+                    );
                 }
             }
 

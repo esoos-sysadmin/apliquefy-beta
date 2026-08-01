@@ -20,10 +20,6 @@ class Settings:
     devtools: bool
     browser_channel: str | None
 
-    @property
-    def resume_pdf_dir(self) -> Path:
-        return self.user_data_dir / "resume-pdfs"
-
 
 def load_settings() -> Settings:
     token = os.environ.get("RPA_AUTH_TOKEN")

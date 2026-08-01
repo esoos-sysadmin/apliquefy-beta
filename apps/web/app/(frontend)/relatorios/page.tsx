@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import { SelectField } from "../../components/atoms/SelectField";
 import { useCampaigns } from "../../hooks/use-campaigns";
 import { useApplicationMetrics } from "../../hooks/use-application-metrics";
 import type { ApplicationStatus } from "../../types/job";
@@ -56,24 +57,19 @@ export default function ReportsPage() {
                     </div>
                 </div>
 
-                <div className="relative">
-                    <select
-                        value={campaignId}
-                        onChange={(event) => {
-                            setCampaignId(event.target.value as string | "all");
-                            setPage(1);
-                        }}
-                        className="h-12 w-full appearance-none rounded-xl border border-[#2A3445] bg-[#101826] px-4 pr-10 text-sm text-slate-200 outline-none transition focus:border-[#35507E] sm:w-64"
-                    >
-                        <option value="all">Todas as campanhas</option>
-                        {campaigns.map((campaign) => (
-                            <option key={campaign.id} value={campaign.id}>
-                                {campaign.name}
-                            </option>
-                        ))}
-                    </select>
-                    <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500" />
-                </div>
+                <SelectField
+                    value={campaignId}
+                    onChange={(value) => {
+                        setCampaignId(value);
+                        setPage(1);
+                    }}
+                    options={[
+                        { label: "Todas as campanhas", value: "all" },
+                        ...campaigns.map((campaign) => ({ label: campaign.name, value: campaign.id })),
+                    ]}
+                    clearable={false}
+                    className="sm:w-64"
+                />
             </div>
 
             {error ? (

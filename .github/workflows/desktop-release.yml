@@ -44,4 +44,11 @@ jobs:
           GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
           # Sem cert da Apple: não tenta assinar, senão o electron-builder aborta.
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          # Observabilidade (SDD §16). O DSN é embutido no binário; o auth token
+          # só serve para o upload de source map e nunca entra no bundle.
+          SENTRY_DSN_RUNNER: ${{ secrets.SENTRY_DSN_RUNNER }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          # Campo `dist` do Sentry: distingue dois builds da mesma versão.
+          BUILD_NUMBER: ${{ github.run_number }}
         run: npm run release

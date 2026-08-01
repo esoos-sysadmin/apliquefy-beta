@@ -13,6 +13,17 @@ JOB_CARD_LINK = "a[href*='/jobs/view/']"
 # O botão de candidatura aparece como link/botão com aria-label "Easy Apply...".
 APPLY_BUTTON = "[aria-label*='Easy Apply' i], [aria-label*='Candidatura simplificada' i], button.jobs-apply-button"
 LOGIN_FALLBACK_INDICATOR = "input[name='session_key']"
+# Modal do Easy Apply. Depois do clique em APPLY_BUTTON o único dialog aberto é ele,
+# então role=dialog basta e não depende das classes ofuscadas do SDUI.
+APPLY_MODAL = "div[role='dialog']"
+
+# Botão do passo "Currículo" do Easy Apply. O modal sai com locale misto (rótulo
+# "Currículo*" e botões "Upload resume"/"Next"), então cobre PT e EN. Pode ser <label>
+# embrulhando o input escondido em vez de <button>.
+RESUME_UPLOAD_BTN = (
+    "button:has-text('Carregar currículo'), button:has-text('Upload resume'), "
+    "label:has-text('Carregar currículo'), label:has-text('Upload resume')"
+)
 
 # Filter chips inside the search bar
 FILTER_DATE_POSTED = "button[aria-label*='Data' i], button[aria-label*='Date posted' i]"

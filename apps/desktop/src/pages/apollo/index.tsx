@@ -3,6 +3,7 @@ import { ArrowRight, Keyboard, Mic, Send, Sparkles, Square } from "lucide-react"
 import type { ElectronAPI, PersonaId } from "../../../shared/runner-types";
 import { DEFAULT_PERSONA } from "../../../shared/runner-types";
 import { TitleBar } from "../../components/atoms/TitleBar";
+import { VoiceSelect, type VoiceOption } from "../../components/atoms/VoiceSelect";
 import { ApolloOrb } from "../../components/organisms/ApolloOrb";
 import { useApollo } from "../../hooks/use-apollo";
 
@@ -10,6 +11,7 @@ type ApolloScreenProps = {
     electron: ElectronAPI;
     userName?: string | null;
     onClose: () => void;
+    onMinimize: () => void;
     onOpenRunner: () => void;
 };
 
@@ -32,13 +34,15 @@ const SUGGESTIONS = [
     "Analise meu currículo",
 ];
 
-// Rótulo pelo tom, não pelo nome da voz: o usuário escolhe como o Apollo fala com ele.
-const PERSONAS: Array<{ id: PersonaId; label: string; hint: string }> = [
-    { id: "jarvis", label: "Sério", hint: "Voz formal e direta" },
-    { id: "sukuna", label: "Ácido", hint: "Voz sarcástica, com deboche" },
+// O dropdown lista pelo tom (é o que a pessoa escolhe); o nome é quem atende — vai no
+// orbe e é o mesmo que a persona declara no system prompt.
+const VOICES: Array<VoiceOption & { name: string }> = [
+    { id: "apollo", name: "APOLLO", label: "Sério", hint: "Formal e direto, sem rodeio" },
+    { id: "nemesis", name: "NÊMESIS", label: "Ácido", hint: "Sarcástico, com deboche" },
+    { id: "hestia", name: "HÉSTIA", label: "Amigável", hint: "Caloroso e encorajador" },
 ];
 
-export default function ApolloScreen({ electron, userName, onClose, onOpenRunner }: ApolloScreenProps) {
+export default function ApolloScreen({ electron, userName, onClose, onMinimize, onOpenRunner }: ApolloScreenProps) {
     const [mode, setMode] = useState<"voice" | "text">("voice");
     const [persona, setPersona] = useState<PersonaId>(DEFAULT_PERSONA);
     const [draft, setDraft] = useState("");
@@ -53,6 +57,7 @@ export default function ApolloScreen({ electron, userName, onClose, onOpenRunner
         transcriptRef.current?.scrollTo({ top: transcriptRef.current.scrollHeight, behavior: "smooth" });
     }, [messages]);
 
+    const voice = VOICES.find((v) => v.id === persona) ?? VOICES[0];
     const firstName = userName?.split(" ")[0];
     const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
 
@@ -63,7 +68,9 @@ export default function ApolloScreen({ electron, userName, onClose, onOpenRunner
 
     return (
         <div className="apollo">
-            <TitleBar onClose={onClose} />
+            <TitleBar onClose={onClose} onMinimize={onMinimize} />
+
+            <VoiceSelect options={VOICES} value={persona} onChange={setPersona} disabled={busy} />
 
             <button type="button" className="apollo__exit no-drag" onClick={onOpenRunner}>
                 Campanhas <ArrowRight size={14} />
@@ -72,12 +79,12 @@ export default function ApolloScreen({ electron, userName, onClose, onOpenRunner
             <div className="apollo__stage">
                 <div className={`apollo__orb apollo__orb--${orbState}`} onClick={mode === "voice" ? toggleListening : undefined}>
                     <ApolloOrb level={level} state={orbState} size={300} />
-                    <span className="apollo__wordmark">APOLLO</span>
+                    <span className="apollo__wordmark">{voice.name}</span>
                 </div>
 
                 <p className="apollo__status">
                     {orbState === "idle" && messages.length === 0
-                        ? `Olá${firstName ? `, ${firstName}` : ""} — sou o Apollo. ${STATUS_LABEL.idle}.`
+                        ? `Olá${firstName ? `, ${firstName}` : ""} — aqui é ${voice.name}. ${STATUS_LABEL.idle}.`
                         : (error ? error : STATUS_LABEL[orbState])}
                 </p>
 
@@ -128,21 +135,6 @@ export default function ApolloScreen({ electron, userName, onClose, onOpenRunner
                     >
                         <Keyboard size={15} />
                     </button>
-                </div>
-
-                <div className="apollo__modes" role="group" aria-label="Voz do Apollo">
-                    {PERSONAS.map((p) => (
-                        <button
-                            key={p.id}
-                            type="button"
-                            className={`apollo__voice${persona === p.id ? " apollo__mode--active" : ""}`}
-                            onClick={() => setPersona(p.id)}
-                            aria-pressed={persona === p.id}
-                            title={p.hint}
-                        >
-                            {p.label}
-                        </button>
-                    ))}
                 </div>
 
                 {mode === "voice" ? (

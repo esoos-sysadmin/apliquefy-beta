@@ -19,7 +19,7 @@ export function LoginButton({ platform, onClick }: LoginButtonProps) {
                 {isLinkedIn ? <span className="login-button__wordmark">in</span> : <BriefcaseBusiness size={18} />}
             </span>
             <span className="login-button__label">
-                {isLinkedIn ? "Login with LinkedIn" : "Login with InfoJobs"}
+                {isLinkedIn ? "Entrar com o LinkedIn" : "Entrar com o InfoJobs"}
             </span>
             <ChevronRight size={18} className="login-button__chevron" />
         </button>

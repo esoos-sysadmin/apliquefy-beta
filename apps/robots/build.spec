@@ -13,7 +13,11 @@ from PyInstaller.utils.hooks import collect_all
 datas = []
 binaries = []
 hiddenimports = []
-for pkg in ("openai", "playwright", "reportlab"):
+# sentry_sdk: as integrações são importadas dinamicamente por nome, então a
+# análise estática do PyInstaller não as encontra e o binário sobe com o SDK mudo.
+# browser_use: é o driver do apply desde a migração do loop caseiro — estava
+# faltando aqui (fora do escopo do SDD de observabilidade, mas quebra o release).
+for pkg in ("openai", "playwright", "reportlab", "sentry_sdk", "browser_use"):
     d, b, h = collect_all(pkg)
     datas += d
     binaries += b

@@ -1,149 +1,254 @@
 import { jsPDF } from "jspdf";
-import type { Resume } from "../types/resume";
+import type { Resume, ResumeEducation, ResumeExperience, ResumePersonalInfo } from "../types/resume";
 
-// Gera um PDF A4 do currículo e baixa direto (doc.save) — sem abrir janela
-// nem diálogo de impressão.
+// Gerador ÚNICO do PDF do currículo: alimenta tanto o botão de download do painel
+// quanto o `GET /api/resumes/[id]/pdf` que o runner baixa para anexar na candidatura.
+// O que o usuário vê é literalmente o arquivo que o empregador recebe.
+//
+// Coluna única de propósito: quem lê este PDF primeiro é o parser ATS do
+// LinkedIn/InfoJobs, e layout de duas colunas embaralha a ordem do texto extraído.
+// O visual fica na hierarquia tipográfica, no espaçamento e nas réguas.
 
-// "2026-07" -> "07/2026"; vazio -> ""
+type RGB = [number, number, number];
+
+const PAGE_W = 210;
+const PAGE_H = 297;
+const MARGIN = 16;
+const CONTENT_W = PAGE_W - MARGIN * 2;
+const BOTTOM = PAGE_H - MARGIN;
+
+const INK: RGB = [18, 33, 46];
+const ACCENT: RGB = [27, 79, 114];
+const MUTED: RGB = [91, 107, 122];
+const BODY: RGB = [44, 62, 80];
+const RULE: RGB = [211, 218, 225];
+const CHIP_BG: RGB = [238, 243, 248];
+
+const PT_TO_MM = 0.3528;
+const lineHeight = (size: number) => size * PT_TO_MM * 1.32;
+
+const MONTHS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+// "2025-06" -> "jun 2025". Formato desconhecido volta como veio.
 function fmtDate(value?: string | null): string {
     if (!value) return "";
     const m = String(value).match(/^(\d{4})-(\d{2})/);
-    return m ? `${m[2]}/${m[1]}` : String(value);
+    if (!m) return String(value);
+    const month = Number(m[2]);
+    return month >= 1 && month <= 12 ? `${MONTHS[month - 1]} ${m[1]}` : String(value);
 }
 
 function period(start?: string | null, end?: string | null, current?: boolean): string {
     const from = fmtDate(start);
     const to = current ? "Atual" : fmtDate(end);
-    if (from && to) return `${from} — ${to}`;
+    if (from && to) return `${from} – ${to}`;
     return from || to || "";
 }
 
-const BLUE: [number, number, number] = [37, 99, 235];
-const DARK: [number, number, number] = [26, 26, 26];
-const GRAY: [number, number, number] = [90, 90, 90];
-const MARGIN = 16;
-const PAGE_W = 210;
-const PAGE_H = 297;
-const CONTENT_W = PAGE_W - MARGIN * 2;
-const BOTTOM = PAGE_H - MARGIN;
+// O JSONB de `resumes` grava os nomes do form (`companyName`, `jobArea`,
+// `nameOfGraduation`…), mas o tipo aceita os curtos também. Ler a chave errada é
+// silencioso — já custou um PDF sem empresa, sem cargo e sem datas —, então a
+// tradução fica aqui, num lugar só.
+const pick = (...values: Array<string | null | undefined>) => values.find((v) => v)?.trim() ?? "";
 
-export function downloadResumePdf(resume: Resume): void {
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
+const expFields = (e: ResumeExperience) => ({
+    // `jobArea` é o campo de cargo do form; `jobType` é vínculo (CLT/PJ) e não título.
+    role: pick(e.jobArea, e.position),
+    company: pick(e.companyName, e.company),
+    jobType: pick(e.jobType),
+    when: period(pick(e.jobStartDate, e.startDate), pick(e.jobEndDate, e.endDate), e.isActualJob ?? e.current),
+    description: pick(e.description),
+});
+
+const eduFields = (ed: ResumeEducation) => ({
+    course: pick(ed.nameOfGraduation, ed.degree),
+    institution: pick(ed.nameOfInstitution, ed.institution),
+    when: period(pick(ed.StartDateOfGraduation, ed.startDate), pick(ed.EndDateOfGraduation, ed.endDate)),
+});
+
+// "https://www.linkedin.com/in/fulano/" -> "linkedin.com/in/fulano": a linha de contato
+// cabe numa linha só e o protocolo não acrescenta nada em papel.
+const shortUrl = (value: string) => value.replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "");
+
+const contactLine = (p: ResumePersonalInfo) =>
+    [
+        pick(p.address, p.location),
+        pick(p.contact, p.phone),
+        pick(p.email),
+        ...[pick(p.linkedinUrl, p.linkedin), pick(p.github), pick(p.portfolio)].map(shortUrl),
+    ]
+        .filter(Boolean)
+        .join("   ·   ");
+
+function buildDoc(resume: Resume): jsPDF {
+    const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
     const p = resume.personalInfo ?? {};
     let y = MARGIN;
 
-    // garante espaço; senão, nova página
-    const ensure = (needed: number) => {
-        if (y + needed > BOTTOM) {
-            doc.addPage();
-            y = MARGIN;
-        }
+    const wrap = (value: string, size: number, width = CONTENT_W): string[] => {
+        doc.setFontSize(size);
+        return doc.splitTextToSize(value, width) as string[];
     };
 
-    const text = (
+    const newPage = () => {
+        doc.addPage();
+        y = MARGIN;
+    };
+
+    const write = (
         value: string,
         size: number,
-        color: [number, number, number],
-        opts: { bold?: boolean; align?: "left" | "right"; x?: number; gap?: number } = {},
+        color: RGB,
+        opts: { bold?: boolean; gap?: number; justify?: boolean; width?: number } = {},
     ) => {
         doc.setFont("helvetica", opts.bold ? "bold" : "normal");
-        doc.setFontSize(size);
         doc.setTextColor(...color);
-        const x = opts.x ?? MARGIN;
-        const lines = doc.splitTextToSize(value, CONTENT_W);
-        ensure(lines.length * size * 0.42 + (opts.gap ?? 0));
-        doc.text(lines, opts.align === "right" ? PAGE_W - MARGIN : x, y, { align: opts.align ?? "left" });
-        y += lines.length * size * 0.42 + (opts.gap ?? 1.5);
+        const lines = wrap(value, size, opts.width);
+        for (const line of lines) {
+            if (y + lineHeight(size) > BOTTOM) newPage();
+            // justify na última linha esticaria as palavras até a margem.
+            const align = opts.justify && line !== lines[lines.length - 1] ? "justify" : "left";
+            doc.text(line, MARGIN, y, { align, maxWidth: opts.width ?? CONTENT_W });
+            y += lineHeight(size);
+        }
+        y += opts.gap ?? 0;
     };
 
     const heading = (title: string) => {
-        ensure(10);
-        y += 3;
+        if (y + 14 > BOTTOM) newPage();
+        y += 4.5;
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(10.5);
-        doc.setTextColor(...BLUE);
+        doc.setFontSize(9.4);
+        doc.setTextColor(...ACCENT);
+        doc.setCharSpace(0.35);
         doc.text(title.toUpperCase(), MARGIN, y);
-        y += 1.5;
-        doc.setDrawColor(220, 224, 230);
-        doc.setLineWidth(0.3);
+        doc.setCharSpace(0);
+        y += 1.8;
+        doc.setDrawColor(...RULE);
+        doc.setLineWidth(0.25);
         doc.line(MARGIN, y, PAGE_W - MARGIN, y);
-        y += 4;
+        y += 4.2;
     };
 
-    // Cabeçalho
-    text(p.name || resume.title, 20, DARK, { bold: true, gap: 1 });
-    const role = [p.jobTitle, p.seniority].filter(Boolean).join(" · ");
-    if (role) text(role, 11, BLUE, { bold: true, gap: 1 });
-    const contacts = [p.email, p.contact || p.phone, p.address || p.location, p.linkedinUrl || p.linkedin, p.portfolio, p.github]
-        .filter(Boolean)
-        .join("   ·   ");
-    if (contacts) text(contacts, 8.5, GRAY, { gap: 2 });
-    doc.setDrawColor(...BLUE);
-    doc.setLineWidth(0.5);
-    doc.line(MARGIN, y, PAGE_W - MARGIN, y);
-    y += 4;
+    /** Título + período na mesma linha, período colado na margem direita. */
+    const entry = (title: string, subtitle: string, when: string, description: string) => {
+        const titleLines = wrap(title, 10.2, CONTENT_W * 0.72);
+        // Cabeçalho e a primeira linha da descrição não se separam entre páginas.
+        const needed = titleLines.length * lineHeight(10.2) + (subtitle ? lineHeight(9) : 0) + (description ? lineHeight(9.2) : 0);
+        if (y + needed > BOTTOM) newPage();
 
-    // Resumo
-    const summary = p.professionalSummary || p.summary;
+        if (when) {
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8.5);
+            doc.setTextColor(...MUTED);
+            doc.text(when, PAGE_W - MARGIN, y, { align: "right" });
+        }
+        write(title, 10.2, INK, { bold: true, width: CONTENT_W * 0.72 });
+        if (subtitle) write(subtitle, 9, MUTED, { gap: 0.6 });
+        if (description) write(description, 9.2, BODY, { justify: true });
+        y += 3;
+    };
+
+    /** Skills como chips: bloco denso e legível sem virar parede de vírgulas. */
+    const chips = (labels: string[]) => {
+        const H = 5.2;
+        const PAD = 2.4;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.6);
+        let x = MARGIN;
+        for (const label of labels) {
+            const w = doc.getTextWidth(label) + PAD * 2;
+            if (x + w > PAGE_W - MARGIN) {
+                x = MARGIN;
+                y += H + 1.8;
+            }
+            if (y + H > BOTTOM) newPage();
+            doc.setFillColor(...CHIP_BG);
+            doc.roundedRect(x, y - H + 1.5, w, H, 1.2, 1.2, "F");
+            doc.setTextColor(...ACCENT);
+            doc.text(label, x + PAD, y);
+            x += w + 1.8;
+        }
+        y += H;
+    };
+
+    // ---- Cabeçalho
+    write(pick(p.name, resume.title), 21, INK, { bold: true, gap: 0.8 });
+    const role = [pick(p.jobTitle), pick(p.seniority)].filter(Boolean).join(" · ");
+    if (role) write(role, 11.5, ACCENT, { gap: 1.2 });
+    const contacts = contactLine(p);
+    if (contacts) write(contacts, 8.2, MUTED, { gap: 1.6 });
+    doc.setDrawColor(...ACCENT);
+    doc.setLineWidth(0.6);
+    doc.line(MARGIN, y, PAGE_W - MARGIN, y);
+    y += 2;
+
+    // ---- Seções
+    const summary = pick(p.professionalSummary, p.summary);
     if (summary) {
         heading("Resumo");
-        text(summary, 9.5, [51, 51, 51]);
+        write(summary, 9.2, BODY, { justify: true });
     }
 
-    // Experiência
-    const experience = (resume.experience ?? []).filter((e) => e.jobType || e.position || e.companyName || e.company);
+    const experience = (resume.experience ?? []).map(expFields).filter((e) => e.role || e.company);
     if (experience.length) {
         heading("Experiência");
         for (const e of experience) {
-            const roleLine = [e.jobType || e.position, e.companyName || e.company].filter(Boolean).join(" — ");
-            const when = period(e.jobStartDate || e.startDate, e.jobEndDate || e.endDate, e.isActualJob ?? e.current);
-            ensure(6);
-            const yTop = y;
-            text(roleLine, 10.5, DARK, { bold: true, gap: 0.5 });
-            if (when) {
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(9);
-                doc.setTextColor(...GRAY);
-                doc.text(when, PAGE_W - MARGIN, yTop, { align: "right" });
-            }
-            if (e.description) text(e.description, 9.5, [51, 51, 51], { gap: 2 });
-            else y += 2;
+            const subtitle = [e.company, e.jobType].filter(Boolean).join("  ·  ");
+            entry(e.role || e.company, e.role ? subtitle : e.jobType, e.when, e.description);
         }
     }
 
-    // Formação
-    const education = (resume.education ?? []).filter((ed) => ed.nameOfGraduation || ed.degree || ed.nameOfInstitution || ed.institution);
+    const education = (resume.education ?? []).map(eduFields).filter((ed) => ed.course || ed.institution);
     if (education.length) {
         heading("Formação");
-        for (const ed of education) {
-            const line = [ed.nameOfGraduation || ed.degree, ed.nameOfInstitution || ed.institution].filter(Boolean).join(" — ");
-            const when = period(ed.StartDateOfGraduation || ed.startDate, ed.EndDateOfGraduation || ed.endDate);
-            ensure(6);
-            const yTop = y;
-            text(line, 10.5, DARK, { bold: true, gap: 2 });
-            if (when) {
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(9);
-                doc.setTextColor(...GRAY);
-                doc.text(when, PAGE_W - MARGIN, yTop, { align: "right" });
-            }
-        }
+        for (const ed of education) entry(ed.course || ed.institution, ed.course ? ed.institution : "", ed.when, "");
     }
 
-    // Competências
-    const skills = resume.skills ?? [];
+    const skills = (resume.skills ?? []).filter(Boolean);
     if (skills.length) {
         heading("Competências");
-        text(skills.join("   ·   "), 9.5, [51, 51, 51]);
+        chips(skills);
     }
 
-    // Idiomas
     const idioms = (resume.idioms ?? []).filter((i) => i.language);
     if (idioms.length) {
         heading("Idiomas");
-        text(idioms.map((i) => (i.level ? `${i.language} — ${i.level}` : i.language)).join("   ·   "), 9.5, [51, 51, 51]);
+        write(idioms.map((i) => (i.level ? `${i.language} — ${i.level}` : i.language)).join("   ·   "), 9.2, BODY);
     }
 
-    const safeName = (resume.title || p.name || "curriculo").replace(/[^\w\-À-ÿ ]/g, "").trim() || "curriculo";
-    doc.save(`${safeName}.pdf`);
+    const certifications = (resume.experience ?? []).flatMap((e) => e.certifications ?? []).map((c) => pick(c.titulo)).filter(Boolean);
+    if (certifications.length) {
+        heading("Certificações");
+        write(certifications.join("   ·   "), 9.2, BODY);
+    }
+
+    // Numeração só faz sentido depois de saber quantas páginas saíram.
+    const pages = doc.getNumberOfPages();
+    if (pages > 1) {
+        for (let i = 1; i <= pages; i++) {
+            doc.setPage(i);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.setTextColor(...MUTED);
+            doc.text(`${i}/${pages}`, PAGE_W - MARGIN, PAGE_H - 8, { align: "right" });
+        }
+    }
+
+    return doc;
+}
+
+export function resumeFileName(resume: Resume): string {
+    const raw = pick(resume.personalInfo?.name, resume.title, "curriculo");
+    return `${raw.replace(/[^\w\-À-ÿ ]/g, "").trim() || "curriculo"}.pdf`;
+}
+
+/** Bytes do PDF — usado pela API que serve o arquivo para o runner. */
+export function buildResumePdf(resume: Resume): Uint8Array {
+    return new Uint8Array(buildDoc(resume).output("arraybuffer"));
+}
+
+/** Baixa direto no navegador, sem abrir janela nem diálogo de impressão. */
+export function downloadResumePdf(resume: Resume): void {
+    buildDoc(resume).save(resumeFileName(resume));
 }

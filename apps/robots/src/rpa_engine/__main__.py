@@ -14,6 +14,7 @@ import sys
 import uvicorn
 
 from .config import load_settings
+from .observability import init_observability
 from .server import build_app
 
 
@@ -32,6 +33,10 @@ def main() -> None:
         level=os.environ.get("RPA_LOG_LEVEL", "INFO").upper(),
         format="%(levelname)s %(name)s: %(message)s",
     )
+
+    # Antes do load_settings() de propósito: assim um RPA_AUTH_TOKEN ausente já
+    # chega no Sentry em vez de morrer só no stderr do processo filho.
+    init_observability()
 
     settings = load_settings()
     port = _pick_port()

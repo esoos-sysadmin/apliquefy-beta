@@ -311,6 +311,15 @@ export class CampaignService {
                 }
             }
 
+            // O currículo pode ter sido excluído depois que a campanha foi criada
+            // (a FK zera o vínculo). Sem currículo não há PDF para candidatar.
+            if (!existCampaign.resumeId) {
+                return {
+                    success: false,
+                    message: "Esta campanha está sem currículo. Edite a campanha e selecione um currículo antes de ativá-la."
+                }
+            }
+
             if (existCampaign.platform === 'linkedin') {
                 const activeLinkedin = await prisma.campaign.findFirst({
                     where: { userId, platform: 'linkedin', status: 'active' }

@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from "electron";
 import path from "node:path";
+import { initObservability, Sentry } from "./observability";
 import { applyRunnerSettings } from "./ipc/settings";
 import { createMainWindow } from "./main/create-main-window";
 import { registerIpcHandlers } from "./main/register-ipc-handlers";
@@ -19,6 +20,10 @@ if (typeof loadEnvFile === "function") {
         // .env ausente — segue com o ambiente atual
     }
 }
+
+// Depois do loadEnvFile (é de lá que o DSN vem em dev) e antes de tudo o resto:
+// só assim um crash durante o boot ainda é reportado.
+initObservability();
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -57,6 +62,9 @@ app.whenReady().then(async () => {
 
     void startRpaProcess().catch((err) => {
         console.error("[robots] failed to start:", err);
+        // O Runner é inútil sem o engine: isto é falha total do produto na máquina
+        // do usuário, não um aviso de boot (SDD §5.5).
+        Sentry.captureException(err, { tags: { automation_step: "engine_boot" } });
     });
 
     app.on("activate", () => {
@@ -78,7 +86,25 @@ app.on("window-all-closed", () => {
     }
 });
 
-app.on("before-quit", () => {
+let isQuitting = false;
+
+// Campanha só existe enquanto o app está aberto: ao sair, mata o engine e pausa as
+// campanhas ativas no backend, senão a web/próximo boot mostram "ativa" sem nada
+// rodando. Precisa segurar o quit porque o pause é uma chamada HTTP.
+app.on("before-quit", (event) => {
+    if (isQuitting) return;
+    isQuitting = true;
+    event.preventDefault();
+
     stopSessionHeartbeat();
     stopRpaProcess();
+
+    // ponytail: cap de 5s para backend lento não travar o fechamento; o reset no
+    // boot continua como rede de segurança (crash, kill -9, queda de rede).
+    void Promise.race([
+        resetActiveCampaignsToPaused().catch((err) => {
+            console.error("[quit] failed to pause campaigns:", err);
+        }),
+        new Promise<void>((resolve) => setTimeout(resolve, 5000)),
+    ]).finally(() => app.quit());
 });

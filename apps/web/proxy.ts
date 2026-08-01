@@ -11,6 +11,9 @@ const isPublicRoute = createRouteMatcher([
   '/api/checkout/onboarding(.*)',
   '/api/desktop-auth(.*)',
   '/desktop-auth(.*)',
+  // Túnel do Sentry (tunnelRoute no next.config.js). Sem isto o clerkMiddleware
+  // exige sessão e o evento de erro de quem está deslogado nunca chega.
+  '/monitoring(.*)',
 ])
 
 export default clerkMiddleware(async (auth, req) => {

@@ -23,7 +23,7 @@ export function CampaignDetails({ campaign, onClose }: CampaignDetailsProps) {
                     <button
                         type="button"
                         onClick={onClose}
-                        aria-label="Close campaign details"
+                        aria-label="Fechar detalhes da campanha"
                         className="titlebar__close"
                     >
                         <X size={18} />
@@ -37,7 +37,7 @@ export function CampaignDetails({ campaign, onClose }: CampaignDetailsProps) {
                     </div>
                     <div className="overlay-card__row">
                         <Gauge size={15} />
-                        <span>{campaign.applications} total applications</span>
+                        <span>{campaign.applications} candidaturas no total</span>
                     </div>
                     <div className="overlay-card__row">
                         <FileText size={15} />
@@ -45,10 +45,10 @@ export function CampaignDetails({ campaign, onClose }: CampaignDetailsProps) {
                     </div>
                     <div className="overlay-card__row">
                         <BriefcaseBusiness size={15} />
-                        <span>Daily limit: {campaign.dailyLimit}</span>
+                        <span>Limite diário: {campaign.dailyLimit}</span>
                     </div>
                     <p className="overlay-card__notes">{campaign.notes}</p>
-                    <p className="overlay-card__meta">Last updated: {campaign.lastUpdated}</p>
+                    <p className="overlay-card__meta">Última atualização: {campaign.lastUpdated}</p>
                 </div>
             </div>
         </div>

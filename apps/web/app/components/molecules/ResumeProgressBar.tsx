@@ -5,10 +5,10 @@ export function ResumeProgressBar({ progress }: { progress: number }) {
         <div style={{ background: "#161C27", borderRadius: 12, padding: 20, marginBottom: 24, border: "1px solid #1C2333" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <div>
-                    <p style={{ margin: 0, fontWeight: 600, color: "#fff" }}>Profile Completeness</p>
+                    <p style={{ margin: 0, fontWeight: 600, color: "#fff" }}>Preenchimento do perfil</p>
                     {progress < 90 && (
                         <p style={{ margin: 0, fontSize: 12, color: "#888" }}>
-                            Add {Math.ceil((90 - progress) / 7)} more fields to reach 90%
+                            Preencha mais {Math.ceil((90 - progress) / 7)} campos para chegar a 90%
                         </p>
                     )}
                 </div>

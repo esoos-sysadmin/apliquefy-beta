@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useResumes } from "../../../hooks/use-resumes";
-import { emptyResumeForm, emptyExperience, emptyEducation, emptyIdiom } from "../../../lib/constants/resume-form";
+import {
+    emptyResumeForm,
+    emptyExperience,
+    emptyEducation,
+    emptyIdiom,
+    RESUME_IMPORT_STORAGE_KEY,
+} from "../../../lib/constants/resume-form";
 import { formatPhone, calcResumeProgress } from "../../../lib/helpers/resume";
 import { ResumeProgressBar } from "../../../components/molecules/ResumeProgressBar";
 import { ResumeFormPopup } from "../../../components/molecules/ResumeFormPopup";
+import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog";
 import { FormErrorBanner } from "../../../components/molecules/FormErrorBanner";
 import { ApiError } from "../../../lib/api-client";
 import { flattenZodErrorTree, type FieldError } from "../../../lib/format-field-errors";
@@ -27,6 +34,23 @@ export default function NovoResumePage() {
     const [popup, setPopup] = useState<{ type: "success" | "error"; message: string } | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [apiErrors, setApiErrors] = useState<FieldError[]>([]);
+
+    const [importedFromPdf, setImportedFromPdf] = useState(false);
+    const [confirmDiscard, setConfirmDiscard] = useState(false);
+
+    // Currículo importado de PDF: consome o rascunho uma única vez. Fica no efeito
+    // (não no useState inicial) porque sessionStorage não existe no render do servidor.
+    useEffect(() => {
+        const draft = sessionStorage.getItem(RESUME_IMPORT_STORAGE_KEY);
+        if (!draft) return;
+        sessionStorage.removeItem(RESUME_IMPORT_STORAGE_KEY);
+        try {
+            setForm({ ...emptyResumeForm, ...(JSON.parse(draft) as ResumeFormData) });
+            setImportedFromPdf(true);
+        } catch {
+            // rascunho corrompido: segue com o formulário vazio
+        }
+    }, []);
 
     const progress = calcResumeProgress(form);
 
@@ -112,6 +136,16 @@ export default function NovoResumePage() {
         }
     }
 
+    function handleCancel() {
+        // só pergunta se há algo a perder — descartar uma extração de PDF sem aviso
+        // custaria ao usuário refazer o upload e a chamada de IA
+        if (JSON.stringify(form) === JSON.stringify(emptyResumeForm)) {
+            router.push("/curriculos");
+            return;
+        }
+        setConfirmDiscard(true);
+    }
+
     function handleClosePopup() {
         if (popup?.type === "success") router.push("/curriculos");
         setPopup(null);
@@ -121,9 +155,15 @@ export default function NovoResumePage() {
         <div style={{ minHeight: "100vh", color: "#fff", fontFamily: "sans-serif" }}>
             <div style={{ maxWidth: 1152, margin: "0 auto" }}>
                 <div style={{ marginBottom: 24 }}>
-                    <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>Resume Profile</h1>
-                    <p style={{ color: "#64748b", marginTop: 6, fontSize: 15 }}>Manage your structured data for automated applications.</p>
+                    <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>Perfil do currículo</h1>
+                    <p style={{ color: "#64748b", marginTop: 6, fontSize: 15 }}>Gerencie seus dados estruturados para as candidaturas automáticas.</p>
                 </div>
+
+                {importedFromPdf && (
+                    <div style={{ marginBottom: 20, padding: "12px 16px", borderRadius: 12, border: "1px solid rgba(56,189,248,0.3)", background: "rgba(56,189,248,0.1)", color: "#7dd3fc", fontSize: 14 }}>
+                        Dados preenchidos a partir do seu PDF pela IA. Revise tudo antes de salvar — datas e contatos costumam precisar de ajuste.
+                    </div>
+                )}
 
                 <FormErrorBanner errors={apiErrors} />
 
@@ -173,7 +213,14 @@ export default function NovoResumePage() {
                     onRemove={(i) => setForm((f) => ({ ...f, idioms: f.idioms.filter((_, idx) => idx !== i) }))}
                 />
 
-                <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 8, paddingBottom: 32 }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, paddingTop: 8, paddingBottom: 32 }}>
+                    <button
+                        onClick={handleCancel}
+                        disabled={loading}
+                        style={{ height: 44, background: "transparent", color: "#888", border: "1px solid #2A3445", borderRadius: 12, padding: "0 20px", fontWeight: 600, fontSize: 14, cursor: loading ? "not-allowed" : "pointer" }}
+                    >
+                        Cancelar
+                    </button>
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
@@ -186,9 +233,24 @@ export default function NovoResumePage() {
                             opacity: loading ? 0.7 : 1, transition: "background 0.2s ease, opacity 0.2s ease",
                         }}
                     >
-                        {loading ? "Salvando..." : "Save Changes"}
+                        {loading ? "Salvando..." : "Salvar currículo"}
                     </button>
                 </div>
+
+                <ConfirmDialog
+                    open={confirmDiscard}
+                    title="Descartar currículo"
+                    description={
+                        importedFromPdf
+                            ? "Os dados extraídos do seu PDF serão perdidos e você precisará importar o arquivo de novo."
+                            : "Tudo que você preencheu será perdido."
+                    }
+                    confirmLabel="Descartar"
+                    cancelLabel="Continuar editando"
+                    danger
+                    onCancel={() => setConfirmDiscard(false)}
+                    onConfirm={() => router.push("/curriculos")}
+                />
 
                 <ResumeFormPopup popup={popup} onClose={handleClosePopup} />
             </div>

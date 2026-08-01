@@ -36,6 +36,75 @@ a {
   text-decoration: none;
 }
 
+/* Feedback tátil global de clique. Nenhum componente seta `transform` inline
+   (só a seta do dropdown usa -translate-y), então o scale aqui não conflita. */
+button,
+a,
+select,
+summary,
+[role="button"],
+label[for] {
+  transition: transform 0.09s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+button:active,
+select:active,
+summary:active,
+[role="button"]:active,
+a:active {
+  transform: scale(0.97);
+}
+
+button:disabled:active,
+[role="button"][aria-disabled="true"]:active {
+  transform: none;
+}
+
+/* Abertura do listbox do SelectField. */
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+[role="listbox"] {
+  animation: dropdown-in 0.12s ease-out;
+  transform-origin: top center;
+}
+
+/* Restam <select> nativos só no editor de currículo; o popup de <option> é
+   desenhado pelo SO e sem color-scheme dark vem branco com highlight azul. */
+select {
+  color-scheme: dark;
+  cursor: pointer;
+}
+
+select option {
+  background-color: #101826;
+  color: #e2e8f0;
+  padding: 8px;
+}
+
+select option:checked {
+  background-color: #1c2b46;
+  color: #fff;
+}
+
+/* Itens do menu lateral: hover não é expressável em style inline. */
+.nav-item:not([data-active="true"]):hover {
+  background: #16213a !important;
+  color: #cbd5e1 !important;
+}
+
+.nav-item:active {
+  transform: scale(0.97);
+}
+
 .cl-userProfile-root .cl-profileSection__danger,
 .cl-userProfile-root [data-localization-key*="dangerSection"],
 .cl-userProfile-root [data-localization-key*="deleteAccountButton"] {

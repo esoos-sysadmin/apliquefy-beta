@@ -4,6 +4,7 @@ import type { ElectronAPI, RpaEvent, RunnerEngineStatus, RunnerSessionMap } from
 const electronAPI: ElectronAPI = {
     window: {
         close: () => ipcRenderer.invoke("window:close"),
+        minimize: () => ipcRenderer.invoke("window:minimize"),
     },
     assistant: {
         transcribe: (audioBase64: string) => ipcRenderer.invoke("assistant:transcribe", audioBase64),

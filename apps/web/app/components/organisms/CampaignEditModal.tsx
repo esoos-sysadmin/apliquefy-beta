@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, X } from "lucide-react";
+import { X } from "lucide-react";
+import { SelectField } from "../atoms/SelectField";
 import { useCampaigns } from "../../hooks/use-campaigns";
 import { useResumes } from "../../hooks/use-resumes";
 import type { Campaign } from "../../types/campaign";
@@ -16,7 +17,8 @@ export function CampaignEditModal({
     const { resumes } = useResumes();
     const { updateCampaign } = useCampaigns();
     const [campaignName, setCampaignName] = useState(campaign.name);
-    const [resumeId, setResumeId] = useState(campaign.resumeId);
+    // "" = campanha ficou órfã (currículo excluído); o select abre vazio
+    const [resumeId, setResumeId] = useState(campaign.resumeId ?? "");
     const [dailyLimit, setDailyLimit] = useState(String(campaign.dailyLimit ?? 50));
     const [isSaving, setIsSaving] = useState(false);
 
@@ -26,7 +28,8 @@ export function CampaignEditModal({
         try {
             await updateCampaign(campaign.id, {
                 name: campaignName,
-                resumeId,
+                // updateCampaign ignora resumeId falsy: não sobrescreve com vazio
+                resumeId: resumeId || undefined,
                 dailyLimit: Number(dailyLimit || 0),
             });
             onClose();
@@ -53,35 +56,28 @@ export function CampaignEditModal({
 
                 <div className="space-y-5 px-5 py-5">
                     <label className="block space-y-2">
-                        <span className="text-sm font-medium text-slate-300">Campaign Name</span>
+                        <span className="text-sm font-medium text-slate-300">Nome da campanha</span>
                         <input
                             value={campaignName}
                             onChange={(event) => setCampaignName(event.target.value)}
-                            placeholder="Campaign name"
+                            placeholder="Nome da campanha"
                             className="h-11 w-full rounded-xl border border-[#202A3A] bg-[#0F1623] px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#3B82F6]"
                         />
                     </label>
 
                     <label className="block space-y-2">
-                        <span className="text-sm font-medium text-slate-300">Resume</span>
-                        <div className="relative">
-                            <select
-                                value={resumeId}
-                                onChange={(event) => setResumeId(event.target.value)}
-                                className="h-11 w-full appearance-none rounded-xl border border-[#202A3A] bg-[#0F1623] px-4 pr-10 text-sm text-slate-200 outline-none transition focus:border-[#3B82F6]"
-                            >
-                                {resumes.map((resume) => (
-                                    <option key={resume.id} value={resume.id}>
-                                        {resume.title}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500" />
-                        </div>
+                        <span className="text-sm font-medium text-slate-300">Currículo</span>
+                        <SelectField
+                            value={resumeId}
+                            onChange={setResumeId}
+                            options={resumes.map((resume) => ({ label: resume.title, value: resume.id }))}
+                            placeholder="Selecione um currículo"
+                            clearable={false}
+                        />
                     </label>
 
                     <label className="block space-y-2">
-                        <span className="text-sm font-medium text-slate-300">Daily Application Limit</span>
+                        <span className="text-sm font-medium text-slate-300">Limite diário de candidaturas</span>
                         <input
                             value={dailyLimit}
                             onChange={(event) => setDailyLimit(event.target.value.replace(/\D/g, "").slice(0, 3))}
@@ -90,7 +86,7 @@ export function CampaignEditModal({
                             className="h-11 w-full rounded-xl border border-[#202A3A] bg-[#0F1623] px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#3B82F6]"
                         />
                         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                            Limit between 1 and 200 applications
+                            Limite entre 1 e 200 candidaturas
                         </p>
                     </label>
                 </div>
@@ -101,7 +97,7 @@ export function CampaignEditModal({
                         onClick={onClose}
                         className="inline-flex h-11 items-center justify-center rounded-xl border border-[#313A49] px-4 text-sm font-semibold text-slate-300 transition hover:border-[#3D4658] hover:text-white"
                     >
-                        Cancel
+                        Cancelar
                     </button>
                     <button
                         type="button"
@@ -109,7 +105,7 @@ export function CampaignEditModal({
                         disabled={isSaving}
                         className="inline-flex h-11 items-center justify-center rounded-xl bg-[#3B82F6] px-5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(59,130,246,0.25)] transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {isSaving ? "Saving..." : "Save Changes"}
+                        {isSaving ? "Salvando..." : "Salvar alterações"}
                     </button>
                 </div>
             </div>

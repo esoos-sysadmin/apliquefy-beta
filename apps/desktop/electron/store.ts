@@ -25,6 +25,9 @@ const defaultSettings: RunnerSettings = {
     startWithWindows: false,
     desktopNotifications: false,
     alwaysOnTop: false,
+    // Ligado por padrão, com aviso claro e desligamento a um clique (SDD §7.7).
+    // O merge com `raw.settings` no read faz instalações antigas herdarem isto.
+    errorReports: true,
 };
 
 const defaultAuth: RunnerAuthState = {

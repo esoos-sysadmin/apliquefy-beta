@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { ElectronAPI, RunnerCampaign, RunnerPlatform } from "../../shared/runner-types";
 import { campaignStore } from "../stores/campaign-store";
 import { creditStore } from "../stores/credit-store";
@@ -27,6 +27,12 @@ export function useCampaignActions(electron: ElectronAPI, options: CampaignActio
 
         try {
             if (campaign.status !== "active") {
+                // O botão já fica desabilitado com tooltip, mas ele só tem aria-disabled
+                // (o clique passa): sem este guard o run subiria e falharia no PDF.
+                if (!campaign.hasResume) {
+                    return;
+                }
+
                 // Revalida a sessão de verdade no clique (o status do store pode estar
                 // defasado). check() relê o cookie salvo e devolve o status real.
                 const session = await electron.sessions.check(campaign.platform);
@@ -81,7 +87,9 @@ export function useCampaignActions(electron: ElectronAPI, options: CampaignActio
         }
     };
 
-    const handleRefreshCampaigns = async () => {
+    // useCallback porque o autorefresh do runner usa isto como dep de useEffect:
+    // uma identidade nova a cada render recriaria o interval sem parar.
+    const handleRefreshCampaigns = useCallback(async () => {
         campaignStore.setLoading(true);
         try {
             const campaigns = await electron.campaigns.list();
@@ -90,7 +98,7 @@ export function useCampaignActions(electron: ElectronAPI, options: CampaignActio
             console.error("Failed to refresh campaigns:", error);
             campaignStore.setLoading(false);
         }
-    };
+    }, [electron]);
 
     return {
         handleToggleCampaign,

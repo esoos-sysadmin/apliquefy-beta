@@ -22,9 +22,9 @@ export default function DesktopAuthSuccessPage() {
                     textAlign: "center",
                 }}
             >
-                <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Authentication complete</h1>
+                <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Autenticação concluída</h1>
                 <p style={{ margin: "12px 0 0", color: "#8B949E", lineHeight: 1.6 }}>
-                    You can return to the Apliquefy Runner now. The desktop app will continue the session automatically.
+                    Você já pode voltar para o Apliquefy Runner. O app desktop continua a sessão automaticamente.
                 </p>
             </div>
         </main>

@@ -7,3 +7,7 @@ export function notifyCampaignPaused(name: string) {
 export function notifyCampaignActivated(name: string) {
     maybeShowRunnerNotification("Campaign resumed", `${name} is active again.`);
 }
+
+export function notifyRunFailed(name: string, reason: string) {
+    maybeShowRunnerNotification(`Não foi possível iniciar "${name}"`, reason);
+}

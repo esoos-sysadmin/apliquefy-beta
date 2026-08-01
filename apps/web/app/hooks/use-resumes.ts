@@ -13,6 +13,7 @@ import {
     deleteResume as deleteResumeRequest,
     getResume as getResumeRequest,
     getResumes as getResumesRequest,
+    importResumePdf as importResumePdfRequest,
     updateResume as updateResumeRequest,
 } from "../client/resume.service";
 
@@ -71,6 +72,9 @@ export function useResumes() {
         },
         analyzeResume(id: string) {
             return withClient(async (api) => analyzeResumeRequest(api, id));
+        },
+        importResumePdf(file: File) {
+            return withClient(async (api) => importResumePdfRequest(api, file));
         },
     };
 }

@@ -52,11 +52,32 @@ export default function RunnerPage() {
             void handleRefreshCampaigns();
         }
     }, [auth.isAuthenticated, handleRefreshCampaigns]);
+
+    // O usuário edita campanhas/currículos na web e volta pro desktop: sem isto o
+    // feed fica congelado até clicar em atualizar. Foco cobre o caso comum; o
+    // intervalo cobre a janela deixada aberta em segundo plano.
+    // ponytail: polling simples; trocar por push (WS) se 60s virar gargalo.
+    useEffect(() => {
+        if (!auth.isAuthenticated) return;
+
+        const refresh = () => void handleRefreshCampaigns();
+        window.addEventListener("focus", refresh);
+        const timer = window.setInterval(refresh, 60_000);
+
+        return () => {
+            window.removeEventListener("focus", refresh);
+            window.clearInterval(timer);
+        };
+    }, [auth.isAuthenticated, handleRefreshCampaigns]);
     const { handleSignIn, handleDisconnectAccount } = useAuthActions(electron);
     const { handleToggleSetting, handleSaveSettings } = useSettingsActions(electron);
 
     const handleClose = () => {
         void electron.window.close();
+    };
+
+    const handleMinimize = () => {
+        void electron.window.minimize();
     };
 
     const handleConnectAccount = async (platform: RunnerPlatform) => {
@@ -80,6 +101,7 @@ export default function RunnerPage() {
                 electron={electron}
                 userName={auth.displayName ?? auth.email}
                 onClose={handleClose}
+                onMinimize={handleMinimize}
                 onOpenRunner={() => setView("runner")}
             />
         );
@@ -91,6 +113,7 @@ export default function RunnerPage() {
             creditBalance={creditBalance}
             isAuthenticated={auth.isAuthenticated}
             onClose={handleClose}
+            onMinimize={handleMinimize}
             onOpenApollo={() => setView("apollo")}
             onChangeTab={settingsStore.setActiveTab}
             overlay={
@@ -103,7 +126,7 @@ export default function RunnerPage() {
             <div key={activeTab} className="runner-panel runner-panel--animate">
                 {!isHydrated ? (
                     <div className="loading-state">
-                        <p className="loading-state__label">Initializing local runner...</p>
+                        <p className="loading-state__label">Iniciando o runner local...</p>
                     </div>
                 ) : !auth.isAuthenticated ? (
                     <AuthGate

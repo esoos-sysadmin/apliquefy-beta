@@ -1,6 +1,6 @@
 "use client";
 
-import { BriefcaseBusiness, Eye, Pencil, Trash2 } from "lucide-react";
+import { AlertTriangle, BarChart3, BriefcaseBusiness, Pencil, Trash2 } from "lucide-react";
 import { statusConfig } from "../../lib/constants/campaign-status";
 import { getCampaignLocation, getApplicationsCount } from "../../lib/helpers/campaign";
 import type { Campaign } from "../../types/campaign";
@@ -8,11 +8,13 @@ import type { Campaign } from "../../types/campaign";
 export function CampaignCard({
     campaign,
     onView,
+    onOpenDetails,
     onEdit,
     onDelete,
 }: {
     campaign: Campaign;
     onView: (campaign: Campaign) => void;
+    onOpenDetails: (campaign: Campaign) => void;
     onEdit: (campaign: Campaign) => void;
     onDelete: (campaign: Campaign) => void;
 }) {
@@ -22,7 +24,12 @@ export function CampaignCard({
     return (
         <article className="rounded-2xl border border-[#1C2333] bg-[#131B2A] px-4 py-5 shadow-[0_0_0_1px_rgba(17,24,39,0.15)] transition-colors hover:border-[#283349] sm:px-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex min-w-0 items-start gap-4">
+                <button
+                    type="button"
+                    onClick={() => onOpenDetails(campaign)}
+                    aria-label={`Ver parâmetros da campanha ${campaign.name}`}
+                    className="flex min-w-0 items-start gap-4 rounded-2xl text-left transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#35507E]"
+                >
                     <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border ${config.iconBoxClassName}`}>
                         <BriefcaseBusiness size={22} strokeWidth={1.8} />
                     </div>
@@ -34,6 +41,12 @@ export function CampaignCard({
                                 <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${config.dotClassName}`} />
                                 {config.label}
                             </span>
+                            {!campaign.resumeId && (
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-300">
+                                    <AlertTriangle size={12} />
+                                    Sem currículo
+                                </span>
+                            )}
                         </div>
 
                         <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-400">
@@ -46,7 +59,7 @@ export function CampaignCard({
                             <span>{applicationsCount} candidaturas</span>
                         </div>
                     </div>
-                </div>
+                </button>
 
                 <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                     <button
@@ -61,10 +74,10 @@ export function CampaignCard({
                     <button
                         type="button"
                         onClick={() => onView(campaign)}
-                        aria-label={`Visualizar campanha ${campaign.name}`}
+                        aria-label={`Ver métricas da campanha ${campaign.name}`}
                         className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-colors hover:border-[#263149] hover:bg-[#182233] hover:text-white"
                     >
-                        <Eye size={17} />
+                        <BarChart3 size={17} />
                     </button>
 
                     <button

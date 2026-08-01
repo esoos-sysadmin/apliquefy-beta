@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, FlaskConical, Megaphone, Plus, Search } from "lucide-react";
+import { FlaskConical, Megaphone, Plus, Search } from "lucide-react";
+import { SelectField } from "../../components/atoms/SelectField";
 import { ConfirmDialog } from "../../components/molecules/ConfirmDialog";
 import { CampaignCard } from "../../components/molecules/CampaignCard";
 import { CampaignCardSkeleton } from "../../components/molecules/CampaignCardSkeleton";
 import { CampaignDetailsModal } from "../../components/organisms/CampaignDetailsModal";
+import { CampaignParamsModal } from "../../components/organisms/CampaignParamsModal";
 import { CampaignEditModal } from "../../components/organisms/CampaignEditModal";
 import { AbTestCard } from "../../components/molecules/AbTestCard";
 import { AbTestDetailModal } from "../../components/organisms/AbTestDetailModal";
@@ -17,9 +19,9 @@ import type { AbTest } from "../../types/ab-test";
 
 const statusOptions = [
     { label: "Todos os status", value: "all" },
-    { label: "Running", value: "active" },
-    { label: "Paused", value: "paused" },
-    { label: "Inactive", value: "inactive" },
+    { label: "Em execução", value: "active" },
+    { label: "Pausadas", value: "paused" },
+    { label: "Inativas", value: "inactive" },
 ] as const;
 
 const platformOptions = [
@@ -36,6 +38,7 @@ export default function CampaignsPage() {
     const [selectedPlatform, setSelectedPlatform] = useState<(typeof platformOptions)[number]["value"]>("all");
     const [selectedStatus, setSelectedStatus] = useState<(typeof statusOptions)[number]["value"]>("all");
     const [activeCampaign, setActiveCampaign] = useState<Campaign | null>(null);
+    const [detailsCampaign, setDetailsCampaign] = useState<Campaign | null>(null);
     const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
     const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -50,7 +53,11 @@ export default function CampaignsPage() {
     const { abTests, isLoading: isLoadingAb, deleteAbTest } = useAbTests();
     const filteredAbTests = abTests.filter((t) => t.name.toLowerCase().includes(abSearch.toLowerCase().trim()));
 
+    // Variantes de teste A/B são Campaigns reais, mas pertencem à aba Testes A/B — não entram na aba Campanhas.
+    const abVariantIds = new Set(abTests.flatMap((t) => [t.variantA.id, t.variantB.id]));
+
     const filteredCampaigns = campaigns.filter((campaign) => {
+        if (abVariantIds.has(campaign.id)) return false;
         const matchesSearch = campaign.name.toLowerCase().includes(search.toLowerCase().trim());
         const matchesPlatform = selectedPlatform === "all" || campaign.platform === selectedPlatform;
         const matchesStatus = selectedStatus === "all" || campaign.status === selectedStatus;
@@ -108,11 +115,11 @@ export default function CampaignsPage() {
                 </div>
 
                 <Link
-                    href="/campanhas/nova"
+                    href={tab === "ab" ? "/campanhas/nova?ab=1" : "/campanhas/nova"}
                     className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(37,99,235,0.28)] transition hover:bg-[#1d4ed8]"
                 >
                     <Plus size={17} />
-                    Nova campanha
+                    {tab === "ab" ? "Novo teste A/B" : "Nova campanha"}
                 </Link>
             </div>
 
@@ -155,41 +162,25 @@ export default function CampaignsPage() {
                     </label>
 
                     <div className="grid gap-3 sm:grid-cols-2 lg:w-auto">
-                        <div className="relative">
-                            <select
-                                value={selectedPlatform}
-                                onChange={(event) => {
-                                    setSelectedPlatform(event.target.value as (typeof platformOptions)[number]["value"]);
-                                    setPage(1);
-                                }}
-                                className="h-12 w-full appearance-none rounded-xl border border-[#2A3445] bg-[#101826] px-4 pr-10 text-sm text-slate-200 outline-none transition focus:border-[#35507E]"
-                            >
-                                {platformOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500" />
-                        </div>
+                        <SelectField
+                            value={selectedPlatform}
+                            onChange={(value) => {
+                                setSelectedPlatform(value);
+                                setPage(1);
+                            }}
+                            options={platformOptions}
+                            clearable={false}
+                        />
 
-                        <div className="relative">
-                            <select
-                                value={selectedStatus}
-                                onChange={(event) => {
-                                    setSelectedStatus(event.target.value as (typeof statusOptions)[number]["value"]);
-                                    setPage(1);
-                                }}
-                                className="h-12 w-full appearance-none rounded-xl border border-[#2A3445] bg-[#101826] px-4 pr-10 text-sm text-slate-200 outline-none transition focus:border-[#35507E]"
-                            >
-                                {statusOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500" />
-                        </div>
+                        <SelectField
+                            value={selectedStatus}
+                            onChange={(value) => {
+                                setSelectedStatus(value);
+                                setPage(1);
+                            }}
+                            options={statusOptions}
+                            clearable={false}
+                        />
                     </div>
                 </div>
             </div>
@@ -216,6 +207,7 @@ export default function CampaignsPage() {
                             campaign={campaign}
                             onEdit={setEditingCampaign}
                             onView={setActiveCampaign}
+                            onOpenDetails={setDetailsCampaign}
                             onDelete={setCampaignToDelete}
                         />
                     ))
@@ -289,7 +281,7 @@ export default function CampaignsPage() {
                             Crie uma campanha e ative a opção <span className="text-slate-200">Teste A/B</span> para comparar dois currículos.
                         </p>
                         <Link
-                            href="/campanhas/nova"
+                            href="/campanhas/nova?ab=1"
                             className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
                         >
                             Criar teste A/B
@@ -324,6 +316,13 @@ export default function CampaignsPage() {
                 <CampaignDetailsModal
                     campaign={activeCampaign}
                     onClose={() => setActiveCampaign(null)}
+                />
+            ) : null}
+
+            {detailsCampaign ? (
+                <CampaignParamsModal
+                    campaign={detailsCampaign}
+                    onClose={() => setDetailsCampaign(null)}
                 />
             ) : null}
 

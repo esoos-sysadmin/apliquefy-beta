@@ -13,14 +13,14 @@ export function TabBar({ activeTab, onChange }: TabBarProps) {
                 onClick={() => onChange("campaigns")}
                 className={`tab-bar__button no-drag ${activeTab === "campaigns" ? "tab-bar__button--active" : ""}`}
             >
-                Campaigns
+                Campanhas
             </button>
             <button
                 type="button"
                 onClick={() => onChange("settings")}
                 className={`tab-bar__button no-drag ${activeTab === "settings" ? "tab-bar__button--active" : ""}`}
             >
-                Settings
+                Configurações
             </button>
             <button
                 type="button"

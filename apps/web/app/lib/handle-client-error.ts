@@ -24,7 +24,7 @@ export function handleClientError(error: unknown, fallbackMessage = "Erro inespe
                 toast.error("Recurso não encontrado.");
                 break;
             case 409:
-                toast.error("Registro duplicado.");
+                toast.error(error.message || "Registro duplicado.");
                 break;
             default:
                 toast.error(error.message || fallbackMessage);

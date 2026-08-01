@@ -24,10 +24,10 @@ export function ResumeWorkExperienceSection({
     return (
         <section style={sectionStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <h2 style={{ ...sectionTitle, marginBottom: 0 }}>Work Experience</h2>
+                <h2 style={{ ...sectionTitle, marginBottom: 0 }}>Experiência profissional</h2>
                 {isEditing && (
                     <button onClick={onAdd} style={addButtonStyle}>
-                        + Add Position
+                        + Adicionar experiência
                     </button>
                 )}
             </div>

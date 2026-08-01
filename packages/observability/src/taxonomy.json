@@ -1,0 +1,21 @@
+{
+  "$comment": "Fonte única da taxonomia de tags (SDD §4.1 / ADR-03). O lado TS importa este arquivo; o lado Python duplica as constantes em rpa_engine/observability.py e tests/test_observability.py falha se divergirem.",
+  "automationStep": [
+    "session_check",
+    "job_search",
+    "job_filters",
+    "job_iteration",
+    "apply_open",
+    "resume_attach",
+    "apply_agent",
+    "debit"
+  ],
+  "surface": [
+    "web",
+    "runner_api",
+    "runner_main",
+    "runner_renderer",
+    "runner_engine"
+  ],
+  "platform": ["linkedin", "infojobs"]
+}

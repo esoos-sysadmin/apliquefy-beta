@@ -8,9 +8,11 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 from ..config import Settings
-from ..engines.base import EngineContext
+from ..engines.base import BusinessError, CampaignMisconfiguredError, EngineContext
 from ..engines.infojobs.engine import InfojobsEngine
 from ..engines.linkedin.engine import LinkedinEngine
+from ..observability import capture_run_crash, run_scope, set_run_platform
+from ..util.resume import is_empty, normalize
 from ..web_api.client import WebApiClient
 from .session_loader import open_browser_context
 
@@ -88,6 +90,17 @@ class Orchestrator:
                 campaign = runtime["campaign"]
                 resume = runtime["resume"]
                 platform = campaign["platform"]
+                set_run_platform(platform)
+
+                # `campaigns.resume_id` é nullable e o onDelete é SetNull: apagar o
+                # currículo deixa a campanha viva apontando para nada. Sem esta guarda o
+                # run seguia, mandava PDF vazio e o agente respondia tudo como "não
+                # informado" — queimando crédito por candidatura inútil.
+                if is_empty(normalize(resume)):
+                    raise CampaignMisconfiguredError(
+                        "campanha sem currículo preenchido: selecione um currículo com "
+                        "experiências ou habilidades antes de ativar"
+                    )
 
                 engine_cls = LinkedinEngine if platform == "linkedin" else InfojobsEngine
                 async with open_browser_context(
@@ -120,12 +133,25 @@ class Orchestrator:
                 await handle.emit({"runId": run_id, "type": "finished", "total": 0})
             except asyncio.CancelledError:
                 raise
+            except BusinessError as exc:
+                # ADR-04: falha esperada e já modelada (sessão morta, campanha sem
+                # currículo). O desktop reage ao evento `paused`; o Sentry não vê.
+                logger.info("run %s pausado: %s", run_id, exc)
+                handle.state = "stopped"
+                await handle.emit({"runId": run_id, "type": "paused", "reason": str(exc)})
             except Exception as exc:  # noqa: BLE001
                 logger.exception("run %s crashed", run_id)
+                capture_run_crash(exc)
                 handle.state = "stopped"
                 await handle.emit({"runId": run_id, "type": "paused", "reason": str(exc)})
             finally:
                 await client.close()
 
-        handle.task = loop.create_task(runner())
+        async def isolated_runner() -> None:
+            # Isola tags/contexto por run: dois runs concorrentes são tasks do
+            # mesmo processo e sem isso a tag `platform` de um vazaria no outro.
+            with run_scope(run_id, campaign_id):
+                await runner()
+
+        handle.task = loop.create_task(isolated_runner())
         return handle

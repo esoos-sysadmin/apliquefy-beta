@@ -21,9 +21,8 @@ def build_app(settings: Settings) -> FastAPI:
     def health(_=Depends(require_auth)) -> dict[str, str]:
         return {"status": "ok"}
 
-    from .api import resumes, runs
+    from .api import runs
 
-    app.include_router(resumes.router, dependencies=[Depends(require_auth)])
     app.include_router(runs.router, dependencies=[Depends(require_auth)])
     # WebSocket de eventos: autentica internamente; sem a dependency HTTP.
     app.include_router(runs.events_router)

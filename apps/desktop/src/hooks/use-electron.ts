@@ -21,6 +21,7 @@ const fallbackSettings: RunnerSettings = {
     startWithWindows: true,
     desktopNotifications: false,
     alwaysOnTop: false,
+    errorReports: true,
 };
 
 const fallbackAuth: RunnerAuthState = {
@@ -45,6 +46,7 @@ const fallbackEngineStatus: RunnerEngineStatus = {
 const fallbackElectronAPI: ElectronAPI = {
     window: {
         close: async () => undefined,
+        minimize: async () => undefined,
     },
     assistant: {
         transcribe: async () => "",

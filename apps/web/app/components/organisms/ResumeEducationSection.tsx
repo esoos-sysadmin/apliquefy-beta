@@ -24,10 +24,10 @@ export function ResumeEducationSection({
     return (
         <section style={sectionStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <h2 style={{ ...sectionTitle, marginBottom: 0 }}>Education</h2>
+                <h2 style={{ ...sectionTitle, marginBottom: 0 }}>Formação acadêmica</h2>
                 {isEditing && (
                     <button onClick={onAdd} style={addButtonStyle}>
-                        + Add Degree
+                        + Adicionar formação
                     </button>
                 )}
             </div>

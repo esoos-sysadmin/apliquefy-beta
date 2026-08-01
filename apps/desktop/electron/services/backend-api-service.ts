@@ -14,16 +14,20 @@ function getApiUrl(path: string) {
     return `${getDesktopWebUrl()}${path}`;
 }
 
-export async function apiRequest<T>(path: string, options: RequestInit = {}) {
-    const token = getAuthToken();
-    const response = await fetch(getApiUrl(path), {
+/** Request autenticado cru — para respostas que não são JSON (ex.: o PDF do currículo). */
+export async function apiFetch(path: string, options: RequestInit = {}) {
+    return fetch(getApiUrl(path), {
         ...options,
         headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
             ...options.headers,
         },
     });
+}
+
+export async function apiRequest<T>(path: string, options: RequestInit = {}) {
+    const response = await apiFetch(path, options);
 
     const payload = await response.json().catch(() => null);
 

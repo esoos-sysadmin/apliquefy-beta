@@ -265,16 +265,147 @@
     box-shadow: 0 0 0 1px rgba(75, 139, 245, 0.4) inset;
 }
 
-/* Mesma pílula do .apollo__mode, mas com rótulo em texto: o tom da voz não cabe num ícone. */
-.apollo__voice {
-    height: 34px;
-    padding: 0 13px;
+/* ---------- Seletor de voz (canto superior esquerdo) ---------- */
+
+.voicesel {
+    position: absolute;
+    top: 46px;
+    left: 18px;
+    z-index: 4; /* acima do orbe, senão o menu abre por baixo dele */
+}
+
+.voicesel__trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px 6px 11px;
     border-radius: 999px;
+    border: 1px solid rgba(139, 148, 158, 0.22);
+    background: rgba(255, 255, 255, 0.04);
     color: var(--text-secondary, #8b949e);
     font-size: 12px;
     letter-spacing: 0.02em;
     cursor: pointer;
-    transition: all 150ms ease;
+    transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.voicesel__trigger:hover:not(:disabled),
+.voicesel__trigger--open {
+    color: #fff;
+    border-color: rgba(75, 139, 245, 0.5);
+    background: rgba(75, 139, 245, 0.12);
+}
+
+.voicesel__trigger:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.voicesel__chev {
+    transition: transform 150ms ease;
+    opacity: 0.7;
+}
+
+.voicesel__trigger--open .voicesel__chev {
+    transform: rotate(180deg);
+}
+
+/* Bolinha da cor da voz: dá pra reconhecer a persona sem ler o rótulo. */
+.voicesel__dot {
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--voice-color, #8b949e);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--voice-color, #8b949e) 22%, transparent);
+}
+
+.voicesel__dot[data-voice="apollo"] {
+    --voice-color: #4b8bf5;
+}
+
+.voicesel__dot[data-voice="nemesis"] {
+    --voice-color: #f5564b;
+}
+
+.voicesel__dot[data-voice="hestia"] {
+    --voice-color: #f5a34b;
+}
+
+.voicesel__menu {
+    position: absolute;
+    top: calc(100% + 7px);
+    left: 0;
+    min-width: 232px;
+    padding: 5px;
+    border-radius: 13px;
+    border: 1px solid rgba(139, 148, 158, 0.2);
+    background: rgba(18, 22, 30, 0.92);
+    backdrop-filter: blur(18px);
+    box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+    animation: voicesel-in 140ms ease-out;
+}
+
+@keyframes voicesel-in {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .voicesel__menu {
+        animation: none;
+    }
+}
+
+.voicesel__opt {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 9px;
+    border-radius: 9px;
+    color: var(--text-secondary, #8b949e);
+    text-align: left;
+    cursor: pointer;
+    transition: background 120ms ease, color 120ms ease;
+}
+
+.voicesel__opt:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.voicesel__opt--on {
+    color: #fff;
+    background: rgba(75, 139, 245, 0.1);
+}
+
+.voicesel__opttext {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.voicesel__optlabel {
+    font-size: 12.5px;
+}
+
+.voicesel__opthint {
+    font-size: 10.5px;
+    line-height: 1.35;
+    color: var(--text-secondary, #8b949e);
+    opacity: 0.75;
+}
+
+.voicesel__check {
+    flex-shrink: 0;
+    color: #4b8bf5;
 }
 
 .apollo__mic {
@@ -368,13 +499,6 @@
 }
 
 /* -------------------- botão de volta no runner clássico -------------------- */
-
-.runner-shell__top--row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
 
 .apollo-return {
     display: inline-flex;

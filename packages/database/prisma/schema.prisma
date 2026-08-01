@@ -321,6 +321,7 @@ model Resume {
   education    Json? // jsonb
   experience   Json? // jsonb
   skills       Json? // jsonb
+  idioms       Json? // jsonb — [{ language, level }]; separado de skills porque skills é string[]
   isDefault    Boolean  @default(false) @map("is_default")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp
 
@@ -333,7 +334,7 @@ model Resume {
 
 model Campaign {
   id         String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  resumeId   String          @map("resume_id") @db.Uuid
+  resumeId   String?         @map("resume_id") @db.Uuid
   userId     String          @map("user_id")
   name       String          @db.VarChar
   platform   Platform
@@ -342,8 +343,10 @@ model Campaign {
   createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamp
 
   // Relacionamentos
-  resume Resume @relation(fields: [resumeId], references: [id])
-  user   User   @relation(fields: [userId], references: [id])
+  // SetNull: excluir um currículo não apaga a campanha nem o histórico dela;
+  // a campanha fica órfã e é barrada na ativação até apontar para outro currículo.
+  resume Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id])
 
   // Configurações específicas (1:1 Opcional)
   linkedinConfig CampaignLinkedin?
@@ -441,7 +444,7 @@ model JobApplication {
   platform    Platform?
   companyName String?    @map("company_name") @db.VarChar
   jobTitle    String?    @map("job_title") @db.VarChar
-  jobUrl      String?    @unique @map("job_url") @db.VarChar
+  jobUrl      String?    @map("job_url") @db.VarChar
   status      AppStatus? @default(pending)
   errorLog    String?    @map("error_log") // text
   appliedAt   DateTime?  @map("applied_at") @db.Timestamp
@@ -455,6 +458,9 @@ model JobApplication {
   campaign Campaign? @relation(fields: [campaignId], references: [id])
   user     User?     @relation(fields: [userId], references: [id])
 
+  // Uma candidatura por vaga POR USUÁRIO. Era @unique global no jobUrl, o que
+  // impedia dois usuários diferentes de se candidatarem à mesma vaga.
+  @@unique([userId, jobUrl])
   // Índices
   @@index([userId, status])
   @@index([campaignId])

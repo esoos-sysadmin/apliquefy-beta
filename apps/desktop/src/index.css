@@ -16,7 +16,7 @@ body,
 body {
   margin: 0;
   padding: 0;
-  background: transparent;
+  background: #0d1117;
   color: var(--text-primary);
   font-family: Inter, "SF Pro Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -80,6 +80,13 @@ a {
   flex: 0 0 380px;
 }
 
+/* sem prévia (settings/integração) a coluna centraliza e não estica pela janela toda */
+.runner-body:not(.runner-body--split) .runner-col {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
 .runner-preview {
   display: flex;
   min-width: 0;
@@ -92,10 +99,6 @@ a {
   min-height: 0;
   flex: 1;
   flex-direction: column;
-}
-
-.runner-shell__top {
-  padding: 0 20px;
 }
 
 .runner-main {
@@ -220,15 +223,29 @@ a {
 .titlebar__inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 16px;
 }
 
-.titlebar__label {
+/* brand e actions com flex igual nas laterais → o nav fica centralizado de fato */
+.titlebar__brand {
+  flex: 1;
   font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--accent-secondary);
+}
+
+.titlebar__nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.titlebar__actions {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .titlebar__close {
@@ -252,10 +269,8 @@ a {
 }
 
 .tab-bar {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
   gap: 6px;
-  padding-bottom: 10px;
 }
 
 .tab-bar__button {
@@ -263,16 +278,12 @@ a {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  min-width: 0;
-  padding: 8px 6px;
+  padding: 6px 14px;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
   transition: background 150ms ease, color 150ms ease, transform 150ms ease;
-  /* coluna de ~77px: label sem ícone cabe; reticências evitam vazar da caixa */
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .tab-bar__button:hover {
@@ -414,6 +425,27 @@ a {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+}
+
+.platform-tag {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 8px;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.platform-tag--linkedin {
+  background: rgba(10, 102, 194, 0.12);
+  color: #4a9fe8;
+}
+
+.platform-tag--infojobs {
+  background: rgba(0, 153, 153, 0.12);
+  color: #2bc4c4;
 }
 
 .campaign-card__title {

@@ -9,6 +9,6 @@ Requires-Dist: uvicorn[standard]>=0.32
 Requires-Dist: playwright>=1.49
 Requires-Dist: pydantic>=2.9
 Requires-Dist: httpx>=0.27
-Requires-Dist: reportlab>=4.2
 Requires-Dist: websockets>=13
 Requires-Dist: browser-use<0.14,>=0.13
+Requires-Dist: sentry-sdk>=2.20

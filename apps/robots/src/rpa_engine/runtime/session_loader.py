@@ -11,10 +11,11 @@ InfoJobs detectam o controle automatizado e deslogam.
 """
 from __future__ import annotations
 
+import json
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import AsyncIterator
+from typing import Any, AsyncIterator
 
 from browser_use import BrowserProfile, BrowserSession
 from playwright.async_api import Page, async_playwright
@@ -29,6 +30,32 @@ class BrowserBridge:
     page: Page  # Playwright sobre CDP; passos mecânicos
 
 
+def _sanitize_storage_state(path: Path) -> None:
+    """Remove `partitionKey` dos cookies, reescrevendo o próprio arquivo.
+
+    O Playwright grava `partitionKey` como string (top-level site) em cookies
+    particionados (ex.: __cf_bm do Cloudflare). O CDP, por onde o browser-use
+    aplica os cookies, exige um objeto {topLevelSite, hasCrossSiteAncestor} e
+    aborta o carregamento INTEIRO do storage_state num só cookie inválido —
+    derrubando também o li_at e invalidando a sessão. Os cookies de auth não são
+    particionados, então descartar o campo é seguro.
+
+    A limpeza é no arquivo, e não num dict passado ao BrowserProfile: o tipo de
+    `storage_state` aceita dict, mas o StorageStateWatchdog faz `str(...)` no
+    valor e usa como caminho — com dict, o load e o save quebram ("File name too
+    long") e a sessão vai pro brejo. Reescrever no lugar também preserva o
+    write-back do browser-use, que mantém o li_at fresco pro heartbeat.
+    """
+    data = json.loads(path.read_text(encoding="utf-8"))
+    cookies = data.get("cookies", [])
+    if not any("partitionKey" in cookie for cookie in cookies):
+        return
+
+    for cookie in cookies:
+        cookie.pop("partitionKey", None)
+    path.write_text(json.dumps(data), encoding="utf-8")
+
+
 @asynccontextmanager
 async def open_browser_context(
     storage_state_path: str,
@@ -40,6 +67,7 @@ async def open_browser_context(
     path = Path(storage_state_path)
     if not path.exists():
         raise FileNotFoundError(f"storage_state not found: {path}")
+    _sanitize_storage_state(path)
 
     profile = BrowserProfile(
         channel=browser_channel or None,

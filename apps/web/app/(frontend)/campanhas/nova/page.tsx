@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BriefcaseBusiness, FlaskConical, Info, Rocket } from "lucide-react";
 import { useCampaigns } from "../../../hooks/use-campaigns";
 import { useAbTests } from "../../../hooks/use-ab-tests";
@@ -43,13 +43,22 @@ const defaultInfojobsValues: InfojobsFormValues = {
 };
 
 export default function NewCampaignPage() {
+    return (
+        <Suspense fallback={null}>
+            <NewCampaignForm />
+        </Suspense>
+    );
+}
+
+function NewCampaignForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { resumes, isLoading: isLoadingResumes } = useResumes();
     const { createLinkedinCampaign, createInfojobsCampaign } = useCampaigns();
     const { createAbTest } = useAbTests();
     const [platform, setPlatform] = useState<CampaignPlatform>("linkedin");
     const [resumeId, setResumeId] = useState("");
-    const [abTest, setAbTest] = useState(false);
+    const [abTest, setAbTest] = useState(() => searchParams.get("ab") === "1");
     const [resumeBId, setResumeBId] = useState("");
     const [hypothesis, setHypothesis] = useState("");
     const [campaignName, setCampaignName] = useState("");

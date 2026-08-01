@@ -53,10 +53,11 @@ class WebApiClient:
         company_name: str | None,
         job_title: str | None,
         job_url: str | None,
-    ) -> dict[str, Any]:
-        body = await self._post(
+    ) -> dict[str, Any] | None:
+        """None = 409, o usuário já se candidatou a esta vaga (a vaga deve ser pulada)."""
+        res = await self._client.post(
             "/api/job-applications",
-            {
+            json={
                 "campaignId": campaign_id,
                 "platform": platform,
                 "companyName": company_name,
@@ -64,7 +65,10 @@ class WebApiClient:
                 "jobUrl": job_url,
             },
         )
-        return body["data"]
+        if res.status_code == 409:
+            return None
+        res.raise_for_status()
+        return res.json()["data"]
 
     async def update_application(
         self,

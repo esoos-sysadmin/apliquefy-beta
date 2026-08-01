@@ -10,7 +10,8 @@ from typing import Any
 
 from playwright.async_api import Page, TimeoutError as PlaywrightTimeout
 
-from ..base import BaseEngine
+from ..base import BaseEngine, SelectorNotFoundError
+from ...observability import MIN_JOBS_FOR_SELECTOR_ALARM, breadcrumb, capture_selector_break
 from ...runtime.apply_agent import execute_apply
 from ...runtime.daily_limit import remaining_for_campaign
 from ...runtime.state_machine import Outcome
@@ -37,7 +38,13 @@ class InfojobsEngine(BaseEngine):
     async def _fill_search(self, cfg: dict[str, Any]) -> None:
         page: Page = self.ctx.page
         terms = cfg.get("searchTerms") or ""
-        await page.fill(S.SEARCH_KEYWORD_INPUT, terms)
+        try:
+            await page.fill(S.SEARCH_KEYWORD_INPUT, terms)
+        except PlaywrightTimeout as exc:
+            # Sobe até o orchestrator, que captura com o fingerprint do seletor.
+            raise SelectorNotFoundError(
+                "SEARCH_KEYWORD_INPUT", step="job_search", platform="infojobs"
+            ) from exc
 
     async def _select_location_via_dropdown(self, cfg: dict[str, Any]) -> None:
         """R07: localização SEMPRE via dropdown, nunca texto livre."""
@@ -57,12 +64,24 @@ class InfojobsEngine(BaseEngine):
             await option.wait_for(state="visible", timeout=5_000)
             await option.click()
         except PlaywrightTimeout as exc:
-            raise RuntimeError(f"Infojobs dropdown option for '{label}' not found (R07)") from exc
+            raise SelectorNotFoundError(
+                "WHERE_DROPDOWN_OPTION",
+                step="job_search",
+                platform="infojobs",
+                detail=f"opção '{label}' não apareceu no dropdown (R07)",
+            ) from exc
 
     async def _submit_search(self) -> None:
         page: Page = self.ctx.page
         await page.click(S.SEARCH_SUBMIT_BTN)
-        await page.wait_for_selector(S.JOB_CARD, timeout=15_000)
+        try:
+            await page.wait_for_selector(S.JOB_CARD, timeout=15_000)
+        except PlaywrightTimeout as exc:
+            # Diferente do LinkedIn, aqui a lista vazia já aborta o run — então
+            # basta tipar o erro; a captura acontece uma vez no orchestrator.
+            raise SelectorNotFoundError(
+                "JOB_CARD", step="job_search", platform="infojobs"
+            ) from exc
 
     async def _apply_listing_filters(self, cfg: dict[str, Any]) -> None:
         # The Infojobs results page uses a sidebar with checkboxes.
@@ -76,6 +95,7 @@ class InfojobsEngine(BaseEngine):
         cards = page.locator(S.JOB_CARD)
         count = await cards.count()
         logger.info("found %s Infojobs jobs", count)
+        timeouts = 0
 
         for i in range(count):
             remaining = await remaining_for_campaign(self.ctx.client, self.ctx.campaign["id"])
@@ -86,6 +106,8 @@ class InfojobsEngine(BaseEngine):
                     "reason": "dailyLimit reached",
                 })
                 return
+
+            breadcrumb("job_iteration", "abrindo vaga", index=i)
 
             card = cards.nth(i)
             try:
@@ -120,4 +142,9 @@ class InfojobsEngine(BaseEngine):
                 except PlaywrightTimeout:
                     pass
             except PlaywrightTimeout:
+                timeouts += 1
                 continue
+
+        # SDD §6.4: mesmo agregado do LinkedIn — 1 evento por run, não por vaga.
+        if timeouts and timeouts == count and timeouts >= MIN_JOBS_FOR_SELECTOR_ALARM:
+            capture_selector_break("apply_open", "APPLY_BUTTON", "infojobs", total_jobs=count)

@@ -11,6 +11,8 @@ export type RunnerCampaign = {
     applications: number;
     dailyLimit: number;
     resumeTitle: string;
+    // false = currículo foi excluído na web; a campanha não pode rodar assim
+    hasResume: boolean;
     lastUpdated: string;
     notes: string;
 };
@@ -53,6 +55,10 @@ export type RunnerSettings = {
     startWithWindows: boolean;
     desktopNotifications: boolean;
     alwaysOnTop: boolean;
+    // Consentimento do error tracking (SDD §7.7). Vale para os três processos:
+    // main, renderer e o engine Python. Só tem efeito no próximo boot, porque o
+    // `enabled` é lido no init dos SDKs e o engine recebe o DSN por env ao subir.
+    errorReports: boolean;
 };
 
 export type RunnerAuthState = {
@@ -142,12 +148,12 @@ export type AssistantMessage = {
     content: string;
 };
 
-// A voz do Apollo e a personalidade dele são a mesma escolha: "jarvis" é o padrão
-// (formal e seco), "sukuna" é o ácido. Trocar aqui troca o reference_id da fish.audio
-// e o system prompt de uma vez só.
-export type PersonaId = "jarvis" | "sukuna";
+// Voz, nome e personalidade são a mesma escolha: "apollo" é o padrão (formal e seco),
+// "nemesis" é a ácida, "hestia" é a calorosa. Trocar aqui troca o reference_id da
+// fish.audio, o nome no orbe e o system prompt de uma vez só.
+export type PersonaId = "apollo" | "nemesis" | "hestia";
 
-export const DEFAULT_PERSONA: PersonaId = "jarvis";
+export const DEFAULT_PERSONA: PersonaId = "apollo";
 
 // Uma ação que o Apollo executou de fato no app (para o feedback visual da UI).
 export type AssistantAction = {
@@ -164,6 +170,7 @@ export type AssistantChatResult = {
 export type ElectronAPI = {
     window: {
         close: () => Promise<void>;
+        minimize: () => Promise<void>;
     };
     assistant: {
         // Recebe o áudio como base64 (webm/opus) e devolve o texto transcrito (Whisper).

@@ -27,7 +27,7 @@ export function CampaignList({
     return (
         <section className="campaign-list">
             <div className="section-header">
-                <h2 className="section-header__title">Active Tasks</h2>
+                <h2 className="section-header__title">Tarefas ativas</h2>
                 <button
                     type="button"
                     onClick={onRefresh}
@@ -60,9 +60,9 @@ export function CampaignList({
                 </div>
             ) : (
                 <div className="empty-state">
-                    <p className="empty-state__title">No active tasks right now</p>
+                    <p className="empty-state__title">Nenhuma tarefa ativa no momento</p>
                     <p className="empty-state__description">
-                        New local campaigns will appear here as soon as the runner receives them.
+                        Novas campanhas locais aparecem aqui assim que o runner recebê-las.
                     </p>
                 </div>
             )}

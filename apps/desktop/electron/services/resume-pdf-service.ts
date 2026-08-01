@@ -1,17 +1,8 @@
-import { apiRequest } from "./backend-api-service";
-import { rpaApiRequest } from "./rpa-process-service";
-
-type ResumeApiPayload = {
-    success: true;
-    data: {
-        id: string;
-        title: string;
-        personalInfo: unknown;
-        education: unknown;
-        experience: unknown;
-        skills: unknown;
-    };
-};
+import { createHash } from "crypto";
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
+import { app } from "electron";
+import { apiFetch } from "./backend-api-service";
 
 type RenderResumeResponse = {
     path: string;
@@ -20,18 +11,29 @@ type RenderResumeResponse = {
 };
 
 /**
- * Fetches a Resume from the web backend and asks the RPA engine to
- * render it as PDF (cached on disk by content hash).
+ * Baixa o PDF do currículo da API web e grava em `userData/resume-pdfs`.
+ *
+ * O engine Python tinha um segundo renderizador (reportlab) que lia nomes de campo
+ * que o banco nunca gravou — o anexo saía sem empresa, sem cargo e sem formação.
+ * Agora existe um gerador só (`apps/web/app/lib/resume-pdf.ts`), então o arquivo
+ * anexado é idêntico ao que o usuário baixa no painel.
  */
 export async function renderResumePdf(resumeId: string, styleId: string = "default"): Promise<RenderResumeResponse> {
-    const resume = await apiRequest<ResumeApiPayload>(`/api/resumes/${resumeId}`);
+    void styleId; // reservado para múltiplos templates
 
-    return rpaApiRequest<RenderResumeResponse>("/resumes/render", {
-        method: "POST",
-        body: JSON.stringify({
-            resumeId,
-            styleId,
-            payload: resume.data,
-        }),
-    });
+    const response = await apiFetch(`/api/resumes/${resumeId}/pdf`, { headers: { Accept: "application/pdf" } });
+    if (!response.ok) {
+        throw new Error(`Falha ao gerar o PDF do currículo (HTTP ${response.status})`);
+    }
+
+    const bytes = Buffer.from(await response.arrayBuffer());
+    const dir = path.join(app.getPath("userData"), "resume-pdfs");
+    await mkdir(dir, { recursive: true });
+
+    // Nome por conteúdo: currículo editado gera arquivo novo, sem invalidação manual.
+    const hash = createHash("sha256").update(bytes).digest("hex").slice(0, 16);
+    const target = path.join(dir, `${resumeId}-${hash}.pdf`);
+    await writeFile(target, bytes);
+
+    return { path: target, hash, cached: false };
 }

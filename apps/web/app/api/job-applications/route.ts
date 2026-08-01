@@ -14,7 +14,7 @@ export async function POST(request: Request) {
         const result = await jobApplicationService.createApplication(userId, body)
 
         if (!result.success) {
-            const status = result.code === "FORBIDDEN" ? 403 : 400
+            const status = result.code === "FORBIDDEN" ? 403 : result.code === "DUPLICATE" ? 409 : 400
             return NextResponse.json(
                 { message: result.message ?? "Dados inválidos", errorDesc: result.errorDesc },
                 { status }

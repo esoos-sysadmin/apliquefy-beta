@@ -21,9 +21,9 @@ export function ConnectAccounts({ sessions, capturingPlatform, onConnect }: Conn
             </div>
 
             <div className="settings-empty__content">
-                <h2 className="settings-empty__title">Connect Your Accounts</h2>
+                <h2 className="settings-empty__title">Conecte suas contas</h2>
                 <p className="settings-empty__description">
-                    Login to your platforms to start the automation.
+                    Faça login nas suas plataformas para iniciar a automação.
                 </p>
             </div>
 
@@ -50,7 +50,7 @@ export function ConnectAccounts({ sessions, capturingPlatform, onConnect }: Conn
                 rel="noreferrer"
                 className="settings-empty__support no-drag"
             >
-                Help &amp; Support <ExternalLink size={12} />
+                Ajuda e suporte <ExternalLink size={12} />
             </a>
         </section>
     );

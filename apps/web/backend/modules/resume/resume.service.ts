@@ -30,6 +30,7 @@ export class ResumeService {
                     education: validation.data.education,
                     experience: validation.data.experience,
                     skills: validation.data.skills,
+                    idioms: validation.data.idioms,
                     isDefault: validation.data.isDefault ?? false,
                 },
     
@@ -97,20 +98,27 @@ export class ResumeService {
     
     async deleteMyResume(userId: string, documentId: string): Promise<CreateResumeResponse> {
         try {
-    
-            const resume = await prisma.resume.deleteMany({
-                where: {
-                    userId: userId, id: documentId
-                }
-            })
-    
+
+            // A FK é ON DELETE SET NULL, mas zerar o resumeId não muda o status: sem
+            // isto a campanha continuaria "active" apontando para o vazio e o runner
+            // tentaria rodar sem currículo. Desativa antes, no mesmo commit do delete.
+            const [, resume] = await prisma.$transaction([
+                prisma.campaign.updateMany({
+                    where: { resumeId: documentId, userId, status: { not: "inactive" } },
+                    data: { status: "inactive" },
+                }),
+                prisma.resume.deleteMany({
+                    where: { userId: userId, id: documentId },
+                }),
+            ])
+
             if (!resume.count) {
                 return {
                     success: false,
                     errorDesc: "Erro: Não foi possível deletar esse CV no banco de dados"
                 }
             }
-    
+
             return {
                 success: true,
                 message: "Cv deletado com sucesso"
@@ -160,6 +168,7 @@ export class ResumeService {
                 education: validation.data.education,
                 experience: validation.data.experience,
                 skills: validation.data.skills,
+                idioms: validation.data.idioms,
             }
         });
 

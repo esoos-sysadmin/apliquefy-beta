@@ -6,8 +6,8 @@ type ResumeData = z.infer<typeof resumeSchema>;
 
 export type CreateResumeError = {
     success: false;
-    errorDesc?: z.ZodFormattedError<ResumeData> | string; 
-    message?: string; 
+    errorDesc?: z.ZodFormattedError<ResumeData> | string;
+    message?: string;
 }
 
 export type CreateResumeSucess = {
