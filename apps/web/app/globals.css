@@ -3,15 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --background: #0e1119;
+  --foreground: #ededed;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Canvas do app: base grafite (menos azul que o #0B111A antigo) + dois halos
+     quentes/violeta de baixa opacidade que dão profundidade sem brigar com os
+     cards navy (#111827) nem com o accent azul dos botões. */
+  --app-canvas:
+    radial-gradient(1100px 700px at 85% -5%, rgba(244, 164, 96, 0.07), transparent 60%),
+    radial-gradient(900px 700px at 0% 100%, rgba(129, 110, 255, 0.07), transparent 60%),
+    linear-gradient(165deg, #141824 0%, #0e1119 45%, #0a0c12 100%);
 }
 
 html,
@@ -22,7 +23,10 @@ body {
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background-color: var(--background);
+  /* fixed: o degradê é do viewport, não do documento — não repete ao rolar. */
+  background-image: var(--app-canvas);
+  background-attachment: fixed;
 }
 
 * {

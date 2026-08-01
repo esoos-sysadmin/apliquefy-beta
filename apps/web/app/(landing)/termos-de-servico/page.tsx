@@ -5,7 +5,7 @@ export const metadata = {
 
 export default function TermosDeServicoPage() {
     return (
-        <div className="min-h-screen bg-[#0B111A] text-gray-300 py-16 px-4">
+        <div className="min-h-screen text-gray-300 py-16 px-4">
             <article className="max-w-3xl mx-auto space-y-8">
                 <h1 className="text-3xl font-bold text-white">Termos de Serviço</h1>
                 <p className="text-sm text-gray-500">Última atualização: 13 de abril de 2026</p>

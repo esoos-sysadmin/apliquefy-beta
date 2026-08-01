@@ -3,7 +3,7 @@ import Link from "next/link"
 
 export default function ObrigadoPage() {
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-[#0B111A] px-4">
+        <div className="flex min-h-screen flex-col items-center justify-center px-4">
             <div className="flex w-full max-w-lg flex-col items-center gap-6 text-center">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10">
                     <CheckCircle2 className="h-10 w-10 text-emerald-400" />
