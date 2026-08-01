@@ -5,6 +5,7 @@
   "main": "dist-electron/electron/main.js",
   "scripts": {
     "build:deps": "tsc -p ../../packages/observability",
+    "check-types": "npm run build:deps && tsc --noEmit",
     "build": "npm run build:deps && tsc && vite build",
     "build:robots": "cd ../robots && uv run pyinstaller --clean --distpath ../desktop/build/robots-dist build.spec",
     "sentry:sourcemaps": "node scripts/sentry-sourcemaps.mjs",

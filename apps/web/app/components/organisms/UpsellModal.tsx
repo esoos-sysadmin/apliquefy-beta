@@ -1,7 +1,7 @@
 "use client"
 
 import { X, Zap, Package } from "lucide-react"
-import { PLANS, formatBRL, getNextPlan, isMaxPlan, getPlanBySlug } from "../../lib/constants/plans"
+import { formatBRL, getNextPlan, isMaxPlan, getPlanBySlug } from "../../lib/constants/plans"
 import { useSubscription } from "../../hooks/use-subscription"
 
 interface UpsellModalProps {

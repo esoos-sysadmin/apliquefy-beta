@@ -5,7 +5,6 @@ import { createApiClient } from "../lib/api-client"
 import { getClerkToken } from "../lib/auth/client/clerk"
 import { createCheckoutSession } from "../client/stripe.service"
 import { handleClientError } from "../lib/handle-client-error"
-import { toast } from "../lib/toast"
 import { useCredits } from "./use-credits"
 
 export function useSubscription() {
