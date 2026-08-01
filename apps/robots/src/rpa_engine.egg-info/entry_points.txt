@@ -1,2 +1,0 @@
-[console_scripts]
-rpa-engine = rpa_engine.__main__:main
