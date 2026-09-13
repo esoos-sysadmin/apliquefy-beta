@@ -12,7 +12,8 @@ from playwright.async_api import Page, TimeoutError as PlaywrightTimeout
 
 from ..base import BaseEngine, SelectorNotFoundError
 from ...observability import MIN_JOBS_FOR_SELECTOR_ALARM, breadcrumb, capture_selector_break
-from ...runtime.apply_agent import execute_apply
+from ...runtime import fit_gate
+from ...runtime.apply_agent import execute_apply, record_skip
 from ...runtime.daily_limit import remaining_for_campaign
 from ...runtime.state_machine import Outcome
 from . import selectors as S
@@ -115,22 +116,41 @@ class InfojobsEngine(BaseEngine):
                 await card.click()
                 await page.wait_for_selector(S.APPLY_BUTTON, timeout=6_000)
 
-                title = await card.locator(S.JOB_CARD_LINK).first.text_content()
+                raw_title = await card.locator(S.JOB_CARD_LINK).first.text_content()
+                title = (raw_title or "").strip() or None
                 job_url = page.url
                 await self.ctx.emit({
                     "runId": self.ctx.run_id,
                     "type": "job_found",
                     "jobUrl": job_url,
-                    "jobTitle": (title or "").strip() or None,
+                    "jobTitle": title,
                     "companyName": None,
                 })
+
+                # Gate ANTES de abrir o formulário: vaga reprovada não vira
+                # JobApplication e não debita crédito.
+                verdict = await fit_gate.passes(
+                    self.ctx, platform="infojobs", job_title=title
+                )
+                if fit_gate.should_skip(verdict, self.ctx.settings.fit_min_score):
+                    reason = fit_gate.skip_reason(verdict)
+                    logger.info("fit: descartando vaga %s (%s)", title, reason)
+                    await record_skip(
+                        self.ctx,
+                        platform="infojobs",
+                        job_url=job_url,
+                        job_title=title,
+                        company_name=None,
+                        reason=reason,
+                    )
+                    continue
 
                 await page.click(S.APPLY_BUTTON)
                 outcome = await execute_apply(
                     self.ctx,
                     platform="infojobs",
                     job_url=job_url,
-                    job_title=(title or "").strip() or None,
+                    job_title=title,
                     company_name=None,
                 )
                 if outcome is Outcome.PAUSE_SESSION_INVALID:

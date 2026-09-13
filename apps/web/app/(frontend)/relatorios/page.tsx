@@ -21,6 +21,13 @@ const statusClass: Record<ApplicationStatus, string> = {
     skipped: "bg-slate-500/10 text-slate-300 border-slate-500/20",
 };
 
+// `FIT:` / `ELEGIBILIDADE:` são marcadores que o engine grava para o backend agrupar
+// em buckets. Servem ao gráfico, não ao leitor — na linha do histórico vai só o texto.
+function formatReason(value: string | null) {
+    if (!value?.trim()) return null;
+    return value.replace(/^(FIT|ELEGIBILIDADE):\s*/, "").trim() || null;
+}
+
 function formatDate(value: string | null) {
     if (!value) return "—";
     return new Date(value).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
@@ -153,16 +160,16 @@ export default function ReportsPage() {
                         </div>
 
                         <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-5">
-                            <h2 className="text-lg font-semibold text-white">Motivos de falha</h2>
-                            <p className="mt-1 text-sm text-slate-400">O que impediu candidaturas de serem enviadas.</p>
+                            <h2 className="text-lg font-semibold text-white">Por que não foram enviadas</h2>
+                            <p className="mt-1 text-sm text-slate-400">Vagas descartadas antes de candidatar e candidaturas que falharam.</p>
                             <div className="mt-4 space-y-2.5">
                                 {failureReasons.length === 0 ? (
-                                    <p className="text-sm text-slate-500">Nenhuma falha registrada. 🎉</p>
+                                    <p className="text-sm text-slate-500">Nenhuma vaga descartada ou falha registrada. 🎉</p>
                                 ) : (
                                     failureReasons.map((r) => (
                                         <div key={r.reason} className="flex items-center justify-between gap-3 rounded-xl border border-[#273247] bg-[#101826] px-4 py-2.5">
                                             <span className="truncate text-sm text-slate-300" title={r.reason}>{r.reason}</span>
-                                            <span className="shrink-0 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-300">{r.count}</span>
+                                            <span className="shrink-0 rounded-full bg-slate-500/10 px-2.5 py-0.5 text-xs font-semibold text-slate-300">{r.count}</span>
                                         </div>
                                     ))
                                 )}
@@ -194,17 +201,18 @@ export default function ReportsPage() {
                     <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A]">
                         <div className="border-b border-[#1C2333] px-5 py-4">
                             <h2 className="text-lg font-semibold text-white">Histórico de vagas</h2>
-                            <p className="mt-1 text-sm text-slate-400">Cada candidatura enviada, com link da vaga.</p>
+                            <p className="mt-1 text-sm text-slate-400">Cada vaga processada — enviada, descartada ou com falha — e o motivo.</p>
                         </div>
 
                         <div className="overflow-x-auto">
-                            <table className="w-full min-w-[640px] text-left text-sm">
+                            <table className="w-full min-w-[820px] text-left text-sm">
                                 <thead className="text-xs uppercase text-slate-500">
                                     <tr className="border-b border-[#1C2333]">
                                         <th className="px-5 py-3 font-medium">Vaga</th>
                                         <th className="px-5 py-3 font-medium">Empresa</th>
                                         <th className="px-5 py-3 font-medium">Currículo</th>
                                         <th className="px-5 py-3 font-medium">Status</th>
+                                        <th className="px-5 py-3 font-medium">Motivo</th>
                                         <th className="px-5 py-3 font-medium">Data</th>
                                         <th className="px-5 py-3 font-medium">Link</th>
                                     </tr>
@@ -212,11 +220,11 @@ export default function ReportsPage() {
                                 <tbody>
                                     {isLoading ? (
                                         <tr>
-                                            <td colSpan={6} className="px-5 py-10 text-center text-slate-500">Carregando…</td>
+                                            <td colSpan={7} className="px-5 py-10 text-center text-slate-500">Carregando…</td>
                                         </tr>
                                     ) : history.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="px-5 py-10 text-center text-slate-500">Nenhuma candidatura encontrada.</td>
+                                            <td colSpan={7} className="px-5 py-10 text-center text-slate-500">Nenhuma candidatura encontrada.</td>
                                         </tr>
                                     ) : (
                                         history.map((item) => (
@@ -228,6 +236,13 @@ export default function ReportsPage() {
                                                     {item.status ? (
                                                         <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusClass[item.status]}`}>
                                                             {statusLabel[item.status]}
+                                                        </span>
+                                                    ) : "—"}
+                                                </td>
+                                                <td className="max-w-xs px-5 py-3 text-slate-400">
+                                                    {formatReason(item.reason) ? (
+                                                        <span className="line-clamp-2 text-xs" title={formatReason(item.reason) ?? undefined}>
+                                                            {formatReason(item.reason)}
                                                         </span>
                                                     ) : "—"}
                                                 </td>

@@ -188,6 +188,30 @@ def _build_task(ctx: EngineContext, platform: str, job_title: str | None) -> str
         "país continua sem resposta. Só se realmente não estiver lá, chame `done` com "
         f"success=false e a mensagem COMEÇANDO com '{SKIP_MARKER}' seguido da pergunta, "
         "SEM enviar a candidatura.\n"
+        # Campo aberto era o buraco do prompt: as regras acima cobrem pergunta de grau,
+        # de idioma e de elegibilidade — todas com resposta curta e verificável. "Fale
+        # sobre você" / "por que esta vaga" não tinha regra nenhuma, então o modelo caía
+        # no default de LLM (parágrafo genérico com adjetivo) ou gastava passos travado.
+        # Ele conta como `input` no _effort, ou seja: já é pago como pergunta.
+        "- Pergunta ABERTA (texto livre: 'fale sobre você', 'por que esta vaga/empresa', "
+        "'descreva uma situação em que...', resumo/carta curta): RESPONDA, nunca pule "
+        "nem deixe em branco. Toda afirmação tem que estar sustentada pelo currículo — o "
+        "campo SELECIONA o que já está no JSON e reorganiza para a pergunta; nunca "
+        "acrescenta experiência, número, cliente ou habilidade que não esteja lá.\n"
+        # Ordem cronológica enterra o material mais forte quando o melhor trabalho é o
+        # mais recente — que é o caso da maioria dos currículos.
+        "  Estrutura: (1) situação atual — `personalInfo.jobTitle` ou a experiência com "
+        "`current: true`; (2) a evidência MAIS FORTE do currículo com o número que ela "
+        "tiver (`durationMonths`/12 em anos, tecnologia de `skills`, escopo em "
+        "`description`) — comece por ela, não pela ordem cronológica; (3) uma frase "
+        "final ligando isso ao cargo e à empresa desta vaga, que estão visíveis na "
+        "página. Nunca escreva os nomes dos campos do JSON no texto.\n"
+        # Portal trunca sem avisar: resposta acima do limite é resposta cortada no meio.
+        "  Limite: se o campo declarar máximo de caracteres/palavras, fique ABAIXO dele; "
+        "sem limite declarado, no máximo 3 frases. Em campo curto (até ~200 caracteres) "
+        "uma situação concreta do currículo vale mais que adjetivo — nunca use "
+        "'proativo', 'apaixonado por tecnologia', 'aprendo rápido', 'trabalho bem em "
+        "equipe' e afins, que é o que todo mundo escreve. Escreva no idioma da vaga.\n"
         "- Fora esses dois casos, não invente dados que não estejam no currículo.\n"
         "- Avance pelas etapas (Avançar/Revisar) até enviar. Ao enviar com sucesso, "
         "chame `done` com success=true.\n"
@@ -201,6 +225,50 @@ def _build_task(ctx: EngineContext, platform: str, job_title: str | None) -> str
         "success=false descrevendo o que travou, sem esse prefixo.\n\n"
         f"Currículo (JSON): {resume_json}"
     )
+
+
+async def record_skip(
+    ctx,
+    *,
+    platform: str,
+    job_url: str,
+    job_title: str | None,
+    company_name: str | None,
+    reason: str,
+) -> None:
+    """Grava no histórico uma vaga descartada ANTES de abrir o formulário.
+
+    Sem isto o descarte só existia como evento de WebSocket: sumia quando o desktop
+    fechava e nunca aparecia em /relatorios — o usuário via a campanha pular vagas sem
+    saber quais nem por quê, que é exatamente a informação que justifica o gate existir.
+
+    Não debita crédito: não houve candidatura. E `status=skipped` (não `failed`) mantém
+    a vaga fora do caminho de reembolso, que dispara só no PATCH de `failed`.
+    """
+    application = await ctx.client.create_application(
+        campaign_id=ctx.campaign["id"],
+        platform=platform,
+        company_name=company_name,
+        job_title=job_title,
+        job_url=job_url,
+    )
+    if application is None:
+        # Já existe registro desta vaga para este usuário: não sobrescreve um desfecho
+        # anterior (uma candidatura enviada semana passada) com um descarte de hoje.
+        logger.info("vaga já registrada, não marco como descartada: %s", job_url)
+        return
+
+    await ctx.client.update_application(
+        application_id=application["id"], status="skipped", error_log=reason
+    )
+    await ctx.emit({
+        "runId": ctx.run_id,
+        "type": "skipped",
+        "jobApplicationId": application["id"],
+        "jobUrl": job_url,
+        "reason": "low_fit",
+        "detail": reason,
+    })
 
 
 async def execute_apply(

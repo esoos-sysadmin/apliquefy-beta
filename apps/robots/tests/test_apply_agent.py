@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 from playwright.async_api import async_playwright
 
-from rpa_engine.runtime.apply_agent import _attach_resume, _build_task
+from rpa_engine.runtime.apply_agent import _attach_resume, _build_task, record_skip
 
 PDF = "/home/user/.config/Electron/resume-pdfs/abc-123.pdf"
 
@@ -84,6 +84,42 @@ def test_task_splits_degree_from_eligibility_questions() -> None:
     assert "Ana" in task
 
 
+def test_task_answers_open_ended_questions_instead_of_skipping() -> None:
+    """Campo aberto ('fale sobre você') não é elegibilidade: tem que ser respondido a
+    partir do currículo, não abortado nem preenchido com adjetivo genérico."""
+    ctx = SimpleNamespace(
+        resume={
+            "personalInfo": {"name": "Ana", "jobTitle": "Engenheira de Dados"},
+            "skills": ["Python"],
+            "experience": [
+                {
+                    "companyName": "Acme",
+                    "jobArea": "Dados",
+                    "jobStartDate": "2022-01",
+                    "isActualJob": True,
+                    "description": "Pipelines em Python",
+                }
+            ],
+        },
+        resume_pdf_path=PDF,
+    )
+
+    task = _build_task(ctx, "linkedin", "Full Stack Engineer")
+
+    assert "ABERTA" in task
+    assert "RESPONDA, nunca pule" in task
+    # A regra só funciona se citar campo que existe no JSON normalizado.
+    assert '"jobTitle"' in task and '"current": true' in task
+    # Aterramento: o campo seleciona do currículo, não inventa.
+    assert "nunca acrescenta" in task
+    # Limite de caracteres: portal trunca em silêncio.
+    assert "ABAIXO dele" in task
+    # Os adjetivos que todo candidato escreve são exatamente o que não pode sair.
+    assert "proativo" in task and "aprendo rápido" in task
+    # Não pode se confundir com a regra de elegibilidade: campo aberto nunca aborta.
+    assert task.index("ABERTA") > task.index("ELEGIBILIDADE")
+
+
 @pytest.mark.asyncio
 async def test_attaches_to_input_already_in_the_dom(page, tmp_path) -> None:
     pdf = tmp_path / "curriculo.pdf"
@@ -123,3 +159,78 @@ async def test_is_a_noop_without_upload_field(page, tmp_path) -> None:
     await page.set_content("<div>Passo de perguntas, sem upload</div>")
 
     assert await _attach_resume(page, str(pdf)) is False
+
+
+class _FakeClient:
+    """Client do web com só o que o record_skip usa. `created` None simula o 409."""
+
+    def __init__(self, created: dict | None = {"id": "app-1"}) -> None:
+        self.created = created
+        self.updates: list[dict] = []
+        self.debits: list[dict] = []
+
+    async def create_application(self, **kwargs):
+        self.calls = kwargs
+        return self.created
+
+    async def update_application(self, **kwargs):
+        self.updates.append(kwargs)
+        return {}
+
+    async def debit_flat(self, **kwargs):
+        self.debits.append(kwargs)
+
+
+def _skip_ctx(client: _FakeClient):
+    events: list[dict] = []
+
+    async def emit(event):
+        events.append(event)
+
+    return SimpleNamespace(client=client, campaign={"id": "c-1"}, emit=emit, run_id="r-1"), events
+
+
+@pytest.mark.asyncio
+async def test_record_skip_writes_history_without_charging() -> None:
+    client = _FakeClient()
+    ctx, events = _skip_ctx(client)
+
+    await record_skip(
+        ctx,
+        platform="linkedin",
+        job_url="https://linkedin.com/jobs/view/1",
+        job_title="Dev Java",
+        company_name=None,
+        reason="FIT: aderência 30/100 — sem Java",
+    )
+
+    # Vira linha no histórico com o motivo — é a informação que justifica o gate existir.
+    assert client.updates == [
+        {"application_id": "app-1", "status": "skipped", "error_log": "FIT: aderência 30/100 — sem Java"}
+    ]
+    # `skipped`, não `failed`: `failed` dispararia o caminho de reembolso no PATCH.
+    assert client.updates[0]["status"] != "failed"
+    # Não houve candidatura, então não há o que cobrar.
+    assert client.debits == []
+    assert events[0]["reason"] == "low_fit"
+    assert events[0]["jobApplicationId"] == "app-1"
+
+
+@pytest.mark.asyncio
+async def test_record_skip_does_not_overwrite_a_job_already_registered() -> None:
+    """409 = já existe registro desta vaga. Marcar como descartada apagaria um desfecho
+    anterior — uma candidatura enviada semana passada viraria 'ignorada'."""
+    client = _FakeClient(created=None)
+    ctx, events = _skip_ctx(client)
+
+    await record_skip(
+        ctx,
+        platform="linkedin",
+        job_url="https://linkedin.com/jobs/view/1",
+        job_title="Dev",
+        company_name=None,
+        reason="FIT: aderência 10/100",
+    )
+
+    assert client.updates == []
+    assert events == []

@@ -23,7 +23,8 @@ from ...observability import (
     capture_selector_break,
     job_ref,
 )
-from ...runtime.apply_agent import execute_apply
+from ...runtime import fit_gate
+from ...runtime.apply_agent import execute_apply, record_skip
 from ...runtime.daily_limit import remaining_for_campaign
 from ...runtime.state_machine import Outcome
 from . import selectors as S
@@ -167,6 +168,24 @@ class LinkedinEngine(BaseEngine):
                     "jobTitle": title,
                     "companyName": None,
                 })
+
+                # Gate ANTES de abrir o formulário: vaga reprovada não vira
+                # JobApplication e não debita crédito.
+                verdict = await fit_gate.passes(
+                    self.ctx, platform="linkedin", job_title=title
+                )
+                if fit_gate.should_skip(verdict, self.ctx.settings.fit_min_score):
+                    reason = fit_gate.skip_reason(verdict)
+                    logger.info("fit: descartando vaga %s (%s)", title, reason)
+                    await record_skip(
+                        self.ctx,
+                        platform="linkedin",
+                        job_url=job_url,
+                        job_title=title,
+                        company_name=None,
+                        reason=reason,
+                    )
+                    continue
 
                 await page.click(S.APPLY_BUTTON)
                 # Entregar pro agente antes do modal montar fazia o primeiro snapshot ser

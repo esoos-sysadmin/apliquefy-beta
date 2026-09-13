@@ -15,6 +15,7 @@ class Settings:
     openai_api_key: str | None
     openai_model: str
     cost_per_application: int
+    fit_min_score: int
     headless: bool
     slow_mo_ms: int
     devtools: bool
@@ -39,6 +40,9 @@ def load_settings() -> Settings:
         # fraco pro loop de navegação. Default gpt-4.1-mini (bom custo-benefício).
         openai_model=os.environ.get("OPENAI_MODEL", "gpt-4.1-mini"),
         cost_per_application=max(1, int(os.environ.get("COST_PER_APPLICATION", "1"))),
+        # Nota mínima de aderência (0-100) para candidatar. 0 = gate desligado, que é
+        # o default: ligar filtra vagas e o usuário tem que escolher isso, não herdar.
+        fit_min_score=max(0, min(100, int(os.environ.get("FIT_MIN_SCORE", "0")))),
         headless=os.environ.get("RPA_HEADLESS", "false").lower() == "true",
         # Debug visual: atrasa cada ação em N ms para acompanhar a olho.
         slow_mo_ms=max(0, int(os.environ.get("RPA_SLOWMO", "0"))),

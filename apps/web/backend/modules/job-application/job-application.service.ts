@@ -253,6 +253,7 @@ export class JobApplicationService {
                         jobTitle: true,
                         jobUrl: true,
                         status: true,
+                        errorLog: true,
                         appliedAt: true,
                         createdAt: true,
                         campaign: { select: { name: true, resume: { select: { title: true } } } },
@@ -268,16 +269,20 @@ export class JobApplicationService {
                 jobTitle: a.jobTitle,
                 jobUrl: a.jobUrl,
                 status: a.status,
+                // motivo de descarte/falha: é a resposta para "por que essa vaga não foi enviada?"
+                reason: a.errorLog,
                 appliedAt: a.appliedAt,
                 createdAt: a.createdAt,
                 campaignName: a.campaign?.name ?? null,
                 resumeTitle: a.campaign?.resume?.title ?? null,
             }))
 
-            // --- motivos de falha: groupBy nos textos distintos (poucas linhas) + bucket heurístico
+            // --- por que não foi enviada: groupBy nos textos distintos (poucas linhas) + bucket
+            // heurístico. Inclui `skipped` e não só `failed`: vaga descartada pelo gate de
+            // aderência nunca chega a falhar, e era justamente o que sumia do relatório.
             const failedGroups = await prisma.jobApplication.groupBy({
                 by: ["errorLog"],
-                where: { ...where, status: "failed" },
+                where: { ...where, status: { in: ["failed", "skipped"] } },
                 _count: { _all: true },
             })
             const reasonMap = new Map<string, number>()
@@ -413,6 +418,10 @@ export class JobApplicationService {
 function classifyErrorLog(log: string | null): string {
     if (!log || !log.trim()) return "Sem detalhe"
     const l = log.toLowerCase()
+    // Prefixos estáveis que o engine grava (fit_gate.FIT_MARKER e apply_agent.SKIP_MARKER).
+    // Sem eles cada frase do LLM virava um bucket com contagem 1 e o painel não dizia nada.
+    if (log.startsWith("FIT:")) return "Baixa aderência à vaga"
+    if (log.startsWith("ELEGIBILIDADE:")) return "Pergunta sem resposta no currículo"
     if (l.includes("crash")) return "Erro no agente"
     if (l.includes("não concluiu") || l.includes("limite de passos") || l.includes("timeout")) return "Tempo/limite excedido"
     return log.length > 60 ? `${log.slice(0, 60)}…` : log

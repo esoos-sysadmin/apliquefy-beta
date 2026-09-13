@@ -27,6 +27,7 @@ export interface ApplicationHistoryItem {
     jobTitle: string | null;
     jobUrl: string | null;
     status: ApplicationStatus | null;
+    reason: string | null;
     appliedAt: string | null;
     createdAt: string | null;
     campaignName: string | null;
