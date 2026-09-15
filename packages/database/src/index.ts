@@ -1,7 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
-export * from '@prisma/client';
+// `export *` de um módulo CJS externo gera warning no Turbopack; tipos saem via
+// `export type *` (apagado no build) e só os valores usados em runtime são nomeados.
+export { Prisma } from '@prisma/client';
+export type * from '@prisma/client';
 
 const connectionString = process.env.DATABASE_URL;
 
