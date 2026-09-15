@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { DesktopDownloadTab } from "../../components/organisms/DesktopDownloadTab";
 import { DesktopHowItWorksTab } from "../../components/organisms/DesktopHowItWorksTab";
@@ -13,6 +13,14 @@ const tabs: { value: Tab; label: string }[] = [
 ];
 
 export default function DesktopPage() {
+    return (
+        <Suspense fallback={null}>
+            <DesktopContent />
+        </Suspense>
+    );
+}
+
+function DesktopContent() {
     const searchParams = useSearchParams();
     const tabParam = searchParams.get("tab") as Tab | null;
 
