@@ -1,0 +1,95 @@
+/* Funil /lp — direção "O Laudo": papel, tinta, carimbo. Tudo escopado em .lp. */
+.lp {
+  --lp-paper: #f5f1e8;
+  --lp-field: #ece6d8;
+  --lp-ink: #1b1a17;
+  --lp-ink2: #4d483e; /* texto secundário: ~8:1 no papel */
+  --lp-rule: #c8bfa9; /* só decoração; bordas interativas usam ink */
+  --lp-act: #1d4396; /* ação / fato verificado */
+  --lp-est: #8a5200; /* estimativa (carimbo) ~5,8:1 */
+  --lp-bad: #9a2b1d; /* problema encontrado */
+  --lp-ok: #2c6a37;
+  background: var(--lp-paper);
+  color: var(--lp-ink);
+  min-height: 100dvh;
+  font-family: var(--font-lp-sans), system-ui, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* O body do app é escuro; sem isto o overscroll do Android mostra a faixa preta. */
+html:has(.lp),
+body:has(.lp) {
+  background: #f5f1e8;
+}
+
+/* Widget do Featurebase (AppProviders global) cobre o funil e é roxo; fora daqui. */
+body:has(.lp) #fb-messenger-root {
+  display: none !important;
+}
+
+.lp :focus-visible {
+  outline: 3px solid var(--lp-act);
+  outline-offset: 2px;
+}
+
+.lp-stamp {
+  display: inline-block;
+  border: 1.5px solid var(--lp-est);
+  color: var(--lp-est);
+  font-family: var(--font-lp-mono), monospace;
+  font-weight: 500;
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.4rem;
+  transform: rotate(-2deg);
+  white-space: nowrap;
+}
+
+/* Linhas de formulário com pontilhado entre rótulo e valor. */
+.lp-leader {
+  flex: 1 1 1rem;
+  min-width: 1rem;
+  border-bottom: 1.5px dotted var(--lp-rule);
+  transform: translateY(-0.3em);
+}
+
+.lp-enter {
+  animation: lp-in 0.28s ease-out both;
+}
+@keyframes lp-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.lp-blur {
+  filter: blur(6px);
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp *,
+  .lp *::before,
+  .lp *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media print {
+  .lp-noprint {
+    display: none !important;
+  }
+  .lp {
+    background: #fff;
+  }
+  html:has(.lp),
+  body:has(.lp) {
+    background: #fff;
+  }
+}

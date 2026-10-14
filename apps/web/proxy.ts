@@ -6,6 +6,9 @@ const isPublicRoute = createRouteMatcher([
   '/lp',
   '/planos(.*)',
   '/obrigado(.*)',
+  // Páginas legais: o funil /lp linka no consentimento e Meta/Stripe exigem acesso sem login.
+  '/politica-de-privacidade',
+  '/termos-de-servico',
   '/api/webhooks(.*)',
   '/api/test(.*)',
   '/api/checkout/onboarding(.*)',

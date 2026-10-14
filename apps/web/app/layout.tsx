@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <AuthProvider>
-      <html lang="en">
+      <html lang="pt-BR">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
           <AppProviders>{children}</AppProviders>
         </body>
