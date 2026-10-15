@@ -27,7 +27,7 @@ a = Analysis(
     ['src/rpa_engine/__main__.py'],
     pathex=['src'],
     binaries=binaries,
-    datas=datas + [('src/rpa_engine/cognitive/prompts/system.md', 'rpa_engine/cognitive/prompts')],
+    datas=datas,
     hiddenimports=hiddenimports,
 )
 

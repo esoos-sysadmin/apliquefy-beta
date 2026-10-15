@@ -13,9 +13,9 @@ import sys
 
 import uvicorn
 
-from .config import load_settings
-from .observability import init_observability
-from .server import build_app
+from rpa_engine.config import load_settings
+from rpa_engine.observability import init_observability
+from rpa_engine.server import build_app
 
 
 def _pick_port() -> int:
