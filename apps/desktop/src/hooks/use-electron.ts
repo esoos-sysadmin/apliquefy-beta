@@ -84,6 +84,7 @@ const fallbackElectronAPI: ElectronAPI = {
         capture: async () => ({ success: false, code: 500, message: "Electron unavailable." }),
         check: async () => null,
         list: async () => ({}),
+        isChromeInstalled: async () => true,
         remove: async () => ({}),
         subscribe: () => () => undefined,
     },

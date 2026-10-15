@@ -31,6 +31,8 @@ export class ResumeService {
                     experience: validation.data.experience,
                     skills: validation.data.skills,
                     idioms: validation.data.idioms,
+                    template: validation.data.template,
+                    language: validation.data.language,
                     isDefault: validation.data.isDefault ?? false,
                 },
     
@@ -169,6 +171,8 @@ export class ResumeService {
                 experience: validation.data.experience,
                 skills: validation.data.skills,
                 idioms: validation.data.idioms,
+                template: validation.data.template,
+                language: validation.data.language,
             }
         });
 

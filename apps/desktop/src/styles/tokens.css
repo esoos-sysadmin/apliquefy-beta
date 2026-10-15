@@ -1,22 +1,70 @@
+/* Tema claro/escuro da Apliquefy (docs/Apliquefy_Identidade_Visual/06_Tokens), mesmos papéis do
+   web (apps/web/theme.palette.js). Cores em "R G B" para usar com opacidade: rgb(var(--c-x) / .5).
+   Claro é o padrão; o escuro vale com data-theme="dark" no <html> (ver src/theme.ts). */
 :root {
-  --bg-app: #0d1117;
-  --bg-card: #161b22;
-  --bg-card-hover: #1c2333;
-  --border-card: #30363d;
-  --accent-primary: #4b8bf5;
-  --accent-secondary: #6aa3ff;
-  --accent-gradient: linear-gradient(135deg, #4b8bf5, #6aa3ff);
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --text-muted: #484f58;
-  --status-active: #3fb950;
-  --status-paused: #f0883e;
-  --toggle-on: #4b8bf5;
-  --toggle-off: #30363d;
+  color-scheme: light;
+  --c-canvas: 246 244 250;
+  --c-sunken: 243 241 247;
+  --c-surface: 255 255 255;
+  --c-raised: 246 244 250;
+  --c-line: 228 224 235;
+  --c-line-strong: 216 212 226;
+  --c-fg: 20 18 28;
+  --c-muted: 98 93 108;
+  --c-dim: 125 119 137;
+  --c-accent: 122 59 255;
+  --c-accent-hover: 101 39 220;
+  --c-accent-text: 101 39 220;
+  --c-accent-soft: 240 233 255;
+  --c-success: 8 119 58;
+  --c-warning: 166 69 0;
+  --c-danger: 180 35 24;
+  --c-orange: 255 122 0;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --c-canvas: 16 14 22;
+  --c-sunken: 12 10 17;
+  --c-surface: 26 23 35;
+  --c-raised: 34 30 45;
+  --c-line: 42 38 54;
+  --c-line-strong: 59 53 73;
+  --c-fg: 246 244 250;
+  --c-muted: 158 152 170;
+  --c-dim: 98 93 108;
+  --c-accent: 122 59 255;
+  --c-accent-hover: 139 85 255;
+  --c-accent-text: 178 140 255;
+  --c-accent-soft: 38 28 64;
+  --c-success: 63 185 80;
+  --c-warning: 240 136 62;
+  --c-danger: 248 113 113;
+}
+
+:root {
+  --bg-app: rgb(var(--c-canvas));
+  --bg-card: rgb(var(--c-surface));
+  --bg-card-hover: rgb(var(--c-raised));
+  --border-card: rgb(var(--c-line));
+  --accent-primary: rgb(var(--c-accent));
+  --accent-secondary: rgb(var(--c-accent-text));
+  --accent-gradient: linear-gradient(135deg, #7a3bff, #8b55ff);
+  --text-primary: rgb(var(--c-fg));
+  --text-secondary: rgb(var(--c-muted));
+  --text-muted: rgb(var(--c-dim));
+  --status-active: rgb(var(--c-success));
+  --status-paused: rgb(var(--c-warning));
+  --toggle-on: rgb(var(--c-accent));
+  --toggle-off: rgb(var(--c-line-strong));
   --linkedin-blue: #0a66c2;
   --infojobs-orange: #ff6d00;
   --window-radius: 16px;
   --card-radius: 12px;
   --button-radius: 10px;
+  --shadow-window: 0 20px 60px rgba(20, 18, 28, 0.18);
+}
+
+[data-theme="dark"] {
   --shadow-window: 0 20px 60px rgba(0, 0, 0, 0.38);
 }

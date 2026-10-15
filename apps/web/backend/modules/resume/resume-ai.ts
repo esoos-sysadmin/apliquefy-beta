@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ResumeAnalysis } from "../../../app/types/resume";
+import type { Resume, ResumeAnalysis, ResumeLanguage } from "../../../app/types/resume";
 import type { ResumeFormData } from "../../../app/types/resume-form";
 import { emptyResumeForm, idiomLevelOptions, seniorityOptions } from "../../../app/lib/constants/resume-form";
 
@@ -272,4 +272,49 @@ export async function extractResumeFromPdf(base64: string, filename: string): Pr
     );
 
     return normalizeExtractedResume(JSON.parse(content));
+}
+
+// ---------------------------------------------------------------------------
+// Duplicar e traduzir
+// ---------------------------------------------------------------------------
+
+const LANGUAGE_NAMES: Record<ResumeLanguage, string> = { pt: "português do Brasil", en: "inglês", es: "espanhol" };
+
+const translatePrompt = (language: ResumeLanguage) => `Você reescreve currículos em ${LANGUAGE_NAMES[language]}.
+Recebe um currículo em JSON e devolve o MESMO currículo em ${LANGUAGE_NAMES[language]}, escrito como um recrutador nativo escreveria: natural, direto, sem tradução literal.
+
+Responda SOMENTE com um objeto JSON nesta forma:
+{
+  "title": "",
+  "personalInfo": { "name": "", "jobTitle": "", "email": "", "contact": "", "address": "", "desiredSalary": "",
+                    "seniority": "", "linkedinUrl": "", "portfolio": "", "github": "", "professionalSummary": "" },
+  "experience": [{ "companyName": "", "jobType": "", "description": "", "jobArea": "", "jobStartDate": "", "jobEndDate": "", "isActualJob": false }],
+  "education": [{ "nameOfInstitution": "", "nameOfGraduation": "", "StartDateOfGraduation": "", "EndDateOfGraduation": "" }],
+  "skills": [""],
+  "idioms": [{ "language": "", "level": "" }]
+}
+
+Regras:
+- Traduza: title, jobTitle, professionalSummary (no máximo 500 caracteres), experience[].jobArea (é o cargo), experience[].jobType, experience[].description, education[].nameOfGraduation, idioms[].language (nome do idioma) e habilidades que não sejam nomes de tecnologia.
+- NÃO traduza nem altere: nomes de pessoas, empresas e instituições, e-mails, telefones, URLs, cidades, datas, nomes de tecnologias e ferramentas, isActualJob.
+- "seniority" e "idioms[].level" ficam EXATAMENTE como vieram (são códigos internos em português: ${seniorityOptions.join(", ")} / ${idiomLevelOptions.join(", ")}).
+- Não invente nem remova fatos. Mantenha todas as experiências, formações, habilidades e idiomas, na mesma ordem.
+- Preserve as quebras de linha e os marcadores "- " das descrições.`;
+
+export async function translateResume(resume: Resume, language: ResumeLanguage): Promise<ResumeFormData> {
+    const { title, personalInfo, experience, education, skills, idioms } = resume;
+    const content = await chatJson(
+        [
+            { role: "system", content: translatePrompt(language) },
+            { role: "user", content: `Currículo (JSON):\n${JSON.stringify({ title, personalInfo, experience, education, skills, idioms })}` },
+        ],
+        0.3,
+    );
+
+    const translated = normalizeExtractedResume(JSON.parse(content));
+    return {
+        ...translated,
+        // o resumeSchema recusa > 500; espanhol costuma crescer na tradução
+        personalInfo: { ...translated.personalInfo, professionalSummary: translated.personalInfo.professionalSummary.slice(0, 500) },
+    };
 }

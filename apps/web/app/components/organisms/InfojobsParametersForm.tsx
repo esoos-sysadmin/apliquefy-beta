@@ -52,7 +52,7 @@ export function InfojobsParametersForm({
         <div className="space-y-6">
             <div className="flex items-center gap-2">
                 <BriefcaseBusiness size={18} className="text-orange-300" />
-                <h2 className="text-xl font-semibold text-white">Parâmetros do InfoJobs</h2>
+                <h2 className="text-xl font-semibold text-fg">Parâmetros do InfoJobs</h2>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-3">

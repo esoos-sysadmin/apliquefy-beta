@@ -28,7 +28,12 @@ export default async function Login({
 
     return (
         <div className="login flex justify-center mt-4">
-            <SignIn forceRedirectUrl={redirect} signUpForceRedirectUrl={redirect} />
+            {/* Cadastro só acontece na compra (/cadastro via checkout): sem o link "Sign up" aqui. */}
+            <SignIn
+                forceRedirectUrl={redirect}
+                signUpForceRedirectUrl={redirect}
+                appearance={{ elements: { footerAction: { display: "none" } } }}
+            />
         </div>
     );
 }

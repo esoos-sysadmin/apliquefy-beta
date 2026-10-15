@@ -1,0 +1,37 @@
+{
+  "family": "Apliquefy Display",
+  "version": "1.001",
+  "styleVersions": {
+    "Regular": "1.001",
+    "Bold": "1.000"
+  },
+  "installedFamilies": {
+    "Regular": "Apliquefy Display R2",
+    "Bold": "Apliquefy Display"
+  },
+  "fileStems": {
+    "Regular": "ApliquefyDisplayR2-Regular",
+    "Bold": "ApliquefyDisplay-Bold"
+  },
+  "cssFamily": "Apliquefy Display",
+  "weights": {
+    "Regular": 400,
+    "Bold": 700
+  },
+  "unitsPerEm": 1000,
+  "xHeight": 520,
+  "capHeight": 720,
+  "ascender": 1080,
+  "descender": -300,
+  "encodedCharacters": 327,
+  "kerningPairs": 990,
+  "scripts": [
+    "Latin"
+  ],
+  "originalOutlines": true,
+  "formats": [
+    "TTF",
+    "OTF/CFF",
+    "WOFF2"
+  ]
+}

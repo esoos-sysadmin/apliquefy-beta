@@ -109,6 +109,7 @@ class Orchestrator:
                     slow_mo_ms=self.settings.slow_mo_ms,
                     devtools=self.settings.devtools,
                     browser_channel=self.settings.browser_channel,
+                    hide_window=not self.settings.show_browser,
                 ) as bridge:
                     ctx = EngineContext(
                         page=bridge.page,

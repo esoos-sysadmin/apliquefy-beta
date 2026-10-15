@@ -1,0 +1,41 @@
+FONTES EDITÁVEIS / APLIQUEFY 1.0
+
+Os arquivos SVG são os mestres de edição direta. As curvas dos logos não dependem
+de fontes instaladas. Os geradores abaixo permitem reproduzir/exportar o sistema.
+
+MARCA E SÍMBOLOS
+python build_brand.py --wordmark ../03_Tipografia/Fontes/apliquefy-wordmark-master.svg
+Requer Python3. Cria os símbolos e 10 assinaturas a partir do master tipográfico.
+
+EXPORTAÇÕES PNG
+node export_png.js ..
+Requer Node.js e pacote Sharp. Redesenha os SVGs para os tamanhos entregues.
+
+ATIVOS DE PRODUTO
+python product_assets.py
+Requer Pillow. Gera ICO e o manifest a partir das exportações PNG.
+
+APLICAÇÕES
+python build_applications.py
+Requer FontTools e as fontes TTF na pasta 03. Cria pranchas, templates e padrão SVG.
+Os PNGs correspondentes são exportados dos SVGs com Sharp/librsvg.
+
+FONTES TIPOGRÁFICAS
+03_Tipografia/Fontes/generate_font.py e requirements.txt.
+Leia as instruções dessa pasta. A família foi construída a partir de curvas
+originais; os arquivos TTF, OTF e WOFF2 estão prontos para uso.
+A Regular usa os arquivos ApliquefyDisplayR2-Regular e nome interno R2.
+O Bold conserva o nome e os desenhos originais. Os geradores já apontam para R2.
+
+ÍCONES
+04_Icones/Fontes: geradores Python e Node, com instruções próprias.
+
+GUIA
+00_Guia/Fontes: gerador ReportLab e instruções próprias.
+
+COMPONENTES
+05_Componentes: HTML, CSS, JS editáveis diretamente; exportações e geradores na
+mesma pasta. Os tokens CSS/JSON estão em 06_Tokens.
+
+Os comandos são exemplos relativos à raiz/pasta de cada gerador; ajuste o
+caminho do interpretador conforme seu computador. Preserve as pastas do kit.

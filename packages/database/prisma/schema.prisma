@@ -322,6 +322,8 @@ model Resume {
   experience   Json? // jsonb
   skills       Json? // jsonb
   idioms       Json? // jsonb — [{ language, level }]; separado de skills porque skills é string[]
+  template     String   @default("harvard") @db.VarChar // modelo do PDF: harvard | two-column
+  language     String   @default("pt") @db.VarChar // idioma dos rótulos do PDF: pt | en | es
   isDefault    Boolean  @default(false) @map("is_default")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp
 

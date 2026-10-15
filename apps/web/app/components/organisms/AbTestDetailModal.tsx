@@ -24,16 +24,16 @@ function VariantSummary({
 }) {
     const { metrics } = variant;
     return (
-        <div className="rounded-2xl border border-[#24304A] bg-[#1A2436] p-4">
+        <div className="rounded-2xl border border-line-strong bg-raised p-4">
             <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#2563EB] text-xs font-bold text-white">{label}</span>
-                <span className="truncate text-sm font-semibold text-white" title={variant.resumeTitle ?? undefined}>
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-accent text-xs font-bold text-white">{label}</span>
+                <span className="truncate text-sm font-semibold text-fg" title={variant.resumeTitle ?? undefined}>
                     {variant.resumeTitle ?? "Sem currículo"}
                 </span>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                 <div>
-                    <p className="text-2xl font-bold text-white">{metrics.sent}</p>
+                    <p className="text-2xl font-bold text-fg">{metrics.sent}</p>
                     <p className="text-[10px] uppercase tracking-wide text-slate-500">Enviadas</p>
                 </div>
                 <div>
@@ -80,15 +80,15 @@ export function AbTestDetailModal({ abTestId, onClose }: { abTestId: string; onC
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#020817]/75 px-4 py-8 backdrop-blur-sm">
-            <div className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-[#1C2333] bg-[#101826] shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
-                <div className="flex items-start justify-between border-b border-[#192236] bg-[#151F30] px-5 py-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ap-ink/75 px-4 py-8 backdrop-blur-sm">
+            <div className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-line bg-surface shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+                <div className="flex items-start justify-between border-b border-line bg-surface px-5 py-5">
                     <div className="flex items-start gap-3">
                         <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-300">
                             <FlaskConical size={18} />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-white">{abTest?.name ?? "Teste A/B"}</h2>
+                            <h2 className="text-lg font-semibold text-fg">{abTest?.name ?? "Teste A/B"}</h2>
                             <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                                 {abTest?.platform ?? ""} · Comparação de variantes
                             </p>
@@ -98,7 +98,7 @@ export function AbTestDetailModal({ abTestId, onClose }: { abTestId: string; onC
                         type="button"
                         onClick={onClose}
                         aria-label="Fechar painel do teste A/B"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-[#1B2740] hover:text-white"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-raised hover:text-fg"
                     >
                         <X size={18} />
                     </button>
@@ -108,20 +108,20 @@ export function AbTestDetailModal({ abTestId, onClose }: { abTestId: string; onC
                     {isLoading ? (
                         <div className="space-y-3">
                             <div className="grid gap-3 sm:grid-cols-2">
-                                <div className="h-32 animate-pulse rounded-2xl bg-[#1A2436]" />
-                                <div className="h-32 animate-pulse rounded-2xl bg-[#1A2436]" />
+                                <div className="h-32 animate-pulse rounded-2xl bg-raised" />
+                                <div className="h-32 animate-pulse rounded-2xl bg-raised" />
                             </div>
-                            <div className="h-40 animate-pulse rounded-2xl bg-[#1A2436]" />
+                            <div className="h-40 animate-pulse rounded-2xl bg-raised" />
                         </div>
                     ) : error || !abTest ? (
                         <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-6 text-center">
-                            <p className="text-sm font-semibold text-white">Erro ao carregar o teste A/B</p>
+                            <p className="text-sm font-semibold text-fg">Erro ao carregar o teste A/B</p>
                             <p className="mt-2 text-xs text-slate-300">Feche e abra novamente para tentar atualizar.</p>
                         </div>
                     ) : (
                         <>
                             {abTest.hypothesis ? (
-                                <p className="rounded-xl border border-[#273247] bg-[#0D1522] px-4 py-3 text-sm text-slate-300">
+                                <p className="rounded-xl border border-line-strong bg-sunken px-4 py-3 text-sm text-slate-300">
                                     <span className="font-semibold text-slate-200">Hipótese:</span> {abTest.hypothesis}
                                 </p>
                             ) : null}
@@ -141,8 +141,8 @@ export function AbTestDetailModal({ abTestId, onClose }: { abTestId: string; onC
                                 />
                             </div>
 
-                            <div className="rounded-2xl border border-[#273247] bg-[#0D1522] p-4">
-                                <p className="flex items-center gap-2 text-sm font-semibold text-white">
+                            <div className="rounded-2xl border border-line-strong bg-sunken p-4">
+                                <p className="flex items-center gap-2 text-sm font-semibold text-fg">
                                     <Trophy size={15} className="text-amber-300" /> Resultado do teste
                                 </p>
                                 <div className="mt-3 grid grid-cols-3 gap-2">
@@ -154,7 +154,7 @@ export function AbTestDetailModal({ abTestId, onClose }: { abTestId: string; onC
                                             className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
                                                 abTest.winner === option.value
                                                     ? "border-amber-400 bg-amber-400/10 text-amber-200"
-                                                    : "border-[#273247] bg-[#101826] text-slate-300 hover:border-[#35507E]"
+                                                    : "border-line-strong bg-sunken text-slate-300 hover:border-accent/50"
                                             }`}
                                         >
                                             {option.label}
@@ -165,21 +165,21 @@ export function AbTestDetailModal({ abTestId, onClose }: { abTestId: string; onC
 
                             <div>
                                 <div className="flex items-center justify-between gap-3">
-                                    <p className="text-sm font-semibold text-white">Candidaturas ({applications.length})</p>
+                                    <p className="text-sm font-semibold text-fg">Candidaturas ({applications.length})</p>
                                 </div>
-                                <label className="mt-3 flex h-11 items-center gap-3 rounded-xl border border-[#2A3445] bg-[#101826] px-4">
+                                <label className="mt-3 flex h-11 items-center gap-3 rounded-xl border border-line-strong bg-sunken px-4">
                                     <Search size={16} className="text-slate-500" />
                                     <input
                                         value={search}
                                         onChange={(event) => setSearch(event.target.value)}
                                         placeholder="Buscar por empresa ou vaga..."
-                                        className="h-full w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+                                        className="h-full w-full bg-transparent text-sm text-fg outline-none placeholder:text-slate-500"
                                     />
                                 </label>
 
                                 <div className="mt-3 space-y-2">
                                     {visible.length === 0 ? (
-                                        <p className="rounded-xl border border-dashed border-[#273247] px-4 py-8 text-center text-sm text-slate-500">
+                                        <p className="rounded-xl border border-dashed border-line-strong px-4 py-8 text-center text-sm text-slate-500">
                                             {applications.length === 0
                                                 ? "Nenhuma candidatura ainda. Ative as campanhas das variantes no desktop."
                                                 : "Nenhuma candidatura encontrada."}
@@ -188,11 +188,11 @@ export function AbTestDetailModal({ abTestId, onClose }: { abTestId: string; onC
                                         visible.map((app) => (
                                             <div
                                                 key={app.id}
-                                                className="flex flex-col gap-3 rounded-xl border border-[#24304A] bg-[#131D2D] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                                                className="flex flex-col gap-3 rounded-xl border border-line-strong bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                                             >
                                                 <div className="min-w-0">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="flex h-5 w-5 items-center justify-center rounded bg-[#2563EB] text-[10px] font-bold text-white">
+                                                        <span className="flex h-5 w-5 items-center justify-center rounded bg-accent text-[10px] font-bold text-white">
                                                             {app.variant}
                                                         </span>
                                                         <span className="truncate text-sm font-medium text-slate-200">{app.jobTitle ?? "—"}</span>
@@ -225,7 +225,7 @@ export function AbTestDetailModal({ abTestId, onClose }: { abTestId: string; onC
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             aria-label="Abrir vaga"
-                                                            className="text-[#60A5FA] transition hover:text-[#93C5FD]"
+                                                            className="text-accent-text transition hover:text-accent-text"
                                                         >
                                                             <ExternalLink size={14} />
                                                         </a>

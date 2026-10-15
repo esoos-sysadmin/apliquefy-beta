@@ -11,7 +11,7 @@ export default function PlanosPage() {
                     <Zap size={13} className="fill-blue-400 text-blue-400" />
                     Automatize suas candidaturas
                 </div>
-                <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+                <h1 className="text-4xl font-bold tracking-tight text-fg sm:text-5xl">
                     Escolha seu plano
                 </h1>
                 <p className="mt-4 max-w-xl text-base text-slate-400">
@@ -31,7 +31,7 @@ export default function PlanosPage() {
                             className={`relative flex flex-col rounded-2xl border p-6 transition ${
                                 isHighlighted
                                     ? "border-blue-500/40 bg-blue-500/5 ring-1 ring-blue-500/20"
-                                    : "border-[#1C2333] bg-[#0F1520]"
+                                    : "border-line bg-sunken"
                             }`}
                         >
                             {isHighlighted && (
@@ -41,10 +41,10 @@ export default function PlanosPage() {
                             )}
 
                             <div className="flex-1">
-                                <h2 className="text-lg font-semibold text-white">{plan.name}</h2>
+                                <h2 className="text-lg font-semibold text-fg">{plan.name}</h2>
 
                                 <div className="mt-3 flex items-baseline gap-1">
-                                    <span className="text-3xl font-bold text-white">
+                                    <span className="text-3xl font-bold text-fg">
                                         {formatBRL(plan.priceInCents)}
                                     </span>
                                     <span className="text-sm text-slate-500">/mês</span>
@@ -82,8 +82,8 @@ export default function PlanosPage() {
                                 href={`/cadastro?plan=${plan.slug}`}
                                 className={`mt-6 flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition ${
                                     isHighlighted
-                                        ? "bg-[#2563EB] text-white shadow-[0_8px_24px_rgba(37,99,235,0.3)] hover:bg-[#1d4ed8]"
-                                        : "border border-[#2A3445] text-slate-300 hover:border-[#3A4A61] hover:text-white"
+                                        ? "bg-accent text-white shadow-[0_8px_24px_rgb(var(--c-accent) / 0.3)] hover:bg-accent-hover"
+                                        : "border border-line-strong text-slate-300 hover:border-line-strong hover:text-fg"
                                 }`}
                             >
                                 Começar com {plan.name}
@@ -94,7 +94,7 @@ export default function PlanosPage() {
             </div>
 
             {/* Footer note */}
-            <p className="mt-10 text-center text-xs text-slate-600">
+            <p className="mt-10 text-center text-xs text-muted">
                 Pagamento seguro via Stripe · Cancele quando quiser · Sem taxas ocultas
             </p>
         </div>

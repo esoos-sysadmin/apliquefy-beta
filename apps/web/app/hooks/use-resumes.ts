@@ -6,7 +6,7 @@ import { createApiClient } from "../lib/api-client";
 import { getClerkToken } from "../lib/auth/client/clerk";
 import { handleClientError } from "../lib/handle-client-error";
 import { toast } from "../lib/toast";
-import type { CreateResumeInput, Resume, UpdateResumeInput } from "../types/resume";
+import type { CreateResumeInput, Resume, ResumeLanguage, UpdateResumeInput } from "../types/resume";
 import {
     analyzeResume as analyzeResumeRequest,
     createResume as createResumeRequest,
@@ -14,6 +14,7 @@ import {
     getResume as getResumeRequest,
     getResumes as getResumesRequest,
     importResumePdf as importResumePdfRequest,
+    translateResume as translateResumeRequest,
     updateResume as updateResumeRequest,
 } from "../client/resume.service";
 
@@ -72,6 +73,12 @@ export function useResumes() {
         },
         analyzeResume(id: string) {
             return withClient(async (api) => analyzeResumeRequest(api, id));
+        },
+        async translateResume(id: string, language: ResumeLanguage) {
+            const created = await withClient(async (api) => translateResumeRequest(api, id, language));
+            await mutate();
+            toast.success("Currículo traduzido criado!");
+            return created;
         },
         importResumePdf(file: File) {
             return withClient(async (api) => importResumePdfRequest(api, file));

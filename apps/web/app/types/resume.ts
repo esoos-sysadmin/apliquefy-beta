@@ -1,3 +1,5 @@
+import type { resumeLanguages, resumeTemplates } from "../lib/constants/resume-form";
+
 export interface ResumePersonalInfo {
     name?: string;
     email?: string;
@@ -48,6 +50,9 @@ export interface ResumeIdiom {
     level: "Básico" | "Intermediário" | "Avançado" | "Fluente" | "Nativo" | "";
 }
 
+export type ResumeTemplate = (typeof resumeTemplates)[number];
+export type ResumeLanguage = (typeof resumeLanguages)[number];
+
 export interface Resume {
     id: string;
     userId?: string;
@@ -57,6 +62,8 @@ export interface Resume {
     experience: ResumeExperience[] | null;
     skills: string[] | null;
     idioms?: ResumeIdiom[] | null;
+    template?: ResumeTemplate;
+    language?: ResumeLanguage;
     isDefault?: boolean;
     createdAt: string;
 }
@@ -68,6 +75,8 @@ export interface CreateResumeInput {
     experience?: ResumeExperience[];
     skills?: string[];
     idioms?: ResumeIdiom[];
+    template?: ResumeTemplate;
+    language?: ResumeLanguage;
     isDefault?: boolean;
 }
 

@@ -234,6 +234,7 @@ Seed em `prisma/seed.ts` (ex.: `CreditWeight`).
 - **Datas**: formato `YYYY-MM` nos campos de currículo (mês/ano)
 - **Campos `options`**: os arrays de opções dos selects DEVEM bater 1:1 com os enums do Prisma (ver `campaign-options.ts`)
 - **Estilos**: Tailwind para campanhas/layout; inline styles (objeto `CSSProperties`) para componentes do formulário de currículo
+- **Cores/tema**: claro (padrão, identidade da /lp) e escuro via `data-theme="dark"` no `<html>`. Use os tokens (`bg-canvas|surface|sunken|raised|overlay`, `border-line|line-strong`, `text-fg|muted`, `accent|accent-hover|accent-text|accent-soft`) — definidos em `apps/web/theme.palette.js` e `apps/desktop/src/styles/tokens.css`; em inline style, `rgb(var(--c-<token>))`. `slate-*` inverte no claro. Nunca hex fixo; `text-white` só sobre fundo de ação. A `/lp` usa as cores `ap-*` fixas.
 - **Monorepo**: imports cruzados via `@repo/database`, `@repo/ui`
 - **Anti-detecção**: sessões e runs usam Chrome real (`channel: "chrome"`) com args anti-automação; nunca validar sessão navegando em headless
 

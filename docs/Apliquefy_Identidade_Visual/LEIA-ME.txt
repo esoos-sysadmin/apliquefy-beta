@@ -1,0 +1,86 @@
+APLIQUEFY / IDENTIDADE VISUAL 1.0 — REGULAR R2 CONSOLIDADA
+Outubro de 2026
+
+COMECE AQUI
+1. Extraia o ZIP inteiro mantendo as pastas.
+2. Abra INICIAR.html para navegar pelo pacote sem internet.
+3. Consulte 00_Guia/Apliquefy_Guia_de_Identidade_v1.0.pdf.
+
+A DIREÇÃO
+A busca por trabalho deve caber na vida das pessoas.
+Uma assinatura circular com gradiente, um nome estável em grafite e uma
+experiência clara para diferentes trajetórias profissionais.
+
+O QUE USAR
+- Site: 01_Logos/SVG/apliquefy-horizontal-principal.svg.
+- Fundo escuro: apliquefy-horizontal-negativa.svg.
+- Apenas o nome: apliquefy-wordmark-grafite.svg ou -branco.svg.
+- Avatar ou espaço compacto: 02_Simbolo_Produto/SVG/apliquefy-simbolo-gradiente.svg.
+- Favicon pequeno: favicon-micro.ico e símbolo micro.
+- Ícone de produto: apliquefy-app-claro, quadrado com margem segura.
+
+PASTAS
+00_Guia              Manual de 16 páginas e seu código de geração.
+01_Logos             10 assinaturas em SVG e PNG transparente, em 4 resoluções.
+02_Simbolo_Produto   Símbolos, micro, app, favicons e base de manifest web.
+03_Tipografia        Regular R2 e Bold: TTF, OTF e WOFF2, sem Regular legada.
+04_Icones            57 ícones, sprite e 4 ilustrações de estados; SVG e PNG.
+05_Componentes       Catálogo HTML/CSS/JS, exemplos de interface e exportações.
+06_Tokens            Valores reutilizáveis de cor, tipo, espaço e movimento.
+07_Aplicacoes        Prancha visual, templates sociais, avatares e padrão.
+08_Fontes_Editaveis  Construção da marca, geradores, inventário e validação.
+
+TIPOGRAFIA ORIGINAL
+Apliquefy Display foi desenhada para esta identidade, com curvas próprias.
+Inclui dois pesos, 327 caracteres codificados e kerning. O wordmark foi
+extraído da mesma fonte Bold: seus contornos e espaçamentos são os mesmos.
+Os logos prontos estão em curvas e não exigem instalação da fonte.
+
+Para instalar: use os arquivos TTF OU OTF, evitando instalar ambos os formatos
+da mesma família. Para sites, use os WOFF2 e a CSS da pasta Web.
+Use Display em títulos e textos curtos. Para formulários e leitura longa,
+o sistema propõe fontes de interface do próprio dispositivo.
+Cobertura inicial: alfabeto latino e extensões presentes no CSV de cobertura.
+Outros sistemas de escrita precisam de fontes complementares.
+
+FORMATOS
+SVG: geometria vetorial nativa. Logos, símbolos e ícones não contêm imagens
+embutidas. Redimensione preservando a proporção. Não redigite o nome.
+PNG: exportado dos mesmos mestres SVG. Logos/símbolos/ícones têm fundo
+transparente; app icons, pranchas e exemplos de aplicação têm fundo intencional.
+Os tamanhos dos logos indicam a largura total do arquivo, incluindo respiro.
+
+COMPONENTES
+Abra 05_Componentes/catalogo.html e aplicacao.html após extrair o pacote.
+São exemplos funcionais de interface e código para implementação.
+Dados e estados demonstrativos não representam candidaturas enviadas.
+Os arquivos não incluem serviço de candidaturas, backend ou integrações.
+
+CONSISTÊNCIA
+Mantenha o gradiente, o nome e o espaçamento dos mestres. Não crie novas
+assinaturas com o nome inteiro laranja, verde ou roxo. Sorriso e raios das
+explorações anteriores foram retirados desta direção.
+Utilize os tons semânticos e os estados descritos no guia para interfaces.
+
+FONTES EDITÁVEIS E REPRODUÇÃO
+Os geradores ficam em 08_Fontes_Editaveis e nas subpastas Fontes de cada módulo.
+As instruções indicam dependências. Nenhum serviço externo é necessário para
+usar os arquivos exportados ou abrir os exemplos locais.
+
+VERIFICAÇÃO
+O pacote contém inventário e relatório técnico. Foram conferidos formatos,
+geometria vetorial, transparência, correspondência fonte-wordmark e renderização.
+Esta é a versão 1.0 do sistema. Mantenha os arquivos mestres como referência
+para próximas aplicações e ampliação de cobertura tipográfica.
+
+REVISÃO DA REGULAR / R2 — 1.001
+Ajustado o encontro entre círculo e haste nas letras a, b, d, g, p e q
+e nos caracteres derivados. Larguras, espaçamento e kerning preservados.
+Os arquivos Bold e os logos permanecem idênticos à entrega anterior.
+Este pacote contém somente a Regular corrigida com nome de instalação R2.
+Regular: selecione Apliquefy Display R2, estilo Regular.
+Bold: selecione Apliquefy Display, estilo Bold.
+A CSS da pasta Web reúne os dois pesos sob o alias Apliquefy Display.
+Os arquivos antigos da Regular e a comparação com o desenho antigo foram
+retirados do ZIP. Fontes, espécimes, manual e aplicações foram consolidados.
+O mapa de revisão está em 08_Fontes_Editaveis/MAPA-ATUALIZACAO-R2.txt.

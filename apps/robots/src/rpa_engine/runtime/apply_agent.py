@@ -294,7 +294,11 @@ async def execute_apply(
     application_id = application["id"]
     await ctx.emit({"runId": ctx.run_id, "type": "applying", "jobApplicationId": application_id})
 
-    llm = ChatOpenAI(model=ctx.settings.openai_model, api_key=ctx.settings.openai_api_key)
+    llm = ChatOpenAI(
+        model=ctx.settings.openai_model,
+        api_key=ctx.settings.web_api_token,
+        base_url=ctx.settings.openai_base_url,
+    )
     agent = Agent(
         task=_build_task(ctx, platform, job_title),
         llm=llm,

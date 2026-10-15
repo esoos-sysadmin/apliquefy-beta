@@ -52,6 +52,7 @@ const electronAPI: ElectronAPI = {
         capture: (platform) => ipcRenderer.invoke("sessions:capture", platform),
         check: (platform) => ipcRenderer.invoke("sessions:check", platform),
         list: () => ipcRenderer.invoke("sessions:list"),
+        isChromeInstalled: () => ipcRenderer.invoke("sessions:chrome-installed"),
         remove: (platform) => ipcRenderer.invoke("sessions:remove", platform),
         subscribe: (listener: (sessions: RunnerSessionMap) => void) => {
             const handler = (_event: Electron.IpcRendererEvent, sessions: RunnerSessionMap) => {

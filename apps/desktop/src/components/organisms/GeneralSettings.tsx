@@ -1,4 +1,6 @@
 import type { RunnerSettings } from "../../../shared/runner-types";
+import { useState } from "react";
+import { getTheme, setTheme } from "../../theme";
 import { ToggleSwitch } from "../atoms/ToggleSwitch";
 
 type GeneralSettingsProps = {
@@ -7,6 +9,12 @@ type GeneralSettingsProps = {
 };
 
 export function GeneralSettings({ settings, onToggle }: GeneralSettingsProps) {
+    const [dark, setDark] = useState(() => getTheme() === "dark");
+    const toggleTheme = (value: boolean) => {
+        setTheme(value ? "dark" : "light");
+        setDark(value);
+    };
+
     return (
         <section className="settings-section">
             <div className="section-header section-header--stacked">
@@ -14,6 +22,14 @@ export function GeneralSettings({ settings, onToggle }: GeneralSettingsProps) {
             </div>
 
             <div className="settings-card">
+                <div className="settings-card__row">
+                    <div>
+                        <strong className="settings-card__label">Tema escuro</strong>
+                        <p className="settings-card__description">Alterna entre o tema claro e o escuro</p>
+                    </div>
+                    <ToggleSwitch checked={dark} onChange={toggleTheme} />
+                </div>
+
                 <div className="settings-card__row">
                     <div>
                         <strong className="settings-card__label">Iniciar com o Windows</strong>

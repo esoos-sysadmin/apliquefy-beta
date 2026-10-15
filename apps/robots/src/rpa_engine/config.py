@@ -12,11 +12,12 @@ class Settings:
     user_data_dir: Path
     web_api_url: str
     web_api_token: str | None
-    openai_api_key: str | None
+    openai_base_url: str
     openai_model: str
     cost_per_application: int
     fit_min_score: int
     headless: bool
+    show_browser: bool
     slow_mo_ms: int
     devtools: bool
     browser_channel: str | None
@@ -30,12 +31,16 @@ def load_settings() -> Settings:
     user_data = Path(os.environ.get("RPA_USER_DATA_DIR") or Path.home() / ".apliquefy")
     user_data.mkdir(parents=True, exist_ok=True)
 
+    web_url = os.environ.get("APLIQUEFY_WEB_URL", "http://localhost:3000").rstrip("/")
+
     return Settings(
         auth_token=token,
         user_data_dir=user_data,
-        web_api_url=os.environ.get("APLIQUEFY_WEB_URL", "http://localhost:3000").rstrip("/"),
+        web_api_url=web_url,
         web_api_token=os.environ.get("APLIQUEFY_WEB_TOKEN"),
-        openai_api_key=os.environ.get("OPENAI_API_KEY"),
+        # A OpenAI passa pelo proxy da API web (/api/ai/openai), autenticado com o
+        # web_api_token: a chave nunca chega à máquina do usuário.
+        openai_base_url=f"{web_url}/api/ai/openai",
         # browser-use precisa de um modelo capaz de visão+decisão; gpt-4o-mini é
         # fraco pro loop de navegação. Default gpt-4.1-mini (bom custo-benefício).
         openai_model=os.environ.get("OPENAI_MODEL", "gpt-4.1-mini"),
@@ -44,11 +49,14 @@ def load_settings() -> Settings:
         # o default: ligar filtra vagas e o usuário tem que escolher isso, não herdar.
         fit_min_score=max(0, min(100, int(os.environ.get("FIT_MIN_SCORE", "0")))),
         headless=os.environ.get("RPA_HEADLESS", "false").lower() == "true",
+        # Debug: mostra a janela do Chrome na tela (por padrão ela fica fora da tela).
+        show_browser=os.environ.get("RPA_SHOW_BROWSER", "false").lower() == "true",
         # Debug visual: atrasa cada ação em N ms para acompanhar a olho.
         slow_mo_ms=max(0, int(os.environ.get("RPA_SLOWMO", "0"))),
         # Abre o DevTools do Chrome junto (só faz efeito quando headed).
         devtools=os.environ.get("RPA_DEVTOOLS", "false").lower() == "true",
-        # Usa o Chrome real (mesmo canal da captura de sessão) para evitar
-        # detecção de automação. String vazia => Chromium empacotado.
-        browser_channel=(os.environ.get("RPA_BROWSER_CHANNEL", "chrome").strip() or None),
+        # Chrome real é obrigatório (mesmo canal da captura de sessão): o Chromium
+        # empacotado é mais fácil de detectar como bot. O desktop bloqueia o app
+        # se o Chrome não estiver instalado (electron/helpers/chrome.ts).
+        browser_channel="chrome",
     )

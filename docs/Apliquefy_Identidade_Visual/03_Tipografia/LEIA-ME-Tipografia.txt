@@ -1,0 +1,88 @@
+APLIQUEFY DISPLAY — REGULAR R2 1.001 / BOLD 1.000
+Família tipográfica própria da Apliquefy / outubro de 2026
+
+1. O QUE FOI CRIADO
+
+Uma família original de desenho geométrico e terminais arredondados, construída a partir de curvas e contornos próprios. Não é uma fonte existente renomeada, nem um alfabeto importado de outra família. As letras foram construídas no gerador aberto incluído neste pacote.
+
+Regular — peso 400; versão interna 1.001; família de instalação Apliquefy Display R2
+Bold — peso 700; versão interna 1.000; família de instalação Apliquefy Display
+
+Revisão R2: o desenho corrigido da Regular 1.001 usa agora o nome de instalação Apliquefy Display R2. O sufixo permite reconhecer a edição atual mesmo quando uma instalação antiga ainda existe no computador. As três fontes Regular anteriores foram removidas deste pacote.
+
+Correção de desenho 1.001: corrigido apenas o encontro entre curva e haste da Regular em a, b, d, g, p e q, com propagação coerente aos seus derivados acentuados, æ, þ e ª (23 glifos). As hastes agora coincidem com a tangente externa da parte circular, eliminando a saliência lateral. Larguras, espaçamento, pares de posicionamento, espessura e demais desenhos foram preservados. Os três arquivos Bold permanecem idênticos à entrega original.
+
+O Bold é a matriz do lettering da marca. O SVG do nome foi extraído da própria fonte compilada, com o posicionamento de pares ativado. Por isso o logotipo, o arquivo instalável e o arquivo web compartilham a mesma construção.
+
+2. CONTEÚDO
+
+TTF/ — arquivos TrueType para instalação e edição.
+OTF/ — arquivos OpenType com contornos CFF cúbicos.
+Web/ — arquivos WOFF2 e CSS pronto para incorporação.
+Fontes/ — gerador Python, dependências, master vetorial do nome, métricas, cobertura e relatório técnico.
+Previa/ — amostra visual dos pesos e mapa dos caracteres.
+
+TTF, OTF e WOFF2 são fontes reais. O SVG do nome contém curvas, sem depender de uma fonte instalada e sem conter uma imagem bitmap.
+
+3. INSTALAÇÃO E USO
+
+Instale os dois pesos de uma única pasta: TTF ou OTF. Evite instalar as duas versões simultaneamente, pois usam a mesma família e podem aparecer duplicadas em programas de design.
+
+Para a Regular, instale ApliquefyDisplayR2-Regular.ttf (ou a alternativa OTF). Feche e abra novamente os programas de design. Selecione a família “Apliquefy Display R2”, estilo Regular. Digite abpq para conferir o encaixe entre curva e haste. Uma instalação anterior de Apliquefy Display Regular não corresponde ao novo nome: remova a Regular antiga do computador se não precisar mantê-la. O Bold não precisa ser reinstalado.
+
+No computador, selecione “Apliquefy Display R2” para Regular e “Apliquefy Display” para Bold. Evite negrito e itálico artificiais. Esta edição não inclui itálico.
+
+No site, mantenha ApliquefyDisplayR2-Regular.woff2 e ApliquefyDisplay-Bold.woff2 ao lado de apliquefy-display.css. O CSS reúne os arquivos sob a família virtual “Apliquefy Display”: peso 400 usa a Regular R2; peso 700 usa a Bold original. Não há dependência da Regular anterior instalada no computador. Importe esse CSS. Exemplo:
+
+font-family: 'Apliquefy Display', system-ui, sans-serif;
+font-weight: 400; /* use 700 para a Bold */
+font-kerning: normal;
+
+A fonte foi projetada para a marca e para títulos curtos. Para formulários, parágrafos extensos, números de controle e texto pequeno, use a família de interface definida no sistema visual. A versão Bold é densa; valide títulos no tamanho real de publicação.
+
+O nome oficial da marca deve preferencialmente usar o SVG aprovado, que preserva exatamente as proporções e o espaçamento. Não recrie o nome com letras coloridas individualmente ou ajustes manuais de tracking.
+
+4. COBERTURA E MÉTRICAS
+
+327 caracteres codificados; 328 glifos incluindo .notdef.
+ASCII imprimível completo (U+0020–U+007E).
+Latin-1 imprimível completo (U+00A0–U+00FF).
+Seleção adicional de Latin Extended-A, pontuação tipográfica, euro e símbolos.
+Português: todas as letras acentuadas usuais em caixa alta e baixa.
+A lista exata está em Fontes/cobertura-glifos.csv.
+
+1000 unidades por em.
+Altura-x de referência: 520 unidades.
+Altura de capitais de referência: 720 unidades.
+Ascendentes de desenho: 740 unidades; descendentes usuais: −210.
+Métricas de linha: ascendente 1080, descendente −300, entrelinha adicional 0.
+As métricas de linha mais amplas acomodam acentos; ajuste line-height na interface conforme o tamanho e a composição.
+990 pares de posicionamento em OpenType GPOS, com tabela kern de compatibilidade.
+
+Esta edição cobre o alfabeto latino descrito no manifesto. Não inclui alfabetos árabe, cirílico, grego, hebraico ou asiáticos. Textos nesses sistemas de escrita precisam de uma fonte de apoio. Não é uma fonte variável. Não inclui hinting manual para tamanhos pequenos, ligaturas decorativas, small caps nem figuras tabulares.
+
+5. RECONSTRUÇÃO
+
+Requisitos: Python 3.10 ou posterior e os pacotes listados em Fontes/requirements.txt.
+
+python -m pip install -r Fontes/requirements.txt
+python Fontes/generate_font.py
+
+O segundo comando recompila os dois pesos nesta pasta com os nomes atuais: Regular R2 e Bold. Para preservar byte a byte os binários entregues e apenas inspecionar a reconstrução, use uma pasta de saída separada. Para escolher outra saída:
+
+python Fontes/generate_font.py --output /caminho/para/saida
+
+O gerador mantém a geometria corrigida da Regular R2 e escreve os arquivos TTF, OTF, WOFF2, CSS, master SVG, métricas, manifesto e amostra visual. Ele não gera os nomes antigos da Regular. Carimbos de compilação podem mudar; os contornos e métricas são reproduzíveis. O relatório de validação e as pranchas de cobertura registram a entrega desta versão; não são automaticamente refeitos pelo gerador.
+
+6. PERMISSÕES DE ENTREGA
+
+Estes arquivos originais são entregues para uso comercial da Apliquefy. Podem ser instalados, incorporados em site/aplicativo, usados em materiais impressos e digitais e modificados nos projetos da marca. Não dependem de uma licença de uma fonte comercial de terceiros. Os pacotes de software usados para gerar os arquivos mantêm suas próprias licenças; seus contornos não foram importados para a família.
+
+7. VERIFICAÇÃO
+
+A entrega foi aberta e verificada com FontTools, composta com HarfBuzz e renderizada para inspeção visual. Os formatos TTF e OTF renderizam a grafia da marca e frases em português sem glifos ausentes. Os WOFF2 foram reabertos, descompactados e renderizados, e sua cobertura e tabelas conferidas. A comparação com a entrega original confirmou os 23 glifos Regular previstos, todas as métricas e pares preservados e os três arquivos Bold byte a byte idênticos. Os três binários R2 foram copiados integralmente da edição R2 aprovada, conferidos por SHA-256 e comparados por contorno, métricas e tabelas. Uma reconstrução independente do gerador também confirmou contornos, espaçamento, kerning, cobertura e nomes de família. Detalhes em Fontes/relatorio-validacao.json.
+
+Previa/ApliquefyDisplayR2-Regular-Encaixe.png mostra apenas a Regular R2 atual, ampliada.
+Previa/ApliquefyDisplayR2-Regular-Cobertura.png mostra todos os caracteres da Regular R2.
+Previa/ApliquefyDisplay-Specimen.png combina a Regular R2 e a Bold original.
+Previa/ApliquefyDisplay-Cobertura.png preserva a prancha original do Bold.

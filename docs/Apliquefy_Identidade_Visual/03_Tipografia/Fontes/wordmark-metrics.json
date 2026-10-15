@@ -1,0 +1,59 @@
+{
+  "text": "apliquefy",
+  "font": "Apliquefy Display Bold",
+  "unitsPerEm": 1000,
+  "bounds": [
+    26.0,
+    -760.551724137931,
+    4243.666666666667,
+    210.0
+  ],
+  "advance": 4270,
+  "glyphs": [
+    {
+      "name": "a",
+      "x_advance": 568,
+      "x_offset": 0
+    },
+    {
+      "name": "p",
+      "x_advance": 568,
+      "x_offset": 0
+    },
+    {
+      "name": "l",
+      "x_advance": 202,
+      "x_offset": 0
+    },
+    {
+      "name": "i",
+      "x_advance": 202,
+      "x_offset": 0
+    },
+    {
+      "name": "q",
+      "x_advance": 568,
+      "x_offset": 0
+    },
+    {
+      "name": "u",
+      "x_advance": 564,
+      "x_offset": 0
+    },
+    {
+      "name": "e",
+      "x_advance": 586,
+      "x_offset": 0
+    },
+    {
+      "name": "f",
+      "x_advance": 437,
+      "x_offset": 0
+    },
+    {
+      "name": "y",
+      "x_advance": 575,
+      "x_offset": 0
+    }
+  ]
+}

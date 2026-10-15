@@ -35,8 +35,8 @@ function DesktopContent() {
     }, [tabParam]);
 
     return (
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-white">
-            <div className="flex flex-col gap-4 border-b border-[#1C2333] pb-6 sm:flex-row sm:items-start sm:justify-between">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-fg">
+            <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                         <span>Dashboard</span>
@@ -44,7 +44,7 @@ function DesktopContent() {
                         <span className="text-slate-300">Desktop App</span>
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Desktop App</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">Desktop App</h1>
                         <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
                             Automatize suas candidaturas com o aplicativo Apliquefy rodando no seu computador.
                         </p>
@@ -57,14 +57,14 @@ function DesktopContent() {
                 </div>
             </div>
 
-            <div className="flex gap-1 rounded-xl border border-[#1C2333] bg-[#0D1420] p-1 sm:w-fit">
+            <div className="flex gap-1 rounded-xl border border-line bg-sunken p-1 sm:w-fit">
                 {tabs.map((tab) => (
                     <button
                         key={tab.value}
                         onClick={() => setActiveTab(tab.value)}
                         className={`rounded-lg px-5 py-2 text-sm font-semibold transition-colors ${
                             activeTab === tab.value
-                                ? "bg-[#1C2B46] text-white shadow"
+                                ? "bg-overlay text-fg shadow"
                                 : "text-slate-500 hover:text-slate-300"
                         }`}
                     >

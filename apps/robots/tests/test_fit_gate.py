@@ -66,7 +66,7 @@ def test_system_prompt_keeps_the_two_gates_apart_from_scoring() -> None:
 @pytest.mark.asyncio
 async def test_gate_is_off_by_default_and_costs_no_llm_call() -> None:
     ctx = SimpleNamespace(
-        settings=SimpleNamespace(fit_min_score=0, openai_api_key="sk-x", openai_model="m"),
+        settings=SimpleNamespace(fit_min_score=0, web_api_token="t", openai_model="m"),
         page=None,  # tocar na página já seria erro: o gate desligado sai antes disso
         resume={},
     )

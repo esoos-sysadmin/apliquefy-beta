@@ -4,6 +4,7 @@
  *   cd apps/web
  *   npx tsx scripts/preview-resume-pdf.ts               # currículo de exemplo
  *   npx tsx scripts/preview-resume-pdf.ts <resumeId>    # um currículo real do banco
+ *   RESUME_TEMPLATE=two-column npx tsx scripts/preview-resume-pdf.ts   # força o modelo
  *
  * Sai em `apps/web/.preview/curriculo.pdf` (ignorado pelo git) — abra pelo VS Code.
  */
@@ -96,6 +97,7 @@ async function load(resumeId?: string): Promise<Resume> {
 const out = path.join(__dirname, "..", ".preview", "curriculo.pdf");
 load(process.argv[2]).then((resume) => {
     mkdirSync(path.dirname(out), { recursive: true });
-    writeFileSync(out, buildResumePdf(resume));
+    const template = process.env.RESUME_TEMPLATE as Resume["template"];
+    writeFileSync(out, buildResumePdf(template ? { ...resume, template } : resume));
     console.log(`PDF gerado: ${out}`);
 });

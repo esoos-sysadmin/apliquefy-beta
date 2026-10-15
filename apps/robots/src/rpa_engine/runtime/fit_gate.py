@@ -118,7 +118,7 @@ async def passes(ctx, *, platform: str, job_title: str | None) -> FitVerdict | N
     crédito; o de barrar todas por um seletor quebrado é a campanha inteira do usuário.
     """
     minimum = ctx.settings.fit_min_score
-    if minimum <= 0 or not ctx.settings.openai_api_key:
+    if minimum <= 0 or not ctx.settings.web_api_token:
         return None
 
     description = await _read_description(ctx.page)
@@ -128,7 +128,11 @@ async def passes(ctx, *, platform: str, job_title: str | None) -> FitVerdict | N
         return None
 
     resume_json = json.dumps(normalize(ctx.resume), ensure_ascii=False)
-    llm = ChatOpenAI(model=ctx.settings.openai_model, api_key=ctx.settings.openai_api_key)
+    llm = ChatOpenAI(
+        model=ctx.settings.openai_model,
+        api_key=ctx.settings.web_api_token,
+        base_url=ctx.settings.openai_base_url,
+    )
     try:
         result = await llm.ainvoke(
             [

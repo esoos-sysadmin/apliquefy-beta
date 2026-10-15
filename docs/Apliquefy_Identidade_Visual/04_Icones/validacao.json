@@ -1,0 +1,21 @@
+{
+  "icons": 57,
+  "icon_svg": 57,
+  "icon_png": 171,
+  "states_svg": 4,
+  "states_png": 4,
+  "previews": 4,
+  "sprite": 1,
+  "png_renderer": "Sharp 0.35.4 / librsvg 2.62.91",
+  "validation": "PASS",
+  "checks": [
+    "All SVG parsed as XML",
+    "No embedded raster data or text in production icons",
+    "Every icon PNG RGBA and exact dimensions",
+    "Every icon PNG has transparency and visible artwork",
+    "State PNGs RGBA 540x480 with transparent corners",
+    "Visual inspection of icon and state contact sheets"
+  ],
+  "note": "Small diagonal or centered 1.8px strokes may be fully antialiased at 24px; maximum alpha need not equal 255.",
+  "errors": []
+}

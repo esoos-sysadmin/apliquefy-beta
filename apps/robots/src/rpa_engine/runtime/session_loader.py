@@ -22,6 +22,15 @@ from playwright.async_api import Page, async_playwright
 
 _ANTI_AUTOMATION_ARGS = ["--disable-blink-features=AutomationControlled"]
 _IGNORE_DEFAULT_ARGS = ["--enable-automation"]
+# Chrome real e headed (headless é detectado e derruba a sessão), mas com a janela
+# fora da tela para o usuário não ver um navegador "clicando sozinho". O
+# browser-use emite o próprio --window-position=0,0 e não aceita valor negativo no
+# campo; por isso window_position=None no profile e a posição vai pelos `args`.
+# As flags que impedem o Chrome de congelar o render de janela oculta
+# (--disable-backgrounding-occluded-windows etc.) já vêm nos defaults do browser-use.
+# ponytail: posição negativa fixa; se algum SO/WM puxar a janela de volta para a
+# tela, trocar por janela minimizada via CDP (Browser.setWindowBounds).
+_HIDDEN_WINDOW_ARGS = ["--window-position=-32000,-32000"]
 
 
 @dataclass
@@ -63,6 +72,7 @@ async def open_browser_context(
     slow_mo_ms: int = 0,  # ponytail: browser-use não expõe slow_mo; ignorado
     devtools: bool = False,  # ponytail: idem; mantido só p/ compat de assinatura
     browser_channel: str | None = "chrome",
+    hide_window: bool = True,
 ) -> AsyncIterator[BrowserBridge]:
     path = Path(storage_state_path)
     if not path.exists():
@@ -73,7 +83,10 @@ async def open_browser_context(
         channel=browser_channel or None,
         headless=headless,
         storage_state=str(path),
-        args=_ANTI_AUTOMATION_ARGS,
+        args=_ANTI_AUTOMATION_ARGS + (_HIDDEN_WINDOW_ARGS if hide_window else []),
+        # Tamanho continua o da tela (default do browser-use): o layout que os
+        # seletores conhecem não muda, só a posição.
+        **({"window_position": None} if hide_window else {}),
         ignore_default_args=_IGNORE_DEFAULT_ARGS,
         # headed usa o tamanho real da janela (igual à captura); headless usa o
         # viewport padrão.

@@ -18,9 +18,11 @@
   "build": {
     "appId": "com.apliquefy.desktop",
     "productName": "Apliquefy",
+    "icon": "resources/icon.png",
     "files": [
       "dist-electron/**",
-      "dist-react/**"
+      "dist-react/**",
+      "resources/icon.png"
     ],
     "directories": {
       "output": "release"
@@ -32,12 +34,16 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "build/runtime.env",
+        "to": "runtime.env"
       }
     ],
     "publish": [
       {
         "provider": "github",
-        "owner": "ESOOS-Tech-Company",
+        "owner": "esoos-sysadmin",
         "repo": "apliquefy-releases"
       }
     ],

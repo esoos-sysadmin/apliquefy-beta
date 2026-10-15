@@ -11,9 +11,9 @@ type ApolloOrbProps = {
 
 // Cor base (RGB) por estado — a malha é desenhada em additive glow sobre o fundo escuro.
 const PALETTE: Record<OrbState, [number, number, number]> = {
-    idle: [75, 139, 245], // azul Apliquefy
+    idle: [122, 59, 255], // roxo Apliquefy
     listening: [56, 232, 225], // ciano energizado
-    thinking: [151, 117, 250], // roxo
+    thinking: [255, 122, 0], // laranja da marca
     speaking: [245, 194, 91], // âmbar/solar (Apollo)
 };
 
@@ -65,16 +65,19 @@ export function ApolloOrb({ level, state, size = 320 }: ApolloOrbProps) {
             angle += rotSpeed;
 
             ctx.clearRect(0, 0, size, size);
-            ctx.globalCompositeOperation = "lighter";
+            // "lighter" é aditivo: some sobre o fundo claro, então só no escuro.
+            ctx.globalCompositeOperation = document.documentElement.dataset.theme === "dark" ? "lighter" : "source-over";
             // tremor rápido (~22 Hz) proporcional à amplitude real da fala — sub-pixel, vibra sem saltar
             const tremor = s === "speaking" ? smooth : 0;
             ctx.save();
             ctx.translate(Math.sin(t / 7) * tremor * 0.5, Math.cos(t / 9) * tremor * 0.4);
 
             // halo de fundo
-            const glow = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.9);
+            // Raio limitado à metade do canvas: maior que isso o halo é cortado nas bordas (vira um quadrado).
+            // Paradas terminam na própria cor com alpha 0 — rgba(0,0,0,0) cria franja cinza sobre fundo claro.
+            const glow = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, Math.min(R * 1.9, size / 2));
             glow.addColorStop(0, `rgba(${r},${g},${b},${0.22 + smooth * 0.25})`);
-            glow.addColorStop(1, "rgba(0,0,0,0)");
+            glow.addColorStop(1, `rgba(${r},${g},${b},0)`);
             ctx.fillStyle = glow;
             ctx.fillRect(0, 0, size, size);
 
@@ -140,7 +143,7 @@ export function ApolloOrb({ level, state, size = 320 }: ApolloOrbProps) {
             const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * (0.5 + smooth * 0.3));
             core.addColorStop(0, `rgba(255,255,255,${0.5 + smooth * 0.4})`);
             core.addColorStop(0.4, `rgba(${r},${g},${b},0.5)`);
-            core.addColorStop(1, "rgba(0,0,0,0)");
+            core.addColorStop(1, `rgba(${r},${g},${b},0)`);
             ctx.fillStyle = core;
             ctx.beginPath();
             ctx.arc(cx, cy, R * (0.5 + smooth * 0.3), 0, Math.PI * 2);

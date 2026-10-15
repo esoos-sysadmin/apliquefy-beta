@@ -50,7 +50,7 @@ function ResumeSelect({
                 onClick={() => setOpen((o) => !o)}
                 aria-haspopup="listbox"
                 aria-expanded={open}
-                className="flex h-12 w-full items-center justify-between gap-3 rounded-xl border border-[#2A3445] bg-[#101826] px-4 text-left text-sm text-slate-200 transition hover:border-[#35507E] focus:border-[#35507E] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex h-12 w-full items-center justify-between gap-3 rounded-xl border border-line-strong bg-sunken px-4 text-left text-sm text-slate-200 transition hover:border-accent/50 focus:border-accent/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
             >
                 <span className={`truncate ${selected ? "text-slate-100" : "text-slate-500"}`}>
                     {selected?.title ?? "Selecione um currículo"}
@@ -61,7 +61,7 @@ function ResumeSelect({
             {open && (
                 <ul
                     role="listbox"
-                    className="absolute z-30 mt-2 max-h-72 w-full overflow-auto rounded-xl border border-[#2A3445] bg-[#131B2A] p-1 shadow-2xl shadow-black/50"
+                    className="absolute z-30 mt-2 max-h-72 w-full overflow-auto rounded-xl border border-line-strong bg-surface p-1 shadow-2xl shadow-black/50"
                 >
                     {resumes.map((r) => {
                         const active = r.id === value;
@@ -76,7 +76,7 @@ function ResumeSelect({
                                         setOpen(false);
                                     }}
                                     className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
-                                        active ? "bg-sky-500/15 text-sky-200" : "text-slate-300 hover:bg-[#1b2536]"
+                                        active ? "bg-sky-500/15 text-sky-200" : "text-slate-300 hover:bg-raised"
                                     }`}
                                 >
                                     <span className="truncate">{r.title}</span>
@@ -174,8 +174,8 @@ function AnalyzeResumeInner() {
     }
 
     return (
-        <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 text-white">
-            <div className="flex flex-col gap-3 border-b border-[#1C2333] pb-6">
+        <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 text-fg">
+            <div className="flex flex-col gap-3 border-b border-line pb-6">
                 <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                     <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
                     <span>/</span>
@@ -184,7 +184,7 @@ function AnalyzeResumeInner() {
                     <span className="text-slate-300">Analisar com IA</span>
                 </div>
                 <div>
-                    <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                    <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight text-fg sm:text-4xl">
                         <Sparkles className="text-sky-400" size={30} />
                         Analisar currículo com IA
                     </h1>
@@ -196,7 +196,7 @@ function AnalyzeResumeInner() {
             </div>
 
             {/* Seleção do currículo */}
-            <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-4">
+            <div className="rounded-2xl border border-line bg-surface p-4">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <label className="text-sm font-medium text-slate-300">Currículo</label>
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
@@ -208,11 +208,11 @@ function AnalyzeResumeInner() {
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
                     {isLoading ? (
-                        <div className="flex h-12 flex-1 items-center rounded-xl border border-[#2A3445] bg-[#101826] px-4 text-sm text-slate-500">
+                        <div className="flex h-12 flex-1 items-center rounded-xl border border-line-strong bg-sunken px-4 text-sm text-slate-500">
                             Carregando currículos...
                         </div>
                     ) : resumes.length === 0 ? (
-                        <div className="flex h-12 flex-1 items-center rounded-xl border border-[#2A3445] bg-[#101826] px-4 text-sm text-slate-500">
+                        <div className="flex h-12 flex-1 items-center rounded-xl border border-line-strong bg-sunken px-4 text-sm text-slate-500">
                             Nenhum currículo —{" "}
                             <Link href="/curriculos/novo" className="ml-1 text-sky-300 hover:text-sky-200">
                                 crie um primeiro
@@ -233,7 +233,7 @@ function AnalyzeResumeInner() {
                         onClick={handleAnalyze}
                         disabled={!selectedId || analyzing || insufficient}
                         title={insufficient ? "Créditos insuficientes" : undefined}
-                        className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-6 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(37,99,235,0.28)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-accent px-6 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         <Sparkles size={16} />
                         {analyzing ? "Analisando..." : `Analisar · ${RESUME_ANALYSIS_COST} créditos`}
@@ -250,7 +250,7 @@ function AnalyzeResumeInner() {
             </div>
 
             {analyzing && (
-                <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] px-6 py-10 text-center text-sm text-slate-400">
+                <div className="rounded-2xl border border-line bg-surface px-6 py-10 text-center text-sm text-slate-400">
                     A IA está lendo o currículo e montando as sugestões...
                 </div>
             )}
@@ -263,7 +263,7 @@ function AnalyzeResumeInner() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-white">
+                        <h2 className="text-lg font-semibold text-fg">
                             Sugestões <span className="text-slate-500">({chosen.size}/{analysis.suggestions.length})</span>
                         </h2>
                         {analysis.suggestions.length > 0 && (
@@ -274,7 +274,7 @@ function AnalyzeResumeInner() {
                     </div>
 
                     {analysis.suggestions.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-[#2A3445] bg-[#131B2A] px-6 py-10 text-center text-sm text-slate-400">
+                        <div className="rounded-2xl border border-dashed border-line-strong bg-surface px-6 py-10 text-center text-sm text-slate-400">
                             A IA não encontrou ajustes relevantes — seu currículo já está bem estruturado.
                         </div>
                     ) : (
@@ -286,7 +286,7 @@ function AnalyzeResumeInner() {
                                     <label
                                         key={s.id}
                                         className={`flex cursor-pointer gap-4 rounded-2xl border p-4 transition-colors ${
-                                            active ? "border-sky-500/40 bg-sky-500/[0.06]" : "border-[#1C2333] bg-[#131B2A] hover:border-[#283349]"
+                                            active ? "border-sky-500/40 bg-sky-500/[0.06]" : "border-line bg-surface hover:border-line-strong"
                                         }`}
                                     >
                                         <input
@@ -300,7 +300,7 @@ function AnalyzeResumeInner() {
                                                 <span className="rounded-full border border-slate-600/40 bg-slate-700/30 px-2.5 py-0.5 text-[11px] font-medium text-slate-300">
                                                     {s.section}
                                                 </span>
-                                                <span className="text-sm font-semibold text-white">{s.title}</span>
+                                                <span className="text-sm font-semibold text-fg">{s.title}</span>
                                             </div>
                                             <p className="text-sm text-slate-400">{s.rationale}</p>
                                             {s.currentValue && (
@@ -314,12 +314,12 @@ function AnalyzeResumeInner() {
                         </div>
                     )}
 
-                    <div className="sticky bottom-4 flex flex-col gap-3 rounded-2xl border border-[#1C2333] bg-[#131B2A]/95 p-4 backdrop-blur sm:flex-row sm:justify-end">
+                    <div className="sticky bottom-4 flex flex-col gap-3 rounded-2xl border border-line bg-surface/95 p-4 backdrop-blur sm:flex-row sm:justify-end">
                         <button
                             type="button"
                             onClick={() => handleSave("copy")}
                             disabled={chosen.size === 0 || saving !== null}
-                            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[#2A3445] px-5 text-sm font-semibold text-slate-200 transition hover:border-[#35507E] hover:bg-[#182233] disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-line-strong px-5 text-sm font-semibold text-slate-200 transition hover:border-accent/50 hover:bg-raised disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             <Copy size={15} />
                             {saving === "copy" ? "Salvando..." : "Salvar como cópia"}
@@ -328,7 +328,7 @@ function AnalyzeResumeInner() {
                             type="button"
                             onClick={() => handleSave("update")}
                             disabled={chosen.size === 0 || saving !== null}
-                            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(37,99,235,0.28)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             <Save size={15} />
                             {saving === "update" ? "Salvando..." : "Atualizar este currículo"}

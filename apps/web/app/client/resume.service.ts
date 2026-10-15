@@ -1,5 +1,5 @@
 import { ApiClient } from "../lib/api-client";
-import type { Resume, CreateResumeInput, UpdateResumeInput, ResumeAnalysis } from "../types/resume";
+import type { Resume, CreateResumeInput, UpdateResumeInput, ResumeAnalysis, ResumeLanguage } from "../types/resume";
 import type { ResumeFormData } from "../types/resume-form";
 import type { ApiSuccessResponse } from "../types/api";
 
@@ -51,4 +51,9 @@ export async function importResumePdf(api: ApiClient, file: File) {
 export async function analyzeResume(api: ApiClient, id: string) {
     const response = await api.post<ApiSuccessResponse<ResumeAnalysis>>(`/resumes/${id}/analyze`, {});
     return unwrapResumePayload(response) as ResumeAnalysis;
+}
+
+export async function translateResume(api: ApiClient, id: string, language: ResumeLanguage) {
+    const response = await api.post<ApiSuccessResponse<Resume>>(`/resumes/${id}/translate`, { language });
+    return unwrapResumePayload(response) as Resume;
 }

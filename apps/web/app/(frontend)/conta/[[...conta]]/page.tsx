@@ -4,19 +4,8 @@ import { UserProfile, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 
+// Cores base vêm do ClerkProvider (tema claro/escuro); aqui só o layout de página inteira.
 const profileAppearance = {
-    variables: {
-        colorBackground: "#152234",
-        colorText: "#F1F5F9",
-        colorTextSecondary: "#94A3B8",
-        colorInputBackground: "#0F172A",
-        colorInputText: "#F1F5F9",
-        colorPrimary: "#2563EB",
-        colorNeutral: "#CBD5E1",
-        colorShimmer: "#1E2D45",
-        borderRadius: "10px",
-        fontFamily: "inherit",
-    },
     elements: {
         rootBox: {
             width: "100%",
@@ -24,45 +13,30 @@ const profileAppearance = {
         card: {
             width: "100%",
             maxWidth: "100%",
-            background: "#152234",
-            border: "1px solid #243049",
-            boxShadow: "0 18px 50px rgba(0, 0, 0, 0.3)",
+            background: "rgb(var(--c-surface))",
+            border: "1px solid rgb(var(--c-line))",
+            boxShadow: "0 18px 50px rgba(20, 18, 28, 0.08)",
         },
         navbar: {
-            background: "#0F172A",
-            borderRight: "1px solid #1E2D45",
-        },
-        navbarButton: {
-            color: "#CBD5E1",
+            background: "rgb(var(--c-sunken))",
+            borderRight: "1px solid rgb(var(--c-line))",
         },
         navbarButtonActive: {
-            background: "#1D3A6B",
-            color: "#FFFFFF",
+            background: "rgb(var(--c-accent-soft))",
+            color: "rgb(var(--c-accent-text))",
         },
         pageScrollBox: {
-            background: "#152234",
+            background: "rgb(var(--c-surface))",
         },
         profileSectionTitle: {
-            borderBottom: "1px solid #1E2D45",
+            borderBottom: "1px solid rgb(var(--c-line))",
         },
         profileSectionPrimaryButton: {
-            color: "#93C5FD",
-        },
-        formFieldInput: {
-            background: "#0F172A",
-            border: "1px solid #243049",
-            color: "#F1F5F9",
-        },
-        formButtonPrimary: {
-            background: "#2563EB",
-            color: "#FFFFFF",
-        },
-        formButtonReset: {
-            color: "#94A3B8",
+            color: "rgb(var(--c-accent-text))",
         },
         badge: {
-            color: "#93C5FD",
-            background: "#1E3A5F",
+            color: "rgb(var(--c-accent-text))",
+            background: "rgb(var(--c-accent-soft))",
         },
         profileSection__danger: {
             display: "none",
@@ -82,8 +56,8 @@ export default function ContaPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
                 <div>
-                    <p style={{ margin: 0, color: "#64748B", fontSize: 13 }}>Conta</p>
-                    <h1 style={{ margin: "8px 0 0", fontSize: 32, color: "#F8FAFC" }}>Minha sessão</h1>
+                    <p style={{ margin: 0, color: "rgb(var(--c-muted))", fontSize: 13 }}>Conta</p>
+                    <h1 style={{ margin: "8px 0 0", fontSize: 32, color: "rgb(var(--c-fg))" }}>Minha sessão</h1>
                 </div>
 
                 <button
@@ -96,8 +70,8 @@ export default function ContaPage() {
                         padding: "10px 16px",
                         borderRadius: 10,
                         background: "transparent",
-                        border: "1px solid #3B4F6B",
-                        color: "#F87171",
+                        border: "1px solid rgb(var(--c-line-strong))",
+                        color: "rgb(var(--c-rose-400))",
                         fontSize: 13,
                         fontWeight: 500,
                         cursor: "pointer",

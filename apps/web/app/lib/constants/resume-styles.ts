@@ -1,17 +1,17 @@
 import type React from "react";
 
-// Escala de camadas sobre o fundo da página (#0B111A):
-//   página  #0B111A  (mais escuro)
-//   card     #1A2335  (elevado, com borda + sombra)
-//   input    #0F1826  (inset, mais escuro que o card, borda nítida)
+// Camadas (tokens de theme.palette.js, valem nos dois temas):
+//   página  canvas
+//   card    surface (elevado, com borda + sombra)
+//   input   sunken (rebaixado em relação ao card, borda nítida)
 
 export const inputStyle = (hasError = false, frozen = false): React.CSSProperties => ({
     width: "100%",
-    background: frozen ? "#141D2D" : "#0F1826",
-    border: `1px solid ${hasError ? "#ef4444" : frozen ? "#28344C" : "#33486A"}`,
+    background: frozen ? "rgb(var(--c-raised))" : "rgb(var(--c-sunken))",
+    border: `1px solid ${hasError ? "rgb(var(--c-rose-500))" : frozen ? "rgb(var(--c-line))" : "rgb(var(--c-line-strong))"}`,
     borderRadius: 8,
     padding: "10px 12px",
-    color: frozen ? "#C6D2E6" : "#F1F5F9",
+    color: frozen ? "rgb(var(--c-slate-300))" : "rgb(var(--c-fg))",
     fontSize: 14,
     outline: "none",
     boxSizing: "border-box",
@@ -20,11 +20,11 @@ export const inputStyle = (hasError = false, frozen = false): React.CSSPropertie
 });
 
 export const sectionStyle: React.CSSProperties = {
-    background: "#1A2335",
+    background: "rgb(var(--c-surface))",
     borderRadius: 12,
     padding: 24,
     marginBottom: 20,
-    border: "1px solid #2B3853",
+    border: "1px solid rgb(var(--c-line))",
     boxShadow: "0 2px 10px rgba(0, 0, 0, 0.25)",
 };
 
@@ -34,14 +34,14 @@ export const sectionTitle: React.CSSProperties = {
     marginTop: 0,
     marginBottom: 20,
     paddingBottom: 12,
-    borderBottom: "1px solid #2B3853",
-    color: "#7FB2FF",
+    borderBottom: "1px solid rgb(var(--c-line))",
+    color: "rgb(var(--c-accent-text))",
 };
 
 export const labelStyle: React.CSSProperties = {
     display: "block",
     fontSize: 13,
-    color: "#A6B4CC",
+    color: "rgb(var(--c-slate-400))",
     marginBottom: 8,
     fontWeight: 500,
     letterSpacing: "0.03em",
@@ -55,15 +55,15 @@ export const gridTwo: React.CSSProperties = {
 
 export const errorStyle: React.CSSProperties = {
     display: "block",
-    color: "#f87171",
+    color: "rgb(var(--c-rose-400))",
     fontSize: 12,
     marginTop: 4,
 };
 
 export const addButtonStyle: React.CSSProperties = {
-    background: "rgba(59, 130, 246, 0.12)",
-    border: "1px solid #3b82f6",
-    color: "#93c5fd",
+    background: "rgb(var(--c-accent) / 0.12)",
+    border: "1px solid rgb(var(--c-accent))",
+    color: "rgb(var(--c-accent-text))",
     borderRadius: 8,
     padding: "6px 14px",
     fontSize: 13,
@@ -74,7 +74,7 @@ export const addButtonStyle: React.CSSProperties = {
 export const removeButtonStyle: React.CSSProperties = {
     background: "transparent",
     border: "none",
-    color: "#f87171",
+    color: "rgb(var(--c-rose-400))",
     fontSize: 12,
     cursor: "pointer",
 };

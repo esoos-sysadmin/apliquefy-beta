@@ -1,0 +1,186 @@
+{
+  "name": "Apliquefy UI components",
+  "version": "1.0",
+  "exports": [
+    {
+      "id": "01-botoes",
+      "title": "Botões e estados",
+      "width": 728,
+      "height": 252,
+      "svg": "svg/01-botoes.svg",
+      "png1x": "png-1x/01-botoes.png",
+      "png2x": "png-2x/01-botoes@2x.png",
+      "description": "Hierarquia e estados nativos vetoriais. Texto editável. PNG com fundo transparente."
+    },
+    {
+      "id": "02-campos",
+      "title": "Campos e estados",
+      "width": 734,
+      "height": 328,
+      "svg": "svg/02-campos.svg",
+      "png1x": "png-1x/02-campos.png",
+      "png2x": "png-2x/02-campos@2x.png",
+      "description": "Campos com rótulos permanentes e estados padrão, foco, erro e desabilitado."
+    },
+    {
+      "id": "03-status",
+      "title": "Etiquetas de status",
+      "width": 603,
+      "height": 150,
+      "svg": "svg/03-status.svg",
+      "png1x": "png-1x/03-status.png",
+      "png2x": "png-2x/03-status@2x.png",
+      "description": "Cinco status com texto, ponto e superfícies semânticas."
+    },
+    {
+      "id": "04-cartao-vaga",
+      "title": "Cartão de oportunidade",
+      "width": 440,
+      "height": 290,
+      "svg": "svg/04-cartao-vaga.svg",
+      "png1x": "png-1x/04-cartao-vaga.png",
+      "png2x": "png-2x/04-cartao-vaga@2x.png",
+      "description": "Oportunidade fictícia do varejo. Ação secundária e status legível."
+    },
+    {
+      "id": "05-candidaturas",
+      "title": "Linhas de candidatura",
+      "width": 780,
+      "height": 264,
+      "svg": "svg/05-candidaturas.svg",
+      "png1x": "png-1x/05-candidaturas.png",
+      "png2x": "png-2x/05-candidaturas@2x.png",
+      "description": "Três estados de candidatura ilustrativos, com empresas e horários fictícios."
+    },
+    {
+      "id": "06-checkbox-radio",
+      "title": "Checkbox e radio",
+      "width": 370,
+      "height": 166,
+      "svg": "svg/06-checkbox-radio.svg",
+      "png1x": "png-1x/06-checkbox-radio.png",
+      "png2x": "png-2x/06-checkbox-radio@2x.png",
+      "description": "Seleções de opção múltipla e única. Indicador de forma reforça a cor."
+    },
+    {
+      "id": "07-switch",
+      "title": "Interruptores de preferência",
+      "width": 370,
+      "height": 166,
+      "svg": "svg/07-switch.svg",
+      "png1x": "png-1x/07-switch.png",
+      "png2x": "png-2x/07-switch@2x.png",
+      "description": "Interruptores ligados e desligados acompanhados de rótulo."
+    },
+    {
+      "id": "08-chips",
+      "title": "Seleção de áreas",
+      "width": 392,
+      "height": 170,
+      "svg": "svg/08-chips.svg",
+      "png1x": "png-1x/08-chips.png",
+      "png2x": "png-2x/08-chips@2x.png",
+      "description": "Chips com estados selecionado e disponível."
+    },
+    {
+      "id": "09-alerta",
+      "title": "Alerta informativo",
+      "width": 620,
+      "height": 115,
+      "svg": "svg/09-alerta.svg",
+      "png1x": "png-1x/09-alerta.png",
+      "png2x": "png-2x/09-alerta@2x.png",
+      "description": "Mensagem informativa com ícone, título e orientação clara."
+    },
+    {
+      "id": "10-toast",
+      "title": "Toast de confirmação",
+      "width": 464,
+      "height": 58,
+      "svg": "svg/10-toast.svg",
+      "png1x": "png-1x/10-toast.png",
+      "png2x": "png-2x/10-toast@2x.png",
+      "description": "Confirmação breve em alto contraste, com ação de fechar."
+    },
+    {
+      "id": "11-etapas",
+      "title": "Etapas de candidatura",
+      "width": 738,
+      "height": 160,
+      "svg": "svg/11-etapas.svg",
+      "png1x": "png-1x/11-etapas.png",
+      "png2x": "png-2x/11-etapas@2x.png",
+      "description": "Etapas concluídas, atual e futura de um fluxo fictício."
+    },
+    {
+      "id": "12-estado-vazio",
+      "title": "Estado vazio",
+      "width": 440,
+      "height": 240,
+      "svg": "svg/12-estado-vazio.svg",
+      "png1x": "png-1x/12-estado-vazio.png",
+      "png2x": "png-2x/12-estado-vazio@2x.png",
+      "description": "Estado vazio com ação útil e texto de orientação."
+    },
+    {
+      "id": "13-skeleton",
+      "title": "Estado de carregamento",
+      "width": 440,
+      "height": 220,
+      "svg": "svg/13-skeleton.svg",
+      "png1x": "png-1x/13-skeleton.png",
+      "png2x": "png-2x/13-skeleton@2x.png",
+      "description": "Skeleton estático com descrição textual; não depende de animação."
+    },
+    {
+      "id": "14-abas",
+      "title": "Abas de navegação",
+      "width": 420,
+      "height": 173,
+      "svg": "svg/14-abas.svg",
+      "png1x": "png-1x/14-abas.png",
+      "png2x": "png-2x/14-abas@2x.png",
+      "description": "Abas com seleção explícita. HTML correspondente oferece navegação pelo teclado."
+    },
+    {
+      "id": "15-paginacao",
+      "title": "Paginação",
+      "width": 342,
+      "height": 150,
+      "svg": "svg/15-paginacao.svg",
+      "png1x": "png-1x/15-paginacao.png",
+      "png2x": "png-2x/15-paginacao@2x.png",
+      "description": "Paginação de cinco páginas ilustrativas."
+    },
+    {
+      "id": "16-avatar",
+      "title": "Avatar e identificação",
+      "width": 342,
+      "height": 96,
+      "svg": "svg/16-avatar.svg",
+      "png1x": "png-1x/16-avatar.png",
+      "png2x": "png-2x/16-avatar@2x.png",
+      "description": "Avatar com iniciais e identificação fictícia. Sem fotografia genérica obrigatória."
+    },
+    {
+      "id": "17-disclosure",
+      "title": "Informação complementar",
+      "width": 480,
+      "height": 149,
+      "svg": "svg/17-disclosure.svg",
+      "png1x": "png-1x/17-disclosure.png",
+      "png2x": "png-2x/17-disclosure@2x.png",
+      "description": "Disclosure aberto com resposta clara sobre a demonstração."
+    },
+    {
+      "id": "18-alerta-atencao",
+      "title": "Alerta de atenção",
+      "width": 480,
+      "height": 115,
+      "svg": "svg/18-alerta-atencao.svg",
+      "png1x": "png-1x/18-alerta-atencao.png",
+      "png2x": "png-2x/18-alerta-atencao@2x.png",
+      "description": "Alerta de atenção com orientação e sem associação exclusivamente cromática."
+    }
+  ]
+}

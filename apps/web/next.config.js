@@ -1,7 +1,13 @@
 import { withSentryConfig } from "@sentry/nextjs";
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  // Raiz é a landing. Redirect do next.config roda antes do proxy (Clerk), então
+  // quem está deslogado não cai no /login ao abrir "/".
+  async redirects() {
+    return [{ source: "/", destination: "/lp", permanent: false }];
+  },
+};
 
 // Sem credencial de upload (dev, PR de fork) o build sai sem source map em vez
 // de falhar por uma etapa que só interessa em release.

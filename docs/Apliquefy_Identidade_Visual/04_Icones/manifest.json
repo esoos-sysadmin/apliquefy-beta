@@ -1,0 +1,646 @@
+{
+  "name": "Apliquefy Icons",
+  "version": "1.0.0",
+  "created": "2026-10-12",
+  "original_geometry": true,
+  "viewBox": "0 0 24 24",
+  "stroke_width": 1.8,
+  "linecap": "round",
+  "linejoin": "round",
+  "color": "currentColor",
+  "png_color": "#14121C",
+  "png_sizes": [
+    24,
+    48,
+    96
+  ],
+  "icons": [
+    {
+      "id": "home",
+      "label_pt_BR": "Início",
+      "category_pt_BR": "Navegação",
+      "svg": "SVG/home.svg",
+      "png": {
+        "24": "PNG/24px/home.png",
+        "48": "PNG/48px/home.png",
+        "96": "PNG/96px/home.png"
+      }
+    },
+    {
+      "id": "search",
+      "label_pt_BR": "Buscar",
+      "category_pt_BR": "Navegação",
+      "svg": "SVG/search.svg",
+      "png": {
+        "24": "PNG/24px/search.png",
+        "48": "PNG/48px/search.png",
+        "96": "PNG/96px/search.png"
+      }
+    },
+    {
+      "id": "work",
+      "label_pt_BR": "Vagas",
+      "category_pt_BR": "Trabalho",
+      "svg": "SVG/work.svg",
+      "png": {
+        "24": "PNG/24px/work.png",
+        "48": "PNG/48px/work.png",
+        "96": "PNG/96px/work.png"
+      }
+    },
+    {
+      "id": "profile",
+      "label_pt_BR": "Perfil",
+      "category_pt_BR": "Conta",
+      "svg": "SVG/profile.svg",
+      "png": {
+        "24": "PNG/24px/profile.png",
+        "48": "PNG/48px/profile.png",
+        "96": "PNG/96px/profile.png"
+      }
+    },
+    {
+      "id": "resume",
+      "label_pt_BR": "Currículo",
+      "category_pt_BR": "Trabalho",
+      "svg": "SVG/resume.svg",
+      "png": {
+        "24": "PNG/24px/resume.png",
+        "48": "PNG/48px/resume.png",
+        "96": "PNG/96px/resume.png"
+      }
+    },
+    {
+      "id": "education",
+      "label_pt_BR": "Formação",
+      "category_pt_BR": "Trabalho",
+      "svg": "SVG/education.svg",
+      "png": {
+        "24": "PNG/24px/education.png",
+        "48": "PNG/48px/education.png",
+        "96": "PNG/96px/education.png"
+      }
+    },
+    {
+      "id": "experience",
+      "label_pt_BR": "Experiência",
+      "category_pt_BR": "Trabalho",
+      "svg": "SVG/experience.svg",
+      "png": {
+        "24": "PNG/24px/experience.png",
+        "48": "PNG/48px/experience.png",
+        "96": "PNG/96px/experience.png"
+      }
+    },
+    {
+      "id": "location",
+      "label_pt_BR": "Localização",
+      "category_pt_BR": "Preferências",
+      "svg": "SVG/location.svg",
+      "png": {
+        "24": "PNG/24px/location.png",
+        "48": "PNG/48px/location.png",
+        "96": "PNG/96px/location.png"
+      }
+    },
+    {
+      "id": "clock",
+      "label_pt_BR": "Horário",
+      "category_pt_BR": "Preferências",
+      "svg": "SVG/clock.svg",
+      "png": {
+        "24": "PNG/24px/clock.png",
+        "48": "PNG/48px/clock.png",
+        "96": "PNG/96px/clock.png"
+      }
+    },
+    {
+      "id": "salary",
+      "label_pt_BR": "Remuneração",
+      "category_pt_BR": "Preferências",
+      "svg": "SVG/salary.svg",
+      "png": {
+        "24": "PNG/24px/salary.png",
+        "48": "PNG/48px/salary.png",
+        "96": "PNG/96px/salary.png"
+      }
+    },
+    {
+      "id": "filter",
+      "label_pt_BR": "Filtros",
+      "category_pt_BR": "Preferências",
+      "svg": "SVG/filter.svg",
+      "png": {
+        "24": "PNG/24px/filter.png",
+        "48": "PNG/48px/filter.png",
+        "96": "PNG/96px/filter.png"
+      }
+    },
+    {
+      "id": "automation",
+      "label_pt_BR": "Automação",
+      "category_pt_BR": "Candidaturas",
+      "svg": "SVG/automation.svg",
+      "png": {
+        "24": "PNG/24px/automation.png",
+        "48": "PNG/48px/automation.png",
+        "96": "PNG/96px/automation.png"
+      }
+    },
+    {
+      "id": "preferences",
+      "label_pt_BR": "Preferências",
+      "category_pt_BR": "Preferências",
+      "svg": "SVG/preferences.svg",
+      "png": {
+        "24": "PNG/24px/preferences.png",
+        "48": "PNG/48px/preferences.png",
+        "96": "PNG/96px/preferences.png"
+      }
+    },
+    {
+      "id": "send",
+      "label_pt_BR": "Enviar candidatura",
+      "category_pt_BR": "Candidaturas",
+      "svg": "SVG/send.svg",
+      "png": {
+        "24": "PNG/24px/send.png",
+        "48": "PNG/48px/send.png",
+        "96": "PNG/96px/send.png"
+      }
+    },
+    {
+      "id": "applications",
+      "label_pt_BR": "Candidaturas",
+      "category_pt_BR": "Candidaturas",
+      "svg": "SVG/applications.svg",
+      "png": {
+        "24": "PNG/24px/applications.png",
+        "48": "PNG/48px/applications.png",
+        "96": "PNG/96px/applications.png"
+      }
+    },
+    {
+      "id": "interview",
+      "label_pt_BR": "Conversa",
+      "category_pt_BR": "Candidaturas",
+      "svg": "SVG/interview.svg",
+      "png": {
+        "24": "PNG/24px/interview.png",
+        "48": "PNG/48px/interview.png",
+        "96": "PNG/96px/interview.png"
+      }
+    },
+    {
+      "id": "calendar",
+      "label_pt_BR": "Calendário",
+      "category_pt_BR": "Candidaturas",
+      "svg": "SVG/calendar.svg",
+      "png": {
+        "24": "PNG/24px/calendar.png",
+        "48": "PNG/48px/calendar.png",
+        "96": "PNG/96px/calendar.png"
+      }
+    },
+    {
+      "id": "notification",
+      "label_pt_BR": "Notificações",
+      "category_pt_BR": "Conta",
+      "svg": "SVG/notification.svg",
+      "png": {
+        "24": "PNG/24px/notification.png",
+        "48": "PNG/48px/notification.png",
+        "96": "PNG/96px/notification.png"
+      }
+    },
+    {
+      "id": "pause",
+      "label_pt_BR": "Pausar",
+      "category_pt_BR": "Controle",
+      "svg": "SVG/pause.svg",
+      "png": {
+        "24": "PNG/24px/pause.png",
+        "48": "PNG/48px/pause.png",
+        "96": "PNG/96px/pause.png"
+      }
+    },
+    {
+      "id": "play",
+      "label_pt_BR": "Iniciar",
+      "category_pt_BR": "Controle",
+      "svg": "SVG/play.svg",
+      "png": {
+        "24": "PNG/24px/play.png",
+        "48": "PNG/48px/play.png",
+        "96": "PNG/96px/play.png"
+      }
+    },
+    {
+      "id": "stop",
+      "label_pt_BR": "Encerrar",
+      "category_pt_BR": "Controle",
+      "svg": "SVG/stop.svg",
+      "png": {
+        "24": "PNG/24px/stop.png",
+        "48": "PNG/48px/stop.png",
+        "96": "PNG/96px/stop.png"
+      }
+    },
+    {
+      "id": "check",
+      "label_pt_BR": "Confirmar",
+      "category_pt_BR": "Estados",
+      "svg": "SVG/check.svg",
+      "png": {
+        "24": "PNG/24px/check.png",
+        "48": "PNG/48px/check.png",
+        "96": "PNG/96px/check.png"
+      }
+    },
+    {
+      "id": "check-circle",
+      "label_pt_BR": "Concluído",
+      "category_pt_BR": "Estados",
+      "svg": "SVG/check-circle.svg",
+      "png": {
+        "24": "PNG/24px/check-circle.png",
+        "48": "PNG/48px/check-circle.png",
+        "96": "PNG/96px/check-circle.png"
+      }
+    },
+    {
+      "id": "error",
+      "label_pt_BR": "Erro",
+      "category_pt_BR": "Estados",
+      "svg": "SVG/error.svg",
+      "png": {
+        "24": "PNG/24px/error.png",
+        "48": "PNG/48px/error.png",
+        "96": "PNG/96px/error.png"
+      }
+    },
+    {
+      "id": "warning",
+      "label_pt_BR": "Atenção",
+      "category_pt_BR": "Estados",
+      "svg": "SVG/warning.svg",
+      "png": {
+        "24": "PNG/24px/warning.png",
+        "48": "PNG/48px/warning.png",
+        "96": "PNG/96px/warning.png"
+      }
+    },
+    {
+      "id": "info",
+      "label_pt_BR": "Informação",
+      "category_pt_BR": "Estados",
+      "svg": "SVG/info.svg",
+      "png": {
+        "24": "PNG/24px/info.png",
+        "48": "PNG/48px/info.png",
+        "96": "PNG/96px/info.png"
+      }
+    },
+    {
+      "id": "lock",
+      "label_pt_BR": "Privacidade",
+      "category_pt_BR": "Conta",
+      "svg": "SVG/lock.svg",
+      "png": {
+        "24": "PNG/24px/lock.png",
+        "48": "PNG/48px/lock.png",
+        "96": "PNG/96px/lock.png"
+      }
+    },
+    {
+      "id": "globe",
+      "label_pt_BR": "Idioma",
+      "category_pt_BR": "Conta",
+      "svg": "SVG/globe.svg",
+      "png": {
+        "24": "PNG/24px/globe.png",
+        "48": "PNG/48px/globe.png",
+        "96": "PNG/96px/globe.png"
+      }
+    },
+    {
+      "id": "upload",
+      "label_pt_BR": "Importar",
+      "category_pt_BR": "Arquivos",
+      "svg": "SVG/upload.svg",
+      "png": {
+        "24": "PNG/24px/upload.png",
+        "48": "PNG/48px/upload.png",
+        "96": "PNG/96px/upload.png"
+      }
+    },
+    {
+      "id": "download",
+      "label_pt_BR": "Baixar",
+      "category_pt_BR": "Arquivos",
+      "svg": "SVG/download.svg",
+      "png": {
+        "24": "PNG/24px/download.png",
+        "48": "PNG/48px/download.png",
+        "96": "PNG/96px/download.png"
+      }
+    },
+    {
+      "id": "chevron-left",
+      "label_pt_BR": "Voltar",
+      "category_pt_BR": "Navegação",
+      "svg": "SVG/chevron-left.svg",
+      "png": {
+        "24": "PNG/24px/chevron-left.png",
+        "48": "PNG/48px/chevron-left.png",
+        "96": "PNG/96px/chevron-left.png"
+      }
+    },
+    {
+      "id": "chevron-right",
+      "label_pt_BR": "Avançar",
+      "category_pt_BR": "Navegação",
+      "svg": "SVG/chevron-right.svg",
+      "png": {
+        "24": "PNG/24px/chevron-right.png",
+        "48": "PNG/48px/chevron-right.png",
+        "96": "PNG/96px/chevron-right.png"
+      }
+    },
+    {
+      "id": "chevron-up",
+      "label_pt_BR": "Recolher",
+      "category_pt_BR": "Navegação",
+      "svg": "SVG/chevron-up.svg",
+      "png": {
+        "24": "PNG/24px/chevron-up.png",
+        "48": "PNG/48px/chevron-up.png",
+        "96": "PNG/96px/chevron-up.png"
+      }
+    },
+    {
+      "id": "chevron-down",
+      "label_pt_BR": "Expandir",
+      "category_pt_BR": "Navegação",
+      "svg": "SVG/chevron-down.svg",
+      "png": {
+        "24": "PNG/24px/chevron-down.png",
+        "48": "PNG/48px/chevron-down.png",
+        "96": "PNG/96px/chevron-down.png"
+      }
+    },
+    {
+      "id": "external-link",
+      "label_pt_BR": "Abrir em outro site",
+      "category_pt_BR": "Navegação",
+      "svg": "SVG/external-link.svg",
+      "png": {
+        "24": "PNG/24px/external-link.png",
+        "48": "PNG/48px/external-link.png",
+        "96": "PNG/96px/external-link.png"
+      }
+    },
+    {
+      "id": "help",
+      "label_pt_BR": "Ajuda",
+      "category_pt_BR": "Conta",
+      "svg": "SVG/help.svg",
+      "png": {
+        "24": "PNG/24px/help.png",
+        "48": "PNG/48px/help.png",
+        "96": "PNG/96px/help.png"
+      }
+    },
+    {
+      "id": "settings",
+      "label_pt_BR": "Configurações",
+      "category_pt_BR": "Conta",
+      "svg": "SVG/settings.svg",
+      "png": {
+        "24": "PNG/24px/settings.png",
+        "48": "PNG/48px/settings.png",
+        "96": "PNG/96px/settings.png"
+      }
+    },
+    {
+      "id": "logout",
+      "label_pt_BR": "Sair",
+      "category_pt_BR": "Conta",
+      "svg": "SVG/logout.svg",
+      "png": {
+        "24": "PNG/24px/logout.png",
+        "48": "PNG/48px/logout.png",
+        "96": "PNG/96px/logout.png"
+      }
+    },
+    {
+      "id": "retail",
+      "label_pt_BR": "Comércio",
+      "category_pt_BR": "Áreas de atuação",
+      "svg": "SVG/retail.svg",
+      "png": {
+        "24": "PNG/24px/retail.png",
+        "48": "PNG/48px/retail.png",
+        "96": "PNG/96px/retail.png"
+      }
+    },
+    {
+      "id": "health",
+      "label_pt_BR": "Saúde e farmácia",
+      "category_pt_BR": "Áreas de atuação",
+      "svg": "SVG/health.svg",
+      "png": {
+        "24": "PNG/24px/health.png",
+        "48": "PNG/48px/health.png",
+        "96": "PNG/96px/health.png"
+      }
+    },
+    {
+      "id": "office",
+      "label_pt_BR": "Escritório",
+      "category_pt_BR": "Áreas de atuação",
+      "svg": "SVG/office.svg",
+      "png": {
+        "24": "PNG/24px/office.png",
+        "48": "PNG/48px/office.png",
+        "96": "PNG/96px/office.png"
+      }
+    },
+    {
+      "id": "arrow-right",
+      "label_pt_BR": "Continuar",
+      "category_pt_BR": "Navegação",
+      "svg": "SVG/arrow-right.svg",
+      "png": {
+        "24": "PNG/24px/arrow-right.png",
+        "48": "PNG/48px/arrow-right.png",
+        "96": "PNG/96px/arrow-right.png"
+      }
+    },
+    {
+      "id": "arrow-left",
+      "label_pt_BR": "Retornar",
+      "category_pt_BR": "Navegação",
+      "svg": "SVG/arrow-left.svg",
+      "png": {
+        "24": "PNG/24px/arrow-left.png",
+        "48": "PNG/48px/arrow-left.png",
+        "96": "PNG/96px/arrow-left.png"
+      }
+    },
+    {
+      "id": "plus",
+      "label_pt_BR": "Adicionar",
+      "category_pt_BR": "Ações",
+      "svg": "SVG/plus.svg",
+      "png": {
+        "24": "PNG/24px/plus.png",
+        "48": "PNG/48px/plus.png",
+        "96": "PNG/96px/plus.png"
+      }
+    },
+    {
+      "id": "minus",
+      "label_pt_BR": "Diminuir",
+      "category_pt_BR": "Ações",
+      "svg": "SVG/minus.svg",
+      "png": {
+        "24": "PNG/24px/minus.png",
+        "48": "PNG/48px/minus.png",
+        "96": "PNG/96px/minus.png"
+      }
+    },
+    {
+      "id": "close",
+      "label_pt_BR": "Fechar",
+      "category_pt_BR": "Ações",
+      "svg": "SVG/close.svg",
+      "png": {
+        "24": "PNG/24px/close.png",
+        "48": "PNG/48px/close.png",
+        "96": "PNG/96px/close.png"
+      }
+    },
+    {
+      "id": "eye",
+      "label_pt_BR": "Mostrar",
+      "category_pt_BR": "Conta",
+      "svg": "SVG/eye.svg",
+      "png": {
+        "24": "PNG/24px/eye.png",
+        "48": "PNG/48px/eye.png",
+        "96": "PNG/96px/eye.png"
+      }
+    },
+    {
+      "id": "eye-off",
+      "label_pt_BR": "Ocultar",
+      "category_pt_BR": "Conta",
+      "svg": "SVG/eye-off.svg",
+      "png": {
+        "24": "PNG/24px/eye-off.png",
+        "48": "PNG/48px/eye-off.png",
+        "96": "PNG/96px/eye-off.png"
+      }
+    },
+    {
+      "id": "bookmark",
+      "label_pt_BR": "Salvar vaga",
+      "category_pt_BR": "Trabalho",
+      "svg": "SVG/bookmark.svg",
+      "png": {
+        "24": "PNG/24px/bookmark.png",
+        "48": "PNG/48px/bookmark.png",
+        "96": "PNG/96px/bookmark.png"
+      }
+    },
+    {
+      "id": "email",
+      "label_pt_BR": "E-mail",
+      "category_pt_BR": "Contato",
+      "svg": "SVG/email.svg",
+      "png": {
+        "24": "PNG/24px/email.png",
+        "48": "PNG/48px/email.png",
+        "96": "PNG/96px/email.png"
+      }
+    },
+    {
+      "id": "phone",
+      "label_pt_BR": "Telefone",
+      "category_pt_BR": "Contato",
+      "svg": "SVG/phone.svg",
+      "png": {
+        "24": "PNG/24px/phone.png",
+        "48": "PNG/48px/phone.png",
+        "96": "PNG/96px/phone.png"
+      }
+    },
+    {
+      "id": "link",
+      "label_pt_BR": "Link",
+      "category_pt_BR": "Ações",
+      "svg": "SVG/link.svg",
+      "png": {
+        "24": "PNG/24px/link.png",
+        "48": "PNG/48px/link.png",
+        "96": "PNG/96px/link.png"
+      }
+    },
+    {
+      "id": "trash",
+      "label_pt_BR": "Excluir",
+      "category_pt_BR": "Ações",
+      "svg": "SVG/trash.svg",
+      "png": {
+        "24": "PNG/24px/trash.png",
+        "48": "PNG/48px/trash.png",
+        "96": "PNG/96px/trash.png"
+      }
+    },
+    {
+      "id": "edit",
+      "label_pt_BR": "Editar",
+      "category_pt_BR": "Ações",
+      "svg": "SVG/edit.svg",
+      "png": {
+        "24": "PNG/24px/edit.png",
+        "48": "PNG/48px/edit.png",
+        "96": "PNG/96px/edit.png"
+      }
+    },
+    {
+      "id": "refresh",
+      "label_pt_BR": "Atualizar",
+      "category_pt_BR": "Ações",
+      "svg": "SVG/refresh.svg",
+      "png": {
+        "24": "PNG/24px/refresh.png",
+        "48": "PNG/48px/refresh.png",
+        "96": "PNG/96px/refresh.png"
+      }
+    },
+    {
+      "id": "menu",
+      "label_pt_BR": "Menu",
+      "category_pt_BR": "Navegação",
+      "svg": "SVG/menu.svg",
+      "png": {
+        "24": "PNG/24px/menu.png",
+        "48": "PNG/48px/menu.png",
+        "96": "PNG/96px/menu.png"
+      }
+    },
+    {
+      "id": "loader",
+      "label_pt_BR": "Carregando",
+      "category_pt_BR": "Estados",
+      "svg": "SVG/loader.svg",
+      "png": {
+        "24": "PNG/24px/loader.png",
+        "48": "PNG/48px/loader.png",
+        "96": "PNG/96px/loader.png"
+      }
+    }
+  ]
+}

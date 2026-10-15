@@ -1,0 +1,61 @@
+APLIQUEFY — MAPA DA CONSOLIDAÇÃO REGULAR R2
+12 de outubro de 2026
+
+OBJETIVO
+Reunir a Regular corrigida no kit completo, retirar arquivos legados e
+atualizar todos os materiais que usam esse peso tipográfico.
+O sistema visual permanece na versão 1.0; a Regular está na revisão 1.001.
+
+FONTES DISPONÍVEIS
+03_Tipografia/TTF/ApliquefyDisplayR2-Regular.ttf
+03_Tipografia/OTF/ApliquefyDisplayR2-Regular.otf
+03_Tipografia/Web/ApliquefyDisplayR2-Regular.woff2
+Os três arquivos Bold originais permanecem nas mesmas pastas.
+Total: seis arquivos de fonte. Não há outra edição da Regular neste ZIP.
+
+COMO SELECIONAR
+No computador: Apliquefy Display R2 / Regular.
+No computador: Apliquefy Display / Bold.
+No site: o alias CSS Apliquefy Display carrega R2 no peso 400 e Bold no 700.
+
+PRÉVIAS E DOCUMENTOS REGERADOS COM R2
+00_Guia/Apliquefy_Guia_de_Identidade_v1.0.pdf
+03_Tipografia/Previa/ApliquefyDisplay-Specimen.png
+03_Tipografia/Previa/ApliquefyDisplayR2-Regular-Cobertura.png
+03_Tipografia/Previa/ApliquefyDisplayR2-Regular-Encaixe.png
+05_Componentes/previews/composicao-desktop.svg
+05_Componentes/previews/composicao-desktop.png
+05_Componentes/previews/composicao-mobile.svg
+05_Componentes/previews/composicao-mobile.png
+05_Componentes/previews/aplicacao-desktop-mobile.png
+07_Aplicacoes/SVG/apliquefy-visao-geral.svg
+07_Aplicacoes/PNG/apliquefy-visao-geral.png
+
+REFERÊNCIAS SINCRONIZADAS
+INICIAR.html: carregamento web, download da Regular e instruções.
+03_Tipografia: CSS, gerador, metadados, relatório e instruções de instalação.
+00_Guia: fonte usada no PDF, identificação R2 e instruções de geração.
+05_Componentes: CSS do catálogo/aplicação, geradores e relatório.
+08_Fontes_Editaveis: gerador de aplicações, validação e inventário.
+Os caminhos da Regular nos exemplos apontam para os arquivos R2 atuais.
+
+REMOVIDO DO PACOTE
+Os três binários da Regular com o nome de arquivo anterior.
+A prévia antiga de cobertura da Regular, substituída pela cobertura R2.
+A comparação antes/depois, que mostrava também o desenho antigo.
+As pastas de trabalho e backups não fazem parte da entrega.
+
+CONFERIDO E PRESERVADO
+Logos, wordmark, fontes Bold e amostra de cobertura Bold: usam o peso Bold.
+Símbolos, avatares e padrão: geometria sem texto Regular.
+Ícones e ilustrações: desenhos vetoriais; legendas das pranchas em fonte de apoio.
+Exports e prancha de componentes: fonte de interface, sem Regular.
+Templates sociais: títulos Bold e textos de apoio, sem Regular.
+Tokens: mantêm o alias CSS, associado aos arquivos atuais.
+
+VERIFICAÇÃO
+Foram conferidos os seis binários, seus nomes internos, a cobertura de
+caracteres, os caminhos locais dos exemplos, os SVGs e os PNGs.
+A Regular R2 conserva o desenho corrigido, larguras e kerning da revisão 1.001.
+O inventário e os hashes descrevem os arquivos desta entrega.
+Os relatórios técnicos ficam nesta pasta e nas pastas de tipografia e componentes.

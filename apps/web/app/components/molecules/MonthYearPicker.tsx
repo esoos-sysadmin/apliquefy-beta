@@ -111,9 +111,9 @@ export function MonthYearPicker({
                     height: 44,
                     padding: "0 14px",
                     borderRadius: 12,
-                    border: "1px solid #263149",
-                    background: readOnly || disabled ? "#0E1623" : "#101826",
-                    color: display ? "#fff" : "#64748b",
+                    border: "1px solid rgb(var(--c-line-strong))",
+                    background: readOnly || disabled ? "rgb(var(--c-raised))" : "rgb(var(--c-sunken))",
+                    color: display ? "rgb(var(--c-fg))" : "rgb(var(--c-muted))",
                     fontSize: 14,
                     textAlign: "left",
                     display: "flex",
@@ -125,14 +125,14 @@ export function MonthYearPicker({
                     outline: "none",
                 }}
                 onFocus={(e) => {
-                    if (!readOnly && !disabled) e.currentTarget.style.borderColor = "#3B82F6";
+                    if (!readOnly && !disabled) e.currentTarget.style.borderColor = "rgb(var(--c-accent))";
                 }}
                 onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#263149";
+                    e.currentTarget.style.borderColor = "rgb(var(--c-line-strong))";
                 }}
             >
                 <span>{display || placeholder}</span>
-                <Calendar size={16} color="#64748b" />
+                <Calendar size={16} color="rgb(var(--c-muted))" />
             </button>
 
             {open && (
@@ -143,8 +143,8 @@ export function MonthYearPicker({
                         left: 0,
                         zIndex: 50,
                         width: 280,
-                        background: "#131B2A",
-                        border: "1px solid #263149",
+                        background: "rgb(var(--c-surface))",
+                        border: "1px solid rgb(var(--c-line-strong))",
                         borderRadius: 12,
                         padding: 12,
                         boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
@@ -169,7 +169,7 @@ export function MonthYearPicker({
                             style={{
                                 background: "transparent",
                                 border: "none",
-                                color: "#fff",
+                                color: "rgb(var(--c-fg))",
                                 fontWeight: 600,
                                 fontSize: 14,
                                 cursor: "pointer",
@@ -232,7 +232,7 @@ export function MonthYearPicker({
                         </div>
                     )}
 
-                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, paddingTop: 10, borderTop: "1px solid #263149" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, paddingTop: 10, borderTop: "1px solid rgb(var(--c-line-strong))" }}>
                         <button
                             type="button"
                             onClick={() => {
@@ -268,9 +268,9 @@ const iconBtnStyle: React.CSSProperties = {
     height: 28,
     width: 28,
     borderRadius: 6,
-    border: "1px solid #263149",
-    background: "#101826",
-    color: "#cbd5e1",
+    border: "1px solid rgb(var(--c-line-strong))",
+    background: "rgb(var(--c-sunken))",
+    color: "rgb(var(--c-slate-300))",
     cursor: "pointer",
 };
 
@@ -278,9 +278,9 @@ function cellStyle(selected: boolean, disabled = false): React.CSSProperties {
     return {
         height: 36,
         borderRadius: 8,
-        border: selected ? "1px solid #2563EB" : "1px solid transparent",
-        background: selected ? "#1d4ed8" : "transparent",
-        color: disabled ? "#475569" : selected ? "#fff" : "#cbd5e1",
+        border: selected ? "1px solid rgb(var(--c-accent))" : "1px solid transparent",
+        background: selected ? "rgb(var(--c-accent))" : "transparent",
+        color: disabled ? "rgb(var(--c-slate-600))" : selected ? "#fff" : "rgb(var(--c-slate-300))",
         fontSize: 13,
         fontWeight: selected ? 600 : 500,
         cursor: disabled ? "not-allowed" : "pointer",
@@ -291,7 +291,7 @@ function cellStyle(selected: boolean, disabled = false): React.CSSProperties {
 const textBtnStyle: React.CSSProperties = {
     background: "transparent",
     border: "none",
-    color: "#94a3b8",
+    color: "rgb(var(--c-slate-400))",
     fontSize: 12,
     fontWeight: 500,
     cursor: "pointer",

@@ -38,6 +38,18 @@ jobs:
         shell: bash
         run: npm version --no-git-tag-version --allow-same-version "${GITHUB_REF_NAME#v}"
 
+      # O secret DESKTOP_RUNTIME_ENV vira o runtime.env dentro do instalador: só
+      # config que não é segredo (SENTRY_DSN_RUNNER, OPENAI_MODEL...). Chaves de
+      # API ficam na Vercel — o desktop e o engine chamam /api/ai/* da web.
+      - name: Write runtime.env
+        working-directory: apps/desktop
+        shell: bash
+        env:
+          DESKTOP_RUNTIME_ENV: ${{ secrets.DESKTOP_RUNTIME_ENV }}
+        run: |
+          mkdir -p build
+          printf '%s\n' "$DESKTOP_RUNTIME_ENV" > build/runtime.env
+
       - name: Build & publish
         working-directory: apps/desktop
         env:

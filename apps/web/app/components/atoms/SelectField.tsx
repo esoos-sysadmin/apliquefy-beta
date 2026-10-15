@@ -53,8 +53,8 @@ export function SelectField<T extends string>({
                 onClick={() => setOpen((previous) => !previous)}
                 aria-haspopup="listbox"
                 aria-expanded={open}
-                className={`flex h-12 w-full items-center justify-between gap-3 rounded-xl border bg-[#101826] px-4 text-left text-sm transition hover:border-[#35507E] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 ${
-                    open ? "border-[#3B82F6]" : "border-[#2A3445]"
+                className={`flex h-12 w-full items-center justify-between gap-3 rounded-xl border bg-sunken px-4 text-left text-sm transition hover:border-accent/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 ${
+                    open ? "border-accent" : "border-line-strong"
                 }`}
             >
                 <span className={`truncate ${selected ? "text-slate-100" : "text-slate-500"}`}>
@@ -69,7 +69,7 @@ export function SelectField<T extends string>({
             {open && (
                 <ul
                     role="listbox"
-                    className="absolute z-30 mt-2 max-h-72 w-full overflow-auto rounded-xl border border-[#2A3445] bg-[#131B2A] p-1 shadow-2xl shadow-black/50"
+                    className="absolute z-30 mt-2 max-h-72 w-full overflow-auto rounded-xl border border-line-strong bg-surface p-1 shadow-2xl shadow-black/50"
                 >
                     {items.map((option) => {
                         const active = option.value === value;
@@ -87,8 +87,8 @@ export function SelectField<T extends string>({
                                         active
                                             ? "bg-sky-500/15 text-sky-200"
                                             : option.value
-                                              ? "text-slate-300 hover:bg-[#1b2536]"
-                                              : "text-slate-500 hover:bg-[#1b2536]"
+                                              ? "text-slate-300 hover:bg-raised"
+                                              : "text-slate-500 hover:bg-raised"
                                     }`}
                                 >
                                     <span className="truncate">{option.label}</span>

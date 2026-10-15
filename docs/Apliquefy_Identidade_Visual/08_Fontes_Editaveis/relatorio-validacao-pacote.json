@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "version": "1.0",
+  "date": "2026-10-12",
+  "checks": {
+    "svg_xml_validated": 110,
+    "png_decoded": 314,
+    "png_with_transparency": 286,
+    "fonts": [
+      {
+        "file": "03_Tipografia/Web/ApliquefyDisplay-Bold.woff2",
+        "family": "Apliquefy Display",
+        "version": "Version 1.000",
+        "characters": 327,
+        "glyphs": 328,
+        "magic": "774f4632"
+      },
+      {
+        "file": "03_Tipografia/Web/ApliquefyDisplayR2-Regular.woff2",
+        "family": "Apliquefy Display R2",
+        "version": "Version 1.001",
+        "characters": 327,
+        "glyphs": 328,
+        "magic": "774f4632"
+      },
+      {
+        "file": "03_Tipografia/OTF/ApliquefyDisplayR2-Regular.otf",
+        "family": "Apliquefy Display R2",
+        "version": "Version 1.001",
+        "characters": 327,
+        "glyphs": 328,
+        "magic": "4f54544f"
+      },
+      {
+        "file": "03_Tipografia/OTF/ApliquefyDisplay-Bold.otf",
+        "family": "Apliquefy Display",
+        "version": "Version 1.000",
+        "characters": 327,
+        "glyphs": 328,
+        "magic": "4f54544f"
+      },
+      {
+        "file": "03_Tipografia/TTF/ApliquefyDisplay-Bold.ttf",
+        "family": "Apliquefy Display",
+        "version": "Version 1.000",
+        "characters": 327,
+        "glyphs": 328,
+        "magic": "00010000"
+      },
+      {
+        "file": "03_Tipografia/TTF/ApliquefyDisplayR2-Regular.ttf",
+        "family": "Apliquefy Display R2",
+        "version": "Version 1.001",
+        "characters": 327,
+        "glyphs": 328,
+        "magic": "00010000"
+      }
+    ],
+    "regular_edition": "R2 / 1.001; three current formats; no legacy Regular binaries",
+    "relative_references_checked": 29,
+    "wordmark_font_identity": "Confirmed independently with HarfBuzz: nine identical glyph paths in master and ten logos.",
+    "visual_review": "All16 PDF pages, type specimens, icon/empty-state sheets, brand overview and components inspected.",
+    "browser_layout_test": "Not executed: browser binary unavailable. Component PNGs are rendered SVG compositions; HTML/CSS source reviewed separately."
+  },
+  "issues": []
+}

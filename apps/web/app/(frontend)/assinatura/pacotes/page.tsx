@@ -17,13 +17,13 @@ export default function PacotesPage() {
         <div>
             <Link
                 href="/assinatura"
-                className="mb-4 inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-white"
+                className="mb-4 inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-fg"
             >
                 <ArrowLeft size={14} />
                 Voltar para Assinatura
             </Link>
 
-            <h1 className="text-2xl font-bold text-white">Créditos Avulsos</h1>
+            <h1 className="text-2xl font-bold text-fg">Créditos Avulsos</h1>
             <p className="mt-1 text-sm text-slate-400">
                 Compre pacotes de créditos extras para continuar enviando currículos.
                 Créditos avulsos expiram no fim do ciclo atual.
@@ -42,17 +42,17 @@ export default function PacotesPage() {
                 {CREDIT_PACKAGES.map((pkg) => (
                     <div
                         key={pkg.slug}
-                        className="rounded-2xl border border-[#1C2333] bg-[#0F1520] p-6 transition hover:border-[#2A3445]"
+                        className="rounded-2xl border border-line bg-sunken p-6 transition hover:border-line-strong"
                     >
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10 text-violet-300">
                             <Package size={20} />
                         </div>
-                        <h3 className="mt-4 text-xl font-bold text-white">
+                        <h3 className="mt-4 text-xl font-bold text-fg">
                             {pkg.credits.toLocaleString("pt-BR")}
                         </h3>
                         <p className="text-sm text-slate-400">créditos</p>
                         <div className="mt-3 flex items-baseline gap-1">
-                            <span className="text-2xl font-bold text-white">
+                            <span className="text-2xl font-bold text-fg">
                                 {formatBRL(pkg.priceInCents)}
                             </span>
                         </div>

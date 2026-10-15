@@ -152,7 +152,7 @@ export function ResumePersonalDetailsSection({
                         style={{ ...inputStyle(false, frozen), resize: "vertical" }}
                         placeholder="Descreva sua experiência profissional resumidamente..."
                     />
-                    <p style={{ textAlign: "right", fontSize: 12, color: "#666", margin: "4px 0 0" }}>
+                    <p style={{ textAlign: "right", fontSize: 12, color: "rgb(var(--c-slate-600))", margin: "4px 0 0" }}>
                         {personalInfo.professionalSummary.length}/500 characters
                     </p>
                 </div>
