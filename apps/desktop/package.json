@@ -45,7 +45,8 @@
       {
         "provider": "github",
         "owner": "esoos-sysadmin",
-        "repo": "apliquefy-releases"
+        "repo": "apliquefy-releases",
+        "releaseType": "release"
       }
     ],
     "win": {

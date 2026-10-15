@@ -1,5 +1,5 @@
 // URL estável: aponta sempre para o asset da última release publicada pelo CI.
-const RELEASES = "https://github.com/ESOOS-Tech-Company/apliquefy-releases/releases/latest/download";
+const RELEASES = "https://github.com/esoos-sysadmin/apliquefy-releases/releases/latest/download";
 
 export const desktopPlatforms = [
     {
