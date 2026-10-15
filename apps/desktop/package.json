@@ -18,6 +18,7 @@
   "build": {
     "appId": "com.apliquefy.desktop",
     "productName": "Apliquefy",
+    "electronVersion": "39.6.0",
     "icon": "resources/icon.png",
     "files": [
       "dist-electron/**",
