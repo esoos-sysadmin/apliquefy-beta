@@ -31,8 +31,8 @@ export function ConfirmDialog({
     }
 
     return (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#020817]/80 px-4 backdrop-blur-sm">
-            <div className="w-full max-w-md rounded-[24px] border border-[#273247] bg-[#111827] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-ap-ink/80 px-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-[24px] border border-line-strong bg-surface p-6 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
                         <div
@@ -45,7 +45,7 @@ export function ConfirmDialog({
                             <AlertTriangle className="h-5 w-5" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-white">{title}</h2>
+                            <h2 className="text-lg font-semibold text-fg">{title}</h2>
                             <div className="mt-2 text-sm leading-6 text-slate-400">{description}</div>
                         </div>
                     </div>
@@ -53,7 +53,7 @@ export function ConfirmDialog({
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="rounded-xl p-2 text-slate-500 transition hover:bg-[#172033] hover:text-white"
+                        className="rounded-xl p-2 text-slate-500 transition hover:bg-raised hover:text-fg"
                         aria-label="Fechar confirmação"
                     >
                         <X className="h-4 w-4" />
@@ -64,7 +64,7 @@ export function ConfirmDialog({
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="inline-flex h-11 items-center justify-center rounded-xl border border-[#2A3445] px-4 text-sm font-semibold text-slate-300 transition hover:border-[#3A4A61] hover:text-white"
+                        className="inline-flex h-11 items-center justify-center rounded-xl border border-line-strong px-4 text-sm font-semibold text-slate-300 transition hover:border-line-strong hover:text-fg"
                     >
                         {cancelLabel}
                     </button>
@@ -73,7 +73,7 @@ export function ConfirmDialog({
                         onClick={onConfirm}
                         disabled={loading}
                         className={`inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold text-white transition ${
-                            danger ? "bg-rose-600 hover:bg-rose-500" : "bg-[#2563EB] hover:bg-[#1d4ed8]"
+                            danger ? "bg-rose-600 hover:bg-rose-500" : "bg-accent hover:bg-accent-hover"
                         } disabled:cursor-not-allowed disabled:opacity-60`}
                     >
                         {loading ? "Processando..." : confirmLabel}

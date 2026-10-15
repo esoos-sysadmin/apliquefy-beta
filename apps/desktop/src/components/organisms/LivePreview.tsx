@@ -48,6 +48,14 @@ export function LivePreview() {
                     </p>
                 )}
             </div>
+            {frame && (
+                // O Chrome do robô roda fora da tela (session_loader.py), mas o ícone
+                // aparece na barra de tarefas: sem este aviso o usuário estranha ou fecha.
+                <p className="live-preview__notice">
+                    O Apliquefy usa uma janela do Chrome em segundo plano para enviar suas
+                    candidaturas. Não feche o Chrome enquanto houver campanhas rodando.
+                </p>
+            )}
         </div>
     );
 }

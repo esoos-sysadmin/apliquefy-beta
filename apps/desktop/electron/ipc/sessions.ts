@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
 import type { RunnerPlatform } from "../../shared/runner-types";
 import { getSessionController } from "../controllers/session-controller";
+import { isChromeInstalled } from "../helpers/chrome";
 
 let isSessionsIpcRegistered = false;
 
@@ -13,6 +14,7 @@ export function registerSessionsIpc() {
     const controller = getSessionController();
 
     ipcMain.handle("sessions:list", async () => controller.list());
+    ipcMain.handle("sessions:chrome-installed", async () => isChromeInstalled());
     ipcMain.handle("sessions:check", async (_event, platform: RunnerPlatform) =>
         controller.check(platform)
     );

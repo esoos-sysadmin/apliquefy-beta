@@ -178,8 +178,8 @@ function NewCampaignForm() {
     }
 
     return (
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-white">
-            <div className="border-b border-[#1C2333] pb-6">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-fg">
+            <div className="border-b border-line pb-6">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                         <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
@@ -192,7 +192,7 @@ function NewCampaignForm() {
                     </div>
 
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                        <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">
                             Criar nova campanha de automação
                         </h1>
                         <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
@@ -212,22 +212,22 @@ function NewCampaignForm() {
                 </div>
             )}
             {isLoadingResumes ? (
-                <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-6">
-                    <div className="h-40 animate-pulse rounded-2xl bg-[#101826]" />
+                <div className="rounded-2xl border border-line bg-surface p-6">
+                    <div className="h-40 animate-pulse rounded-2xl bg-sunken" />
                 </div>
             ) : resumes.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-[#2A3445] bg-[#131B2A] px-6 py-14 text-center">
-                    <p className="text-lg font-semibold text-white">Você precisa de um currículo antes de criar campanhas.</p>
+                <div className="rounded-2xl border border-dashed border-line-strong bg-surface px-6 py-14 text-center">
+                    <p className="text-lg font-semibold text-fg">Você precisa de um currículo antes de criar campanhas.</p>
                     <p className="mt-2 text-sm text-slate-400">Crie um currículo e depois volte para configurar a automação.</p>
                     <Link
                         href="/curriculos/novo"
-                        className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
+                        className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-accent px-5 text-sm font-semibold text-white transition hover:bg-accent-hover"
                     >
                         Criar currículo
                     </Link>
                 </div>
             ) : (
-                <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-5 sm:p-6">
+                <div className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
                     <div className="space-y-6">
                         <div className="grid gap-4 lg:grid-cols-2">
                             <div className="space-y-2">
@@ -236,7 +236,7 @@ function NewCampaignForm() {
                                     value={campaignName}
                                     onChange={(event) => setCampaignName(event.target.value)}
                                     placeholder="ex.: Busca React Sênior - Q3"
-                                    className="h-12 w-full rounded-xl border border-[#263149] bg-[#101826] px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#3B82F6]"
+                                    className="h-12 w-full rounded-xl border border-line-strong bg-sunken px-4 text-sm text-fg outline-none transition placeholder:text-slate-500 focus:border-accent"
                                 />
                             </div>
 
@@ -251,14 +251,14 @@ function NewCampaignForm() {
                             </label>
                         </div>
 
-                        <div className="space-y-4 rounded-2xl border border-[#263149] bg-[#101826] p-4">
+                        <div className="space-y-4 rounded-2xl border border-line-strong bg-sunken p-4">
                             <label className="flex cursor-pointer items-start justify-between gap-4">
                                 <span className="flex items-start gap-3">
                                     <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl border border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-300">
                                         <FlaskConical size={18} />
                                     </span>
                                     <span>
-                                        <span className="block text-sm font-semibold text-white">Teste A/B</span>
+                                        <span className="block text-sm font-semibold text-fg">Teste A/B</span>
                                         <span className="mt-1 block max-w-xl text-xs text-slate-400">
                                             Cria duas campanhas idênticas (variante A e B) com currículos diferentes. Você registra
                                             manualmente respostas e entrevistas e compara qual variante rende mais.
@@ -269,12 +269,12 @@ function NewCampaignForm() {
                                     type="checkbox"
                                     checked={abTest}
                                     onChange={(event) => setAbTest(event.target.checked)}
-                                    className="mt-1 h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-[#263149] transition checked:bg-[#2563EB] relative before:absolute before:top-0.5 before:left-0.5 before:h-4 before:w-4 before:rounded-full before:bg-white before:transition checked:before:translate-x-4"
+                                    className="mt-1 h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-line-strong transition checked:bg-accent relative before:absolute before:top-0.5 before:left-0.5 before:h-4 before:w-4 before:rounded-full before:bg-white before:transition checked:before:translate-x-4"
                                 />
                             </label>
 
                             {abTest ? (
-                                <div className="grid gap-4 border-t border-[#1C2333] pt-4 lg:grid-cols-2">
+                                <div className="grid gap-4 border-t border-line pt-4 lg:grid-cols-2">
                                     <label className="block space-y-2">
                                         <span className="text-sm font-medium text-slate-200">Currículo B (variante B)</span>
                                         <SelectField
@@ -292,7 +292,7 @@ function NewCampaignForm() {
                                             value={hypothesis}
                                             onChange={(event) => setHypothesis(event.target.value.slice(0, 200))}
                                             placeholder="Ex.: currículo enxuto responde mais que o detalhado"
-                                            className="h-12 w-full rounded-xl border border-[#263149] bg-[#0D1522] px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#3B82F6]"
+                                            className="h-12 w-full rounded-xl border border-line-strong bg-sunken px-4 text-sm text-fg outline-none transition placeholder:text-slate-500 focus:border-accent"
                                         />
                                     </label>
                                 </div>
@@ -310,7 +310,7 @@ function NewCampaignForm() {
                                 value={dailyLimit}
                                 onChange={(event) => setDailyLimit(event.target.value.replace(/\D/g, "").slice(0, 3))}
                                 inputMode="numeric"
-                                className="h-12 w-full rounded-xl border border-[#263149] bg-[#101826] px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#3B82F6]"
+                                className="h-12 w-full rounded-xl border border-line-strong bg-sunken px-4 text-sm text-fg outline-none transition placeholder:text-slate-500 focus:border-accent"
                             />
                         </div>
 
@@ -323,8 +323,8 @@ function NewCampaignForm() {
                                     onClick={() => setPlatform("linkedin")}
                                     className={`flex items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
                                         platform === "linkedin"
-                                            ? "border-[#2563EB] bg-[#112544] shadow-[0_0_0_1px_rgba(37,99,235,0.35)]"
-                                            : "border-[#263149] bg-[#151E2D] hover:border-[#31415C]"
+                                            ? "border-accent bg-accent-soft shadow-[0_0_0_1px_rgb(var(--c-accent) / 0.35)]"
+                                            : "border-line-strong bg-surface hover:border-line-strong"
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
@@ -332,15 +332,15 @@ function NewCampaignForm() {
                                             <BriefcaseBusiness size={20} />
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-white">LinkedIn</p>
+                                            <p className="font-semibold text-fg">LinkedIn</p>
                                             <p className="text-sm text-slate-400">Ideal para networking profissional</p>
                                         </div>
                                     </div>
                                     <span
                                         className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
                                             platform === "linkedin"
-                                                ? "border-[#2563EB] bg-[#2563EB] text-white"
-                                                : "border-[#39465D] text-transparent"
+                                                ? "border-accent bg-accent text-white"
+                                                : "border-line-strong text-transparent"
                                         }`}
                                     >
                                         ●
@@ -352,8 +352,8 @@ function NewCampaignForm() {
                                     onClick={() => setPlatform("infojobs")}
                                     className={`flex items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
                                         platform === "infojobs"
-                                            ? "border-[#2563EB] bg-[#112544] shadow-[0_0_0_1px_rgba(37,99,235,0.35)]"
-                                            : "border-[#263149] bg-[#151E2D] hover:border-[#31415C]"
+                                            ? "border-accent bg-accent-soft shadow-[0_0_0_1px_rgb(var(--c-accent) / 0.35)]"
+                                            : "border-line-strong bg-surface hover:border-line-strong"
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
@@ -361,15 +361,15 @@ function NewCampaignForm() {
                                             <BriefcaseBusiness size={20} />
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-white">InfoJobs</p>
+                                            <p className="font-semibold text-fg">InfoJobs</p>
                                             <p className="text-sm text-slate-400">Alto volume de vagas</p>
                                         </div>
                                     </div>
                                     <span
                                         className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
                                             platform === "infojobs"
-                                                ? "border-[#2563EB] bg-[#2563EB] text-white"
-                                                : "border-[#39465D] text-transparent"
+                                                ? "border-accent bg-accent text-white"
+                                                : "border-line-strong text-transparent"
                                         }`}
                                     >
                                         ●
@@ -378,7 +378,7 @@ function NewCampaignForm() {
                             </div>
                         </div>
 
-                        <div className="border-t border-[#1C2333] pt-6">
+                        <div className="border-t border-line pt-6">
                             {platform === "linkedin" ? (
                                 <LinkedinParametersForm values={linkedinValues} onChange={handleLinkedinChange} />
                             ) : (
@@ -386,7 +386,7 @@ function NewCampaignForm() {
                             )}
                         </div>
 
-                        <div className="flex flex-col gap-4 border-t border-[#1C2333] pt-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-col gap-4 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
                             <div className="inline-flex items-center gap-2 text-sm text-slate-500">
                                 <Info size={14} />
                                 Confira seus filtros antes de começar
@@ -395,7 +395,7 @@ function NewCampaignForm() {
                             <div className="flex flex-wrap items-center gap-3 sm:justify-end">
                                 <Link
                                     href="/campanhas"
-                                    className="inline-flex h-11 items-center justify-center rounded-xl border border-[#273247] px-5 text-sm font-semibold text-slate-300 transition hover:border-[#31415c] hover:bg-[#131B2A]"
+                                    className="inline-flex h-11 items-center justify-center rounded-xl border border-line-strong px-5 text-sm font-semibold text-slate-300 transition hover:border-line-strong hover:bg-surface"
                                 >
                                     Cancelar
                                 </Link>
@@ -403,7 +403,7 @@ function NewCampaignForm() {
                                     type="button"
                                     onClick={handleSubmit}
                                     disabled={isSubmitting}
-                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(37,99,235,0.28)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <Rocket size={16} />
                                     {isSubmitting ? "Criando..." : abTest ? "Criar Teste A/B" : "Criar campanha"}

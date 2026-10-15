@@ -8,7 +8,7 @@ export function SidebarSession() {
     const { user } = useSessionUser();
 
     return (
-        <div style={{ paddingTop: 16, borderTop: "1px solid #1C2333" }}>
+        <div style={{ paddingTop: 16, borderTop: "1px solid rgb(var(--c-line))" }}>
             <Link
                 href="/conta"
                 style={{
@@ -22,7 +22,7 @@ export function SidebarSession() {
                     transition: "background 0.15s",
                 }}
                 onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.background = "#121A28";
+                    (e.currentTarget as HTMLAnchorElement).style.background = "rgb(var(--c-raised))";
                 }}
                 onMouseLeave={(e) => {
                     (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
@@ -35,7 +35,7 @@ export function SidebarSession() {
                         borderRadius: 999,
                         overflow: "hidden",
                         flexShrink: 0,
-                        border: "1px solid #243049",
+                        border: "1px solid rgb(var(--c-line))",
                     }}
                 >
                     <UserAvatar
@@ -54,7 +54,7 @@ export function SidebarSession() {
                     <p
                         style={{
                             margin: 0,
-                            color: "#F3F4F6",
+                            color: "rgb(var(--c-fg))",
                             fontSize: 13,
                             fontWeight: 600,
                             whiteSpace: "nowrap",
@@ -68,7 +68,7 @@ export function SidebarSession() {
                         style={{
                             margin: 0,
                             marginTop: 2,
-                            color: "#7D8590",
+                            color: "rgb(var(--c-muted))",
                             fontSize: 11,
                             whiteSpace: "nowrap",
                             overflow: "hidden",

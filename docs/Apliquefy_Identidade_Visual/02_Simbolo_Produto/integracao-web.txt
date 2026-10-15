@@ -1,0 +1,16 @@
+APLIQUEFY / ATIVOS DE PRODUTO
+
+O ícone principal é app-claro. App-escuro e app-roxo são opções de superfície.
+Todos os arquivos quadrados são opacos e têm margem para máscaras de produto.
+Não aplique cantos arredondados no arquivo de origem: a plataforma faz o recorte.
+
+Exemplo de integração (ajuste o prefixo /marca/ ao caminho real do projeto):
+<link rel="icon" href="/marca/favicon-micro.ico" sizes="16x16 32x32">
+<link rel="icon" href="/marca/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/marca/PNG/apliquefy-app-claro-width180.png">
+<link rel="mask-icon" href="/marca/SVG/apliquefy-safari-pinned-tab.svg" color="#7A3BFF">
+<link rel="manifest" href="/marca/site.webmanifest">
+<meta name="theme-color" content="#7A3BFF">
+
+O manifest é uma base: ajuste id, start_url e caminhos ao projeto real antes de publicar.
+O ícone não implica que o aplicativo móvel já esteja lançado.

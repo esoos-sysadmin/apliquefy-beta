@@ -38,7 +38,7 @@ export function LinkedinParametersForm({
         <div className="space-y-6">
             <div className="flex items-center gap-2">
                 <BriefcaseBusiness size={18} className="text-cyan-300" />
-                <h2 className="text-xl font-semibold text-white">Parâmetros do LinkedIn</h2>
+                <h2 className="text-xl font-semibold text-fg">Parâmetros do LinkedIn</h2>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">

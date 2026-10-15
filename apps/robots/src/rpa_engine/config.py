@@ -17,6 +17,7 @@ class Settings:
     cost_per_application: int
     fit_min_score: int
     headless: bool
+    show_browser: bool
     slow_mo_ms: int
     devtools: bool
     browser_channel: str | None
@@ -48,11 +49,14 @@ def load_settings() -> Settings:
         # o default: ligar filtra vagas e o usuário tem que escolher isso, não herdar.
         fit_min_score=max(0, min(100, int(os.environ.get("FIT_MIN_SCORE", "0")))),
         headless=os.environ.get("RPA_HEADLESS", "false").lower() == "true",
+        # Debug: mostra a janela do Chrome na tela (por padrão ela fica fora da tela).
+        show_browser=os.environ.get("RPA_SHOW_BROWSER", "false").lower() == "true",
         # Debug visual: atrasa cada ação em N ms para acompanhar a olho.
         slow_mo_ms=max(0, int(os.environ.get("RPA_SLOWMO", "0"))),
         # Abre o DevTools do Chrome junto (só faz efeito quando headed).
         devtools=os.environ.get("RPA_DEVTOOLS", "false").lower() == "true",
-        # Usa o Chrome real (mesmo canal da captura de sessão) para evitar
-        # detecção de automação. String vazia => Chromium empacotado.
-        browser_channel=(os.environ.get("RPA_BROWSER_CHANNEL", "chrome").strip() or None),
+        # Chrome real é obrigatório (mesmo canal da captura de sessão): o Chromium
+        # empacotado é mais fácil de detectar como bot. O desktop bloqueia o app
+        # se o Chrome não estiver instalado (electron/helpers/chrome.ts).
+        browser_channel="chrome",
     )

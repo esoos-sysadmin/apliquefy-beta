@@ -2,6 +2,7 @@ import { app } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import { chromium, type BrowserContext, type Cookie } from "playwright";
+import { CHROME_REQUIRED_MESSAGE, isChromeInstalled } from "../helpers/chrome";
 import type {
     RunnerPlatform,
     RunnerSessionState,
@@ -182,6 +183,10 @@ async function verifyLogin(
 export async function captureSession(platform: RunnerPlatform): Promise<SessionResult> {
     if (!isValidPlatform(platform)) {
         return { success: false, code: 400, message: "Plataforma inválida." };
+    }
+
+    if (!isChromeInstalled()) {
+        return { success: false, code: 500, message: CHROME_REQUIRED_MESSAGE };
     }
 
     const config = PLATFORM_CONFIG[platform];

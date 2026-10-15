@@ -7,6 +7,9 @@ import {
     getPlanByStripePriceId,
     getPlanBySlug,
     getPlanStripePriceId,
+    getUpsellStripePriceId,
+    UPSELLS,
+    type UpsellSlug,
 } from "../../../app/lib/constants/plans";
 import { sendEmail } from "../../../app/lib/email/client";
 import { PurchaseConfirmation } from "../../../app/lib/email/templates/PurchaseConfirmation";
@@ -121,6 +124,130 @@ export class StripeService {
     }
 
     /**
+     * Checkout do funil /lp: plano (opcional) + bumps de pagamento único na mesma sessão.
+     * Com plano, é uma assinatura e os bumps entram só na primeira fatura; sem plano (quem
+     * não tem computador e só leva o currículo), é um pagamento único. Nos dois casos o cartão
+     * fica salvo para o OTO pós-compra (chargeLpOto).
+     */
+    async createLpCheckout(
+        userId: string,
+        email: string,
+        input: { planSlug?: string; bumps: UpsellSlug[] }
+    ): Promise<{ success: true; data: { url: string } } | { success: false; message: string; code?: string }> {
+        const plan = input.planSlug ? getPlanBySlug(input.planSlug) : null;
+        const planPriceId = input.planSlug ? getPlanStripePriceId(input.planSlug) : null;
+        if (input.planSlug && (!plan || !planPriceId)) {
+            return { success: false, message: "Plano não encontrado", code: "NOT_FOUND" };
+        }
+
+        const bumps = [...new Set(input.bumps)].filter((b) => UPSELLS[b].kind === "bump");
+        const bumpPrices = bumps.map(getUpsellStripePriceId);
+        if (bumpPrices.some((p) => !p)) {
+            return { success: false, message: "Upsell sem preço configurado no Stripe", code: "NOT_FOUND" };
+        }
+        if (!plan && !bumps.length) {
+            return { success: false, message: "Pedido vazio", code: "NOT_FOUND" };
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (plan && user?.subscriptionStatus === "active") {
+            return { success: false, message: "Usuário já possui uma assinatura ativa.", code: "CONFLICT" };
+        }
+
+        const customerId = await this.ensureStripeCustomer(userId, email);
+        const metadata = {
+            userId,
+            source: "lp",
+            type: plan ? "subscription" : "lp_upsell",
+            planSlug: plan?.slug ?? "",
+            upsells: bumps.join(","),
+        };
+
+        const session = await stripe.checkout.sessions.create({
+            mode: plan ? "subscription" : "payment",
+            customer: customerId,
+            line_items: [
+                ...(planPriceId ? [{ price: planPriceId, quantity: 1 }] : []),
+                ...bumpPrices.map((price) => ({ price: price!, quantity: 1 })),
+            ],
+            success_url: `${APP_URL}/lp?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${APP_URL}/lp?checkout=cancel`,
+            metadata,
+            ...(plan
+                ? { subscription_data: { metadata: { userId, planSlug: plan.slug } } }
+                : { payment_intent_data: { setup_future_usage: "off_session" as const, metadata } }),
+        });
+
+        if (!session.url) {
+            return { success: false, message: "Erro ao criar sessão de checkout" };
+        }
+
+        return { success: true, data: { url: session.url } };
+    }
+
+    /**
+     * OTO do funil /lp: cobra o upsell no cartão usado no checkout, sem pedir o cartão de novo.
+     * Fatura avulsa com o Price do upsell, paga off_session. Idempotente por sessão + upsell:
+     * clique duplo ou retry não cobra duas vezes.
+     */
+    async chargeLpOto(
+        userId: string,
+        checkoutSessionId: string,
+        slug: UpsellSlug
+    ): Promise<{ success: true } | { success: false; message: string; code?: string }> {
+        const priceId = getUpsellStripePriceId(slug);
+        if (UPSELLS[slug].kind !== "oto" || !priceId) {
+            return { success: false, message: "Oferta não encontrada", code: "NOT_FOUND" };
+        }
+
+        const session = await stripe.checkout.sessions.retrieve(checkoutSessionId, { expand: ["subscription", "payment_intent"] });
+        if (session.metadata?.userId !== userId || session.metadata?.source !== "lp" || session.payment_status !== "paid") {
+            return { success: false, message: "Compra não encontrada", code: "FORBIDDEN" };
+        }
+
+        const idOf = (v: string | { id: string } | null | undefined) => (typeof v === "string" ? v : v?.id);
+        const customerId = idOf(session.customer);
+        const paymentMethodId =
+            session.mode === "subscription"
+                ? idOf((session.subscription as Stripe.Subscription | null)?.default_payment_method)
+                : idOf((session.payment_intent as Stripe.PaymentIntent | null)?.payment_method);
+        if (!customerId || !paymentMethodId) {
+            return { success: false, message: "Cartão da compra não encontrado", code: "NOT_FOUND" };
+        }
+
+        const key = `lp-oto:${checkoutSessionId}:${slug}`;
+        try {
+            const invoice = await stripe.invoices.create(
+                {
+                    customer: customerId,
+                    collection_method: "charge_automatically",
+                    auto_advance: false,
+                    pending_invoice_items_behavior: "exclude",
+                    metadata: { userId, source: "lp", type: "lp_oto", upsell: slug, checkoutSessionId },
+                },
+                { idempotencyKey: `${key}:invoice` }
+            );
+            await stripe.invoiceItems.create(
+                { customer: customerId, invoice: invoice.id, pricing: { price: priceId } },
+                { idempotencyKey: `${key}:item` }
+            );
+            await stripe.invoices.finalizeInvoice(invoice.id!, {}, { idempotencyKey: `${key}:finalize` });
+            const paid = await stripe.invoices.pay(
+                invoice.id!,
+                { payment_method: paymentMethodId, off_session: true },
+                { idempotencyKey: `${key}:pay` }
+            );
+            return paid.status === "paid"
+                ? { success: true }
+                : { success: false, message: "Pagamento não aprovado", code: "PAYMENT_FAILED" };
+        } catch (error) {
+            // Cartão recusado ou banco pedindo autenticação (3DS) fora da sessão: a compra principal segue válida.
+            console.error("Falha ao cobrar OTO da LP:", error);
+            return { success: false, message: "Não foi possível cobrar no mesmo cartão", code: "PAYMENT_FAILED" };
+        }
+    }
+
+    /**
      * Creates a Stripe Customer Portal session for managing subscriptions.
      */
     async createBillingPortalSession(
@@ -148,12 +275,18 @@ export class StripeService {
         return typeof sub === "string" ? sub : sub.id;
     }
 
-    private getPriceIdFromInvoice(invoice: Stripe.Invoice): string | null {
-        const lineItem = invoice.lines?.data?.[0];
-        if (!lineItem) return null;
-        const price = lineItem.pricing?.price_details?.price;
-        if (!price) return null;
-        return typeof price === "string" ? price : price.id;
+    /**
+     * O plano da fatura. Procura em todas as linhas: na primeira fatura de uma assinatura vinda
+     * da /lp, os bumps de pagamento único dividem a fatura com o plano e podem vir antes dele.
+     */
+    private getPlanFromInvoice(invoice: Stripe.Invoice) {
+        for (const line of invoice.lines?.data ?? []) {
+            const price = line.pricing?.price_details?.price;
+            const priceId = typeof price === "string" ? price : price?.id;
+            const plan = priceId ? getPlanByStripePriceId(priceId) : null;
+            if (plan) return plan;
+        }
+        return null;
     }
 
     private getSubscriptionPeriodEnd(subscription: Stripe.Subscription): Date {
@@ -247,10 +380,7 @@ export class StripeService {
         });
         if (!user) return;
 
-        const priceId = this.getPriceIdFromInvoice(invoice);
-        if (!priceId) return;
-
-        const plan = getPlanByStripePriceId(priceId);
+        const plan = this.getPlanFromInvoice(invoice);
         if (!plan) return;
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);

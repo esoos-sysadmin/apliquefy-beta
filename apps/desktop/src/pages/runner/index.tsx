@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useElectron } from "../../hooks/use-electron";
 import ApolloScreen from "../apollo";
 import { AuthGate } from "../../components/organisms/AuthGate";
+import { ChromeGate } from "../../components/organisms/ChromeGate";
 import { CampaignDetails } from "../../components/organisms/CampaignDetails";
 import { CampaignList } from "../../components/organisms/CampaignList";
 import { GeneralSettings } from "../../components/organisms/GeneralSettings";
@@ -69,6 +70,22 @@ export default function RunnerPage() {
             window.clearInterval(timer);
         };
     }, [auth.isAuthenticated, handleRefreshCampaigns]);
+    // Chrome é obrigatório (captura de sessão + automação). null = ainda checando.
+    const [chromeInstalled, setChromeInstalled] = useState<boolean | null>(null);
+    const [isCheckingChrome, setIsCheckingChrome] = useState(false);
+    const checkChrome = useCallback(async () => {
+        setIsCheckingChrome(true);
+        try {
+            setChromeInstalled(await electron.sessions.isChromeInstalled());
+        } finally {
+            setIsCheckingChrome(false);
+        }
+    }, [electron]);
+    useEffect(() => {
+        void checkChrome();
+    }, [checkChrome]);
+    const needsChrome = auth.isAuthenticated && chromeInstalled === false;
+
     const { handleSignIn, handleDisconnectAccount } = useAuthActions(electron);
     const { handleToggleSetting, handleSaveSettings } = useSettingsActions(electron);
 
@@ -95,7 +112,7 @@ export default function RunnerPage() {
         await handleConnectAccount(platform);
     };
 
-    if (auth.isAuthenticated && view === "apollo") {
+    if (auth.isAuthenticated && view === "apollo" && !needsChrome) {
         return (
             <ApolloScreen
                 electron={electron}
@@ -133,6 +150,8 @@ export default function RunnerPage() {
                         isAuthenticating={isAuthenticating}
                         onSignIn={handleSignIn}
                     />
+                ) : needsChrome ? (
+                    <ChromeGate isChecking={isCheckingChrome} onRecheck={checkChrome} />
                 ) : activeTab === "campaigns" ? (
                     <CampaignList
                         campaigns={campaigns}

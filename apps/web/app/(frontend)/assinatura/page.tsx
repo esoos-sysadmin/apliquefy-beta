@@ -24,9 +24,9 @@ export default function AssinaturaPage() {
     const hasActivePlan = subscriptionStatus === "active"
 
     return (
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 text-white">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 text-fg">
             {/* Header */}
-            <div className="border-b border-[#1C2333] pb-6">
+            <div className="border-b border-line pb-6">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                         <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
@@ -35,7 +35,7 @@ export default function AssinaturaPage() {
                     </div>
 
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                        <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">
                             Assinatura & Créditos
                         </h1>
                         <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
@@ -69,7 +69,7 @@ export default function AssinaturaPage() {
                             <Coins className="h-7 w-7" />
                         </div>
                         <div>
-                            <div className="text-4xl font-bold tracking-tight text-white">
+                            <div className="text-4xl font-bold tracking-tight text-fg">
                                 {isLoading ? "—" : credits.toLocaleString("pt-BR")}
                             </div>
                             <div className="mt-0.5 text-sm text-slate-400">créditos disponíveis</div>
@@ -105,10 +105,10 @@ export default function AssinaturaPage() {
             </div>
 
             {/* Manage subscription */}
-            <div className="rounded-2xl border border-[#1C2333] bg-[#0F1520] p-6">
+            <div className="rounded-2xl border border-line bg-sunken p-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-lg font-semibold text-white">Gerenciar assinatura</h2>
+                        <h2 className="text-lg font-semibold text-fg">Gerenciar assinatura</h2>
                         <p className="mt-1 text-sm text-slate-400">
                             {hasActivePlan
                                 ? "Altere seu plano, atualize o método de pagamento ou cancele sua assinatura pelo portal do Stripe."
@@ -118,7 +118,7 @@ export default function AssinaturaPage() {
                     {hasActivePlan && (
                         <a
                             href={STRIPE_PORTAL_URL}
-                            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
+                            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-hover"
                         >
                             <ExternalLink size={15} />
                             Abrir portal
@@ -130,7 +130,7 @@ export default function AssinaturaPage() {
             {/* Credit packages */}
             <div>
                 <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold text-white">Créditos avulsos</h2>
+                    <h2 className="text-lg font-semibold text-fg">Créditos avulsos</h2>
                     <Sparkles size={16} className="text-violet-400" />
                 </div>
                 <p className="mt-1 text-sm text-slate-400">
@@ -144,17 +144,17 @@ export default function AssinaturaPage() {
                         return (
                             <div
                                 key={pkg.slug}
-                                className="rounded-2xl border border-[#1C2333] bg-[#0F1520] p-6 transition hover:border-[#2A3445]"
+                                className="rounded-2xl border border-line bg-sunken p-6 transition hover:border-line-strong"
                             >
                                 <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10 text-violet-300">
                                     <Package size={20} />
                                 </div>
-                                <h3 className="mt-4 text-xl font-bold text-white">
+                                <h3 className="mt-4 text-xl font-bold text-fg">
                                     {pkg.credits.toLocaleString("pt-BR")}
                                 </h3>
                                 <p className="text-sm text-slate-400">créditos</p>
                                 <div className="mt-3 flex items-baseline gap-1">
-                                    <span className="text-2xl font-bold text-white">
+                                    <span className="text-2xl font-bold text-fg">
                                         {formatBRL(pkg.priceInCents)}
                                     </span>
                                 </div>

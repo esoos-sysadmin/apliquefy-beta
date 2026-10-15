@@ -1,0 +1,45 @@
+{
+  "status": "Static checks passed; visual compositions inspected",
+  "svg_native_vector_files": 20,
+  "valid_png_files": 40,
+  "checks": [
+    {
+      "file": "catalogo.html",
+      "references_valid": true,
+      "missing_references": [],
+      "unique_ids": true,
+      "associated_labels_for_named_fields": true,
+      "no_network_scripts": true
+    },
+    {
+      "file": "aplicacao.html",
+      "references_valid": true,
+      "missing_references": [],
+      "unique_ids": true,
+      "associated_labels_for_named_fields": true,
+      "no_network_scripts": true
+    },
+    {
+      "file": "components.css",
+      "references_valid": true,
+      "references": [
+        "../06_Tokens/tokens.css",
+        "../03_Tipografia/Web/ApliquefyDisplayR2-Regular.woff2",
+        "../03_Tipografia/Web/ApliquefyDisplay-Bold.woff2"
+      ],
+      "responsive_breakpoints": [
+        740,
+        1100
+      ],
+      "reduced_motion_present": true
+    },
+    {
+      "file": "design-tokens.json",
+      "parseable": true,
+      "master_gradient_matched": true
+    }
+  ],
+  "javascript_syntax": "node --check passed",
+  "browser_validation": "Not performed. Runtime has no browser executable; Chromium download returned a truncated archive. No browser-rendering or interaction-test claim is made.",
+  "visual_review": "PNG contact sheets inspected: components and desktop/mobile compositions. No clipping or overlapping text observed."
+}

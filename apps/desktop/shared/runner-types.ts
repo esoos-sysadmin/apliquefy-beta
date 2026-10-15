@@ -211,6 +211,8 @@ export type ElectronAPI = {
         capture: (platform: RunnerPlatform) => Promise<SessionResult>;
         check: (platform: RunnerPlatform) => Promise<RunnerSessionState | null>;
         list: () => Promise<RunnerSessionMap>;
+        // Chrome é obrigatório para captura de sessão e automação (ver helpers/chrome.ts).
+        isChromeInstalled: () => Promise<boolean>;
         remove: (platform: RunnerPlatform) => Promise<RunnerSessionMap>;
         subscribe: (listener: (sessions: RunnerSessionMap) => void) => () => void;
     };

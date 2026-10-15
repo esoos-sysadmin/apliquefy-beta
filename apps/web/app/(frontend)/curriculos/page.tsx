@@ -83,17 +83,17 @@ export default function ResumesPage() {
     }
 
     return (
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-white">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-fg">
             {isImporting && (
                 <div
                     role="status"
                     aria-live="polite"
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1120]/85 px-6 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-sunken/85 px-6 backdrop-blur-sm"
                 >
-                    <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-[#1C2333] bg-[#131B2A] px-8 py-10 text-center">
+                    <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-line bg-surface px-8 py-10 text-center">
                         <Loader2 size={34} className="animate-spin text-sky-400" />
                         <div>
-                            <p className="text-lg font-semibold text-white">Lendo seu currículo...</p>
+                            <p className="text-lg font-semibold text-fg">Lendo seu currículo...</p>
                             <p className="mt-2 text-sm text-slate-400">
                                 A IA está extraindo os dados do PDF. Isso leva alguns segundos — não feche esta aba.
                             </p>
@@ -102,7 +102,7 @@ export default function ResumesPage() {
                 </div>
             )}
 
-            <div className="flex flex-col gap-4 border-b border-[#1C2333] pb-6 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                         <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
@@ -111,7 +111,7 @@ export default function ResumesPage() {
                     </div>
 
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Meus currículos</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">Meus currículos</h1>
                         <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
                             Consulte, organize e atualize os currículos que você usa nas campanhas de automação.
                         </p>
@@ -130,7 +130,7 @@ export default function ResumesPage() {
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isImporting}
-                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#2A3445] bg-[#131B2A] px-5 text-sm font-semibold text-slate-200 transition hover:border-[#35507E] hover:bg-[#182236] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong bg-surface px-5 text-sm font-semibold text-slate-200 transition hover:border-accent/50 hover:bg-raised disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         <Upload size={17} />
                         {isImporting ? "Lendo PDF..." : "Importar PDF"}
@@ -144,7 +144,7 @@ export default function ResumesPage() {
                     </Link>
                     <Link
                         href="/curriculos/novo"
-                        className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(37,99,235,0.28)] transition hover:bg-[#1d4ed8]"
+                        className="inline-flex h-11 items-center gap-2 rounded-xl bg-accent px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] transition hover:bg-accent-hover"
                     >
                         <Plus size={17} />
                         Novo currículo
@@ -152,15 +152,15 @@ export default function ResumesPage() {
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-3 sm:p-4">
+            <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
                 <div className="flex flex-col gap-3 lg:flex-row">
-                    <label className="group flex h-12 flex-1 items-center gap-3 rounded-xl border border-[#2A3445] bg-[#101826] px-4 transition-colors focus-within:border-[#35507E]">
+                    <label className="group flex h-12 flex-1 items-center gap-3 rounded-xl border border-line-strong bg-sunken px-4 transition-colors focus-within:border-accent/50">
                         <Search size={17} className="text-slate-500 transition-colors group-focus-within:text-slate-300" />
                         <input
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                             placeholder="Buscar currículos..."
-                            className="h-full w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+                            className="h-full w-full bg-transparent text-sm text-fg outline-none placeholder:text-slate-500"
                         />
                     </label>
 
@@ -187,12 +187,12 @@ export default function ResumesPage() {
                 </div>
             ) : error ? (
                 <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-6 py-10 text-center">
-                    <p className="text-lg font-semibold text-white">Não foi possível carregar os currículos</p>
+                    <p className="text-lg font-semibold text-fg">Não foi possível carregar os currículos</p>
                     <p className="mt-2 text-sm text-slate-300">Verifique sua conexão e tente novamente.</p>
                     <button
                         type="button"
                         onClick={() => refetch()}
-                        className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
+                        className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-accent px-5 text-sm font-semibold text-white transition hover:bg-accent-hover"
                     >
                         Tentar novamente
                     </button>
@@ -204,20 +204,20 @@ export default function ResumesPage() {
                     ))}
                 </div>
             ) : resumes.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-[#2A3445] bg-[#131B2A] px-6 py-14 text-center">
-                    <p className="text-lg font-semibold text-white">Nenhum currículo ainda.</p>
+                <div className="rounded-2xl border border-dashed border-line-strong bg-surface px-6 py-14 text-center">
+                    <p className="text-lg font-semibold text-fg">Nenhum currículo ainda.</p>
                     <p className="mt-2 text-sm text-slate-400">Crie seu primeiro currículo para começar!</p>
                 </div>
             ) : (
-                <div className="rounded-2xl border border-dashed border-[#2A3445] bg-[#131B2A] px-6 py-14 text-center">
-                    <p className="text-lg font-semibold text-white">Nenhum currículo encontrado</p>
+                <div className="rounded-2xl border border-dashed border-line-strong bg-surface px-6 py-14 text-center">
+                    <p className="text-lg font-semibold text-fg">Nenhum currículo encontrado</p>
                     <p className="mt-2 text-sm text-slate-400">
                         Tente outra busca ou crie um novo currículo para começar.
                     </p>
                 </div>
             )}
 
-            <div className="border-t border-[#1C2333] pt-5 text-sm text-slate-500">
+            <div className="border-t border-line pt-5 text-sm text-slate-500">
                 Exibindo {filteredResumes.length} de {resumes.length} currículos
             </div>
 

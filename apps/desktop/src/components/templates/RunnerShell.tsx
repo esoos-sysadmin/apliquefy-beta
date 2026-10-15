@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Minus, Sparkles, X } from "lucide-react";
 import type { RunnerCreditBalance, RunnerTab } from "../../../shared/runner-types";
+import logo from "../../assets/apliquefy-simbolo.svg";
 import { TabBar } from "../atoms/TabBar";
 import { StatusBar } from "../organisms/StatusBar";
 import { LivePreview } from "../organisms/LivePreview";
@@ -35,7 +36,10 @@ export function RunnerShell({
         <div className="runner-window">
             <header className="titlebar">
                 <div className="titlebar__inner">
-                    <span className="titlebar__brand">Apliquefy</span>
+                    <span className="titlebar__brand">
+                        <img src={logo} alt="" width={20} height={20} />
+                        Apliquefy
+                    </span>
                     {isAuthenticated ? (
                         <nav className="titlebar__nav">
                             <TabBar activeTab={activeTab} onChange={onChangeTab} />

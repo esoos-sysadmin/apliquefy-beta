@@ -1,4 +1,5 @@
 import { Minus, X } from "lucide-react";
+import logo from "../../assets/apliquefy-simbolo.svg";
 
 type TitleBarProps = {
     onClose: () => void;
@@ -9,7 +10,10 @@ export function TitleBar({ onClose, onMinimize }: TitleBarProps) {
     return (
         <header className="titlebar">
             <div className="titlebar__inner">
-                <span className="titlebar__brand">Apliquefy</span>
+                <span className="titlebar__brand">
+                    <img src={logo} alt="" width={20} height={20} />
+                    Apliquefy
+                </span>
                 <div className="titlebar__actions">
                     <button
                         type="button"

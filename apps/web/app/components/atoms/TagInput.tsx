@@ -32,7 +32,7 @@ export function TagInput({
     }
 
     return (
-        <div className="rounded-xl border border-[#263149] bg-[#101826] px-4 py-2 focus-within:border-[#3B82F6] transition">
+        <div className="rounded-xl border border-line-strong bg-sunken px-4 py-2 focus-within:border-accent transition">
             <div className="flex items-center gap-3">
                 {icon ?? <Search size={16} className="shrink-0 text-slate-500" />}
                 <input
@@ -40,7 +40,7 @@ export function TagInput({
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={tags.length === 0 ? placeholder : "Adicionar mais..."}
-                    className="h-8 w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+                    className="h-8 w-full bg-transparent text-sm text-fg outline-none placeholder:text-slate-500"
                 />
             </div>
             {tags.length > 0 && (
@@ -48,13 +48,13 @@ export function TagInput({
                     {tags.map((tag) => (
                         <span
                             key={tag}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[#1C2B46] px-3 py-1 text-xs font-medium text-blue-400"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-overlay px-3 py-1 text-xs font-medium text-blue-400"
                         >
                             {tag}
                             <button
                                 type="button"
                                 onClick={() => removeTag(tag)}
-                                className="leading-none text-blue-400 hover:text-white"
+                                className="leading-none text-blue-400 hover:text-fg"
                             >
                                 ×
                             </button>

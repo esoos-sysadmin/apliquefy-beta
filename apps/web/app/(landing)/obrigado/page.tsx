@@ -10,7 +10,7 @@ export default function ObrigadoPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                    <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">
                         Pagamento confirmado!
                     </h1>
                     <p className="text-base text-slate-400">
@@ -18,7 +18,7 @@ export default function ObrigadoPage() {
                     </p>
                 </div>
 
-                <div className="w-full rounded-2xl border border-[#1C2333] bg-[#0F1520] p-6 text-left">
+                <div className="w-full rounded-2xl border border-line bg-sunken p-6 text-left">
                     <h2 className="text-sm font-medium uppercase tracking-wider text-slate-500">
                         Próximos passos
                     </h2>
@@ -46,13 +46,13 @@ export default function ObrigadoPage() {
 
                 <Link
                     href="/desktop?tab=como-funciona"
-                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-6 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.3)] transition hover:bg-[#1d4ed8]"
+                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(122,59,255,0.3)] transition hover:bg-accent-hover"
                 >
                     Acessar plataforma
                     <ArrowRight size={15} />
                 </Link>
 
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-muted">
                     Um recibo foi enviado para o seu email.
                 </p>
             </div>

@@ -22,13 +22,13 @@ export function CampaignCard({
     const applicationsCount = getApplicationsCount(campaign);
 
     return (
-        <article className="rounded-2xl border border-[#1C2333] bg-[#131B2A] px-4 py-5 shadow-[0_0_0_1px_rgba(17,24,39,0.15)] transition-colors hover:border-[#283349] sm:px-5">
+        <article className="rounded-2xl border border-line bg-surface px-4 py-5 shadow-[0_0_0_1px_rgba(17,24,39,0.15)] transition-colors hover:border-line-strong sm:px-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <button
                     type="button"
                     onClick={() => onOpenDetails(campaign)}
                     aria-label={`Ver parâmetros da campanha ${campaign.name}`}
-                    className="flex min-w-0 items-start gap-4 rounded-2xl text-left transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#35507E]"
+                    className="flex min-w-0 items-start gap-4 rounded-2xl text-left transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
                 >
                     <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border ${config.iconBoxClassName}`}>
                         <BriefcaseBusiness size={22} strokeWidth={1.8} />
@@ -36,7 +36,7 @@ export function CampaignCard({
 
                     <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-3">
-                            <h2 className="truncate text-lg font-semibold text-white">{campaign.name}</h2>
+                            <h2 className="truncate text-lg font-semibold text-fg">{campaign.name}</h2>
                             <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${config.badgeClassName}`}>
                                 <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${config.dotClassName}`} />
                                 {config.label}
@@ -66,7 +66,7 @@ export function CampaignCard({
                         type="button"
                         onClick={() => onEdit(campaign)}
                         aria-label={`Editar campanha ${campaign.name}`}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-colors hover:border-[#263149] hover:bg-[#182233] hover:text-white"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-colors hover:border-line-strong hover:bg-raised hover:text-fg"
                     >
                         <Pencil size={16} />
                     </button>
@@ -75,7 +75,7 @@ export function CampaignCard({
                         type="button"
                         onClick={() => onView(campaign)}
                         aria-label={`Ver métricas da campanha ${campaign.name}`}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-colors hover:border-[#263149] hover:bg-[#182233] hover:text-white"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-400 transition-colors hover:border-line-strong hover:bg-raised hover:text-fg"
                     >
                         <BarChart3 size={17} />
                     </button>

@@ -50,14 +50,14 @@ export default function ReportsPage() {
     const maxDay = Math.max(1, ...timeline.map((t) => t.count));
 
     return (
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-white">
-            <div className="flex flex-col gap-4 border-b border-[#1C2333] pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-fg">
+            <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                         <span className="text-slate-300">Relatórios</span>
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Relatórios</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">Relatórios</h1>
                         <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
                             Acompanhe candidaturas enviadas, desempenho por currículo e o histórico de vagas.
                         </p>
@@ -81,14 +81,14 @@ export default function ReportsPage() {
 
             {error ? (
                 <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-6 py-10 text-center">
-                    <p className="text-lg font-semibold text-white">Não foi possível carregar os relatórios</p>
+                    <p className="text-lg font-semibold text-fg">Não foi possível carregar os relatórios</p>
                     <p className="mt-2 text-sm text-slate-300">Verifique sua conexão e tente novamente.</p>
                 </div>
             ) : (
                 <>
                     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                         {[
-                            { label: "Total de candidaturas", value: summary.total, accent: "text-white", sub: `${summary.skipped} ignoradas` },
+                            { label: "Total de candidaturas", value: summary.total, accent: "text-fg", sub: `${summary.skipped} ignoradas` },
                             {
                                 label: "Enviadas com sucesso",
                                 value: summary.applied,
@@ -108,7 +108,7 @@ export default function ReportsPage() {
                                           : "—",
                             },
                         ].map((card) => (
-                            <div key={card.label} className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-5">
+                            <div key={card.label} className="rounded-2xl border border-line bg-surface p-5">
                                 <p className="text-sm text-slate-400">{card.label}</p>
                                 <p className={`mt-2 text-3xl font-bold ${card.accent}`}>{isLoading ? "—" : card.value}</p>
                                 <p className="mt-1 text-xs text-slate-500">{isLoading ? "" : card.sub}</p>
@@ -116,15 +116,15 @@ export default function ReportsPage() {
                         ))}
                     </div>
 
-                    <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-5">
-                        <h2 className="text-lg font-semibold text-white">Candidaturas por dia</h2>
+                    <div className="rounded-2xl border border-line bg-surface p-5">
+                        <h2 className="text-lg font-semibold text-fg">Candidaturas por dia</h2>
                         <p className="mt-1 text-sm text-slate-400">Últimos 14 dias — buracos indicam robô parado ou sessão expirada.</p>
                         <div className="mt-5 flex h-32 items-end gap-1.5">
                             {timeline.map((day) => (
                                 <div key={day.date} className="group flex flex-1 flex-col items-center justify-end gap-1.5" title={`${dayLabel(day.date)}: ${day.count}`}>
                                     <span className="text-[10px] text-slate-500">{day.count > 0 ? day.count : ""}</span>
                                     <div
-                                        className="w-full rounded-t bg-[#2563EB] transition group-hover:bg-[#3b82f6]"
+                                        className="w-full rounded-t bg-accent transition group-hover:bg-accent-hover"
                                         style={{ height: `${Math.max(day.count > 0 ? 6 : 2, (day.count / maxDay) * 100)}%` }}
                                     />
                                     <span className="text-[10px] text-slate-500">{dayLabel(day.date).slice(0, 2)}</span>
@@ -134,8 +134,8 @@ export default function ReportsPage() {
                     </div>
 
                     <div className="grid gap-4 lg:grid-cols-2">
-                        <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-5">
-                            <h2 className="text-lg font-semibold text-white">Limite diário (hoje)</h2>
+                        <div className="rounded-2xl border border-line bg-surface p-5">
+                            <h2 className="text-lg font-semibold text-fg">Limite diário (hoje)</h2>
                             <p className="mt-1 text-sm text-slate-400">Uso das campanhas ativas — se bate no teto todo dia, considere aumentar.</p>
                             <div className="mt-4 space-y-3">
                                 {dailyUsage.length === 0 ? (
@@ -149,7 +149,7 @@ export default function ReportsPage() {
                                                     <span className="truncate text-slate-200">{c.campaignName}</span>
                                                     <span className="ml-3 shrink-0 text-slate-400">{c.used}/{c.limit || "∞"}</span>
                                                 </div>
-                                                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#101826]">
+                                                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-sunken">
                                                     <div className={`h-full rounded-full ${pct >= 100 ? "bg-amber-400" : "bg-emerald-400"}`} style={{ width: `${pct}%` }} />
                                                 </div>
                                             </div>
@@ -159,15 +159,15 @@ export default function ReportsPage() {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-5">
-                            <h2 className="text-lg font-semibold text-white">Por que não foram enviadas</h2>
+                        <div className="rounded-2xl border border-line bg-surface p-5">
+                            <h2 className="text-lg font-semibold text-fg">Por que não foram enviadas</h2>
                             <p className="mt-1 text-sm text-slate-400">Vagas descartadas antes de candidatar e candidaturas que falharam.</p>
                             <div className="mt-4 space-y-2.5">
                                 {failureReasons.length === 0 ? (
                                     <p className="text-sm text-slate-500">Nenhuma vaga descartada ou falha registrada. 🎉</p>
                                 ) : (
                                     failureReasons.map((r) => (
-                                        <div key={r.reason} className="flex items-center justify-between gap-3 rounded-xl border border-[#273247] bg-[#101826] px-4 py-2.5">
+                                        <div key={r.reason} className="flex items-center justify-between gap-3 rounded-xl border border-line-strong bg-sunken px-4 py-2.5">
                                             <span className="truncate text-sm text-slate-300" title={r.reason}>{r.reason}</span>
                                             <span className="shrink-0 rounded-full bg-slate-500/10 px-2.5 py-0.5 text-xs font-semibold text-slate-300">{r.count}</span>
                                         </div>
@@ -177,15 +177,15 @@ export default function ReportsPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-5">
-                        <h2 className="text-lg font-semibold text-white">Desempenho por currículo</h2>
+                    <div className="rounded-2xl border border-line bg-surface p-5">
+                        <h2 className="text-lg font-semibold text-fg">Desempenho por currículo</h2>
                         <p className="mt-1 text-sm text-slate-400">Quantas candidaturas foram enviadas com cada currículo.</p>
                         <div className="mt-4 space-y-3">
                             {byResume.length === 0 ? (
                                 <p className="text-sm text-slate-500">Nenhuma candidatura registrada ainda.</p>
                             ) : (
                                 byResume.map((row) => (
-                                    <div key={row.resumeId || row.resumeTitle} className="flex items-center justify-between rounded-xl border border-[#273247] bg-[#101826] px-4 py-3">
+                                    <div key={row.resumeId || row.resumeTitle} className="flex items-center justify-between rounded-xl border border-line-strong bg-sunken px-4 py-3">
                                         <span className="truncate text-sm font-medium text-slate-200">{row.resumeTitle}</span>
                                         <span className="ml-4 shrink-0 text-sm text-slate-400">
                                             <span className="font-semibold text-emerald-300">{row.applied}</span> enviadas
@@ -198,16 +198,16 @@ export default function ReportsPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A]">
-                        <div className="border-b border-[#1C2333] px-5 py-4">
-                            <h2 className="text-lg font-semibold text-white">Histórico de vagas</h2>
+                    <div className="rounded-2xl border border-line bg-surface">
+                        <div className="border-b border-line px-5 py-4">
+                            <h2 className="text-lg font-semibold text-fg">Histórico de vagas</h2>
                             <p className="mt-1 text-sm text-slate-400">Cada vaga processada — enviada, descartada ou com falha — e o motivo.</p>
                         </div>
 
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[820px] text-left text-sm">
                                 <thead className="text-xs uppercase text-slate-500">
-                                    <tr className="border-b border-[#1C2333]">
+                                    <tr className="border-b border-line">
                                         <th className="px-5 py-3 font-medium">Vaga</th>
                                         <th className="px-5 py-3 font-medium">Empresa</th>
                                         <th className="px-5 py-3 font-medium">Currículo</th>
@@ -228,7 +228,7 @@ export default function ReportsPage() {
                                         </tr>
                                     ) : (
                                         history.map((item) => (
-                                            <tr key={item.id} className="border-b border-[#151D2B] last:border-0 hover:bg-[#101826]">
+                                            <tr key={item.id} className="border-b border-line last:border-0 hover:bg-sunken">
                                                 <td className="px-5 py-3 text-slate-200">{item.jobTitle ?? "—"}</td>
                                                 <td className="px-5 py-3 text-slate-400">{item.companyName ?? "—"}</td>
                                                 <td className="px-5 py-3 text-slate-400">{item.resumeTitle ?? "—"}</td>
@@ -253,7 +253,7 @@ export default function ReportsPage() {
                                                             href={item.jobUrl}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="inline-flex items-center gap-1 text-[#60A5FA] transition hover:text-[#93C5FD]"
+                                                            className="inline-flex items-center gap-1 text-accent-text transition hover:text-accent-text"
                                                         >
                                                             Abrir <ExternalLink size={13} />
                                                         </a>
@@ -267,14 +267,14 @@ export default function ReportsPage() {
                         </div>
 
                         {totalPages > 1 ? (
-                            <div className="flex items-center justify-between border-t border-[#1C2333] px-5 py-4 text-sm text-slate-500">
+                            <div className="flex items-center justify-between border-t border-line px-5 py-4 text-sm text-slate-500">
                                 <span>Página {pagination?.page ?? page} de {totalPages}</span>
                                 <div className="flex items-center gap-2">
                                     <button
                                         type="button"
                                         onClick={() => setPage((current) => Math.max(1, current - 1))}
                                         disabled={page <= 1}
-                                        className="inline-flex h-10 items-center rounded-xl border border-[#273247] px-4 text-slate-300 transition hover:border-[#31415c] hover:bg-[#101826] disabled:cursor-not-allowed disabled:text-slate-700"
+                                        className="inline-flex h-10 items-center rounded-xl border border-line-strong px-4 text-slate-300 transition hover:border-line-strong hover:bg-sunken disabled:cursor-not-allowed disabled:text-slate-700"
                                     >
                                         Anterior
                                     </button>
@@ -282,7 +282,7 @@ export default function ReportsPage() {
                                         type="button"
                                         onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
                                         disabled={page >= totalPages}
-                                        className="inline-flex h-10 items-center rounded-xl border border-[#273247] px-4 text-slate-300 transition hover:border-[#31415c] hover:bg-[#101826] disabled:cursor-not-allowed disabled:text-slate-700"
+                                        className="inline-flex h-10 items-center rounded-xl border border-line-strong px-4 text-slate-300 transition hover:border-line-strong hover:bg-sunken disabled:cursor-not-allowed disabled:text-slate-700"
                                     >
                                         Próxima
                                     </button>

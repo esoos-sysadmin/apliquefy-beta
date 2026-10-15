@@ -1,8 +1,7 @@
 // Espinha dorsal do funil /lp: respostas tipadas → derivados puros.
 // Diagnóstico, planos e upsells leem daqui; nenhum número exibido nasce fora
 // destas funções (regra: todo número vem da resposta da pessoa ou de constante do produto).
-import { PLANS, type Plan } from "../lib/constants/plans"
-import type { CvAnalysis } from "./cv"
+import { PLANS, UPSELLS, type Plan } from "../lib/constants/plans"
 
 export type Segment = "dev" | "exec" | "varejo"
 export type Computer = "own" | "shared" | "phone_only"
@@ -10,11 +9,7 @@ export type Feeling = "cv" | "me" | "filled" | "numb"
 export type English = "none" | "basic" | "intermediate" | "advanced"
 export type Raise = "same" | "plus20" | "plus50" | "double" | "usd"
 export type Deadline = "asap" | "1m" | "3m" | "no_rush"
-
-export type CvInput =
-    | { kind: "none" }
-    | { kind: "file"; name: string; size: number; pages?: number; text: string }
-    | { kind: "text"; text: string }
+export type ProfileItem = "role" | "results" | "updated" | "tailored" | "linkedin"
 
 export type Answers = {
     segment?: Segment
@@ -25,55 +20,60 @@ export type Answers = {
     minutesPerApp?: number
     responsesLastMonth?: number
     feeling?: Feeling
+    profile?: ProfileItem[] // o que o currículo/perfil já tem (autodeclarado)
     english?: English
-    income?: number // piso da faixa em R$/mês; 0 = sem renda ou faixa sem piso
+    income?: number // piso da faixa em R$/mês; 0 = sem renda, 0.1 = faixa "até X" (sem piso)
     raise?: Raise
     deadline?: Deadline
     targetRole?: string
-    cv?: CvInput
 }
 
 export type QuestionId = keyof Answers
-export type BumpId = "cv" | "kit_dev" | "kit_exec" | "kit_varejo"
+export type BumpId = "cv" | "kit_tech" | "kit_gestao" | "kit_varejo" | "carta" | "lista_tech" | "lista_gestao" | "lista_varejo"
 export type OtoId = "voice" | "text"
 
 export type Contact = { name: string; email: string; whatsapp: string; marketing: boolean }
 
 export type Screen =
+    | "home"
     | QuestionId
     | "bridge"
     | "analysis"
     | "gate"
     | "report"
+    | "pricing"
     | "bump_cv"
     | "bump_segment"
+    | "bump_letter"
+    | "bump_jobs"
     | "checkout"
     | "oto"
     | "downsell"
-    | "thanks"
+    | "done"
 
 export type FunnelState = {
     screen: Screen
     answers: Answers
-    analysis?: CvAnalysis | null // null = sem currículo legível
     contact?: Contact
+    issuedAt?: number // quando o contato foi entregue; vira data e nº do laudo
     plan?: Plan["slug"]
     bumps: BumpId[]
     oto?: OtoId
-    issuedAt?: number // quando o contato foi entregue; vira data e nº do laudo
     paidAt?: number
+    stripeSessionId?: string // Checkout Session paga; o OTO cobra no mesmo cartão a partir dela
+    checkoutError?: string // motivo de volta do checkout (cancelado, assinatura já ativa…)
 }
 
-export const initialState: FunnelState = { screen: "segment", answers: {}, bumps: [] }
+export const initialState: FunnelState = { screen: "home", answers: {}, bumps: [] }
 
 // ── Perguntas ────────────────────────────────────────────────────────────────
 
 export type Option = { value: string | number; label: string; hint?: string }
 export type Question =
     | { id: QuestionId; kind: "choice"; title: string; help?: string; options: Option[] }
+    | { id: "profile"; kind: "multi"; title: string; help?: string; options: Option[] }
     | { id: QuestionId; kind: "number"; title: string; help?: string; quick: number[]; unit: string; min: number; max: number }
     | { id: "targetRole"; kind: "text"; title: string; help?: string; suggestions: string[] }
-    | { id: "cv"; kind: "cv"; title: string; help?: string }
 
 export const SEGMENT_OPTIONS: Option[] = [
     { value: "dev", label: "Tecnologia", hint: "Inclusive vagas remotas no exterior" },
@@ -110,7 +110,6 @@ const ROLE_SUGGESTIONS: Record<string, string[]> = {
 }
 
 // Faixas relativas ao segmento: "acima de R$ 4 mil" é sonho para um e insulto para outro.
-// value = piso da faixa; 0.1 marca a faixa "até X", que não tem piso (só precisa diferir do 0).
 const INCOME: Record<Segment, Option[]> = {
     varejo: [
         { value: 0, label: "Estou sem renda agora" },
@@ -145,6 +144,14 @@ export function targetSalary(a: Answers): number | null {
 
 export const brl = (n: number) => `R$ ${Math.round(n).toLocaleString("pt-BR")}`
 
+export const PROFILE_OPTIONS: Option[] = [
+    { value: "role", label: "O nome do cargo que eu quero aparece no topo do currículo" },
+    { value: "results", label: "Minhas experiências têm números (metas, vendas, clientes, projetos)" },
+    { value: "updated", label: "Atualizei o currículo nos últimos 3 meses" },
+    { value: "tailored", label: "Ajusto o currículo para cada vaga" },
+    { value: "linkedin", label: "Meu LinkedIn está completo (foto, título e resumo)" },
+]
+
 /** Sequência de perguntas aplicável às respostas atuais (fácil → dor → desejo). */
 export function questionsFor(a: Answers): Question[] {
     const seg = a.segment ?? "varejo"
@@ -156,7 +163,7 @@ export function questionsFor(a: Answers): Question[] {
             id: "computer",
             kind: "choice",
             title: "Você tem um computador que pode ficar ligado algumas horas por dia?",
-            help: "Notebook ou PC com Windows, Mac ou Linux. Perguntamos agora porque o Apliquefy roda no computador, não no celular.",
+            help: "Notebook ou PC. O Apliquefy roda no computador, não no celular.",
             options: [
                 { value: "own", label: "Sim, tenho o meu" },
                 { value: "shared", label: "Sim, mas divido com outras pessoas" },
@@ -178,7 +185,7 @@ export function questionsFor(a: Answers): Question[] {
         {
             id: "appsPerWeek",
             kind: "number",
-            title: "Quantas candidaturas você envia por semana, em média?",
+            title: "Quantas candidaturas você envia por semana?",
             help: "Conte de cabeça. Zero também vale.",
             quick: [0, 5, 10, 20, 40],
             unit: "por semana",
@@ -189,7 +196,7 @@ export function questionsFor(a: Answers): Question[] {
             id: "minutesPerApp",
             kind: "number",
             title: "Quantos minutos leva cada candidatura?",
-            help: "Achar a vaga, ler, preencher o formulário, ajustar o currículo.",
+            help: "Achar a vaga, ler, preencher, ajustar o currículo.",
             quick: [5, 10, 20, 30, 60],
             unit: "minutos",
             min: 1,
@@ -199,7 +206,7 @@ export function questionsFor(a: Answers): Question[] {
             id: "responsesLastMonth",
             kind: "number",
             title: "No último mês, quantas empresas te responderam?",
-            help: "Qualquer contato conta: e-mail, mensagem, ligação, convite para entrevista.",
+            help: "Qualquer contato conta: e-mail, mensagem, ligação, convite.",
             quick: [0, 1, 2, 5, 10],
             unit: "respostas",
             min: 0,
@@ -208,13 +215,20 @@ export function questionsFor(a: Answers): Question[] {
         {
             id: "feeling",
             kind: "choice",
-            title: "Quando uma candidatura fica sem resposta, o que você costuma pensar?",
+            title: "Quando uma candidatura fica sem resposta, o que você pensa?",
             options: [
                 { value: "cv", label: "Que meu currículo não é bom o suficiente" },
                 { value: "me", label: "Que eu não sou bom o suficiente" },
                 { value: "filled", label: "Que a vaga já tinha alguém escolhido" },
                 { value: "numb", label: "Já nem penso mais, virou rotina" },
             ],
+        },
+        {
+            id: "profile",
+            kind: "multi",
+            title: "O que o seu currículo e o seu perfil já têm hoje?",
+            help: "Marque tudo que for verdade. Isso monta a parte de currículo do seu diagnóstico.",
+            options: PROFILE_OPTIONS,
         },
         // Inglês não personaliza nada para o varejo: removido para quem não usa.
         seg !== "varejo" && {
@@ -257,14 +271,8 @@ export function questionsFor(a: Answers): Question[] {
             id: "targetRole",
             kind: "text",
             title: "Qual cargo você quer?",
-            help: "Do jeito que aparece nos anúncios de vaga. A análise do currículo usa esse nome.",
+            help: "Do jeito que aparece nos anúncios de vaga.",
             suggestions: ROLE_SUGGESTIONS[a.area ?? ""] ?? [],
-        },
-        {
-            id: "cv",
-            kind: "cv",
-            title: "Agora, seu currículo.",
-            help: "Lemos o texto aqui mesmo, no seu aparelho, para montar o laudo. PDF, Word ou texto colado.",
         },
     ]
     return qs.filter((q): q is Question => Boolean(q))
@@ -279,26 +287,23 @@ const SHORT: Record<QuestionId, string> = {
     minutesPerApp: "Minutos por candidatura",
     responsesLastMonth: "Respostas no último mês",
     feeling: "Quando não respondem",
+    profile: "Currículo e perfil",
     english: "Inglês",
     income: "Renda atual",
     raise: "Quer ganhar",
     deadline: "Prazo",
     targetRole: "Cargo-alvo",
-    cv: "Currículo",
 }
 
-/** As respostas como linhas do laudo ("Procurando há ...... 3 a 6 meses"). */
+/** As respostas como pares rótulo/valor (resumo do quiz). */
 export function describeAnswers(a: Answers): { id: QuestionId; label: string; value: string }[] {
     return questionsFor(a).flatMap((q) => {
         const v = a[q.id]
         if (v === undefined) return []
         let value: string
         if (q.kind === "choice") value = q.options.find((o) => o.value === v)?.label ?? String(v)
-        else if (q.kind === "number") value = `${v}`
-        else if (q.kind === "cv") {
-            const cv = v as CvInput
-            value = cv.kind === "file" ? cv.name : cv.kind === "text" ? "texto colado" : "não enviado"
-        } else value = String(v)
+        else if (q.kind === "multi") value = `${(v as ProfileItem[]).length} de ${q.options.length} itens`
+        else value = String(v)
         return [{ id: q.id, label: SHORT[q.id], value }]
     })
 }
@@ -311,9 +316,51 @@ export function nextQuizScreen(a: Answers, current: Screen): Screen {
     return qs[from + 1]?.id ?? "analysis"
 }
 
-// ── Derivados ────────────────────────────────────────────────────────────────
+// ── Diagnóstico (só a partir das respostas) ──────────────────────────────────
 
-const WEEKS_PER_MONTH = 52 / 12
+/** Abaixo disso, o volume semanal conta como problema no índice. */
+export const VOLUME_TARGET = 20
+
+export type Criterion = { id: ProfileItem | "volume"; label: string; weight: number; pass: boolean; problem: string; why: string }
+export type Diagnosis = { score: number; criteria: Criterion[]; problems: Criterion[] }
+
+const PROFILE_CRITERIA: Record<ProfileItem, { weight: number; label: string; problem: string; why: string }> = {
+    role: { weight: 20, label: "Cargo-alvo no topo", problem: "Cargo-alvo fora do topo do currículo", why: "Recrutador e filtro buscam pelo nome do cargo." },
+    results: { weight: 15, label: "Resultados com números", problem: "Experiências sem números", why: "Sem resultado, ninguém consegue comparar você." },
+    updated: { weight: 10, label: "Currículo atualizado", problem: "Currículo desatualizado", why: "Mais de 3 meses sem revisão." },
+    tailored: { weight: 15, label: "Ajustado para cada vaga", problem: "Mesmo currículo para toda vaga", why: "As palavras da vaga não aparecem no seu." },
+    linkedin: { weight: 15, label: "LinkedIn completo", problem: "LinkedIn incompleto", why: "É onde o recrutador confere o currículo." },
+}
+
+/** Índice de visibilidade: soma de critérios explícitos, todos exibidos. Não é nota de nenhuma empresa. */
+export function diagnose(a: Answers): Diagnosis {
+    const has = new Set(a.profile ?? [])
+    const apps = a.appsPerWeek ?? 0
+    const criteria: Criterion[] = [
+        {
+            id: "volume",
+            weight: 25,
+            label: `Volume semanal (meta: ${VOLUME_TARGET}+)`,
+            pass: apps >= VOLUME_TARGET,
+            problem: "Volume baixo de candidaturas",
+            why: apps ? `${apps} por semana: poucas tentativas contra o filtro.` : "Você ainda não envia candidaturas toda semana.",
+        },
+        ...(Object.keys(PROFILE_CRITERIA) as ProfileItem[]).map((id) => ({ id, ...PROFILE_CRITERIA[id], pass: has.has(id) })),
+    ]
+    const earned = criteria.reduce((s, c) => s + (c.pass ? c.weight : 0), 0)
+    const total = criteria.reduce((s, c) => s + c.weight, 0)
+    const problems = criteria
+        .filter((c) => !c.pass)
+        .sort((x, y) => y.weight - x.weight)
+        .slice(0, 3)
+    return { score: Math.round((100 * earned) / total), criteria, problems }
+}
+
+export const scoreLabel = (score: number) => (score < 40 ? "Baixa visibilidade" : score < 70 ? "Visibilidade média" : "Boa visibilidade")
+
+// ── Tempo e projeção ─────────────────────────────────────────────────────────
+
+export const WEEKS_PER_MONTH = 52 / 12
 
 // Espelha o default de COST_PER_APPLICATION (credits.service.ts / robots config.py).
 // ponytail: constante no cliente; expor via API se o custo por candidatura mudar.
@@ -371,10 +418,7 @@ export function formatDuration(weeks: number): string {
         return `${d} ${d === 1 ? "dia" : "dias"}`
     }
     if (weeks >= 52 && weeks < 53) return "1 ano"
-    if (weeks > 60) {
-        const m = Math.ceil(weeks / WEEKS_PER_MONTH)
-        return `${m} meses`
-    }
+    if (weeks > 60) return `${Math.ceil(weeks / WEEKS_PER_MONTH)} meses`
     const w = Math.ceil(weeks)
     return `${w} ${w === 1 ? "semana" : "semanas"}`
 }
@@ -389,60 +433,81 @@ export const fmt1 = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDi
 
 // ── Ofertas ──────────────────────────────────────────────────────────────────
 
-// ponytail: preços provisórios dos upsells (o modelo de pacotes ainda vai mudar); um lugar só.
+// Nome e preço vêm de UPSELLS (lib/constants/plans.ts, espelho do Stripe); aqui só a copy da oferta.
 export const BUMPS: Record<BumpId, { title: string; priceInCents: number; deliverables: string[] }> = {
     cv: {
-        title: "Currículo otimizado por IA",
-        priceInCents: 2700,
-        deliverables: [
-            "Reescreve título e resumo com o cargo que você quer",
-            "Transforma tarefas em resultados (você confirma cada número)",
-            "Corrige estrutura, tamanho e seções que faltam",
-        ],
+        title: UPSELLS.cv.name,
+        priceInCents: UPSELLS.cv.priceInCents,
+        deliverables: ["Cargo-alvo no topo, título e resumo reescritos", "Tarefas viram resultados (você confirma cada número)", "Uma versão ajustada para cada tipo de vaga"],
     },
-    kit_dev: {
-        title: "Kit Internacional",
-        priceInCents: 3700,
-        deliverables: [
-            "Seu currículo traduzido e adaptado para vagas em inglês",
-            "Título e resumo do LinkedIn em inglês",
-            "Campanha separada para vagas remotas no exterior",
-        ],
+    kit_tech: {
+        title: UPSELLS.kit_tech.name,
+        priceInCents: UPSELLS.kit_tech.priceInCents,
+        deliverables: ["Currículo adaptado para vagas em inglês", "Título e resumo do LinkedIn em inglês", "Campanha separada para vagas remotas no exterior"],
     },
-    kit_exec: {
-        title: "LinkedIn Executivo",
-        priceInCents: 4700,
-        deliverables: [
-            "Título e “Sobre” do LinkedIn reescritos para o cargo-alvo",
-            "Experiências reescritas com foco em escopo e resultado",
-            "Lista de palavras-chave que recrutadores usam na sua área",
-        ],
+    kit_gestao: {
+        title: UPSELLS.kit_gestao.name,
+        priceInCents: UPSELLS.kit_gestao.priceInCents,
+        deliverables: ["Título e “Sobre” reescritos para o cargo-alvo", "Experiências com foco em escopo e resultado", "Palavras-chave que recrutadores usam na sua área"],
     },
     kit_varejo: {
-        title: "Preparação para Entrevista Presencial",
-        priceInCents: 1700,
+        title: UPSELLS.kit_varejo.name,
+        priceInCents: UPSELLS.kit_varejo.priceInCents,
+        deliverables: ["Perguntas mais comuns da sua área, com respostas-modelo", "Como falar de salário e disponibilidade de horário", "Checklist do dia: documentos, roupa, chegada"],
+    },
+    carta: {
+        title: UPSELLS.carta.name,
+        priceInCents: UPSELLS.carta.priceInCents,
         deliverables: [
-            "Perguntas mais comuns para a sua área, com respostas-modelo",
-            "Como falar de pretensão salarial e disponibilidade de horário",
-            "Checklist do dia: documentos, roupa, chegada",
+            "Carta de apresentação para o seu cargo-alvo, a partir do seu currículo",
+            "Versão curta para o campo de mensagem ao recrutador no LinkedIn e no InfoJobs",
+            "Você revisa e edita antes de usar",
+        ],
+    },
+    lista_tech: {
+        title: UPSELLS.lista_tech.name,
+        priceInCents: UPSELLS.lista_tech.priceInCents,
+        deliverables: [
+            "Cargos de tecnologia com mais vagas abertas no momento",
+            "O que essas vagas mais pedem: linguagens, ferramentas e nível de inglês",
+            "Quais aceitam trabalho remoto, inclusive para o exterior",
+        ],
+    },
+    lista_gestao: {
+        title: UPSELLS.lista_gestao.name,
+        priceInCents: UPSELLS.lista_gestao.priceInCents,
+        deliverables: [
+            "Cargos de liderança com mais vagas abertas no momento",
+            "Setores que mais estão contratando gestores",
+            "O que essas vagas mais pedem de experiência e formação",
+        ],
+    },
+    lista_varejo: {
+        title: UPSELLS.lista_varejo.name,
+        priceInCents: UPSELLS.lista_varejo.priceInCents,
+        deliverables: [
+            "Cargos de comércio, atendimento e escritório com mais vagas abertas no momento",
+            "Os que mais contratam sem exigir experiência",
+            "O que essas vagas mais pedem: escala, horário e requisitos",
         ],
     },
 }
 
 export const OTOS: Record<OtoId, { title: string; priceInCents: number; pitch: string }> = {
     voice: {
-        title: "Simulador de Entrevista por voz",
-        priceInCents: 4700,
+        title: UPSELLS.voice.name,
+        priceInCents: UPSELLS.voice.priceInCents,
         pitch: "Você fala, a IA entrevista como um recrutador da sua área e devolve o que melhorar em cada resposta.",
     },
     text: {
-        title: "Simulador de Entrevista por texto",
-        priceInCents: 1900,
+        title: UPSELLS.text.name,
+        priceInCents: UPSELLS.text.priceInCents,
         pitch: "As mesmas perguntas e o mesmo retorno, respondendo por escrito, no seu ritmo.",
     },
 }
 
-export const segmentBump = (s: Segment | undefined): BumpId => (s === "dev" ? "kit_dev" : s === "exec" ? "kit_exec" : "kit_varejo")
+export const segmentBump = (s: Segment | undefined): BumpId => (s === "dev" ? "kit_tech" : s === "exec" ? "kit_gestao" : "kit_varejo")
+export const segmentList = (s: Segment | undefined): BumpId => (s === "dev" ? "lista_tech" : s === "exec" ? "lista_gestao" : "lista_varejo")
 
 export function cartTotal(s: FunnelState): { monthly: number; once: number } {
     const plan = PLANS.find((p) => p.slug === s.plan)

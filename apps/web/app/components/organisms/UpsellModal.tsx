@@ -31,8 +31,8 @@ export function UpsellModal({ open, currentPlanSlug, onClose }: UpsellModalProps
     }
 
     return (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#020817]/80 px-4 backdrop-blur-sm">
-            <div className="w-full max-w-lg rounded-[24px] border border-[#273247] bg-[#111827] p-8 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-ap-ink/80 px-4 backdrop-blur-sm">
+            <div className="w-full max-w-lg rounded-[24px] border border-line-strong bg-surface p-8 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
                 {/* Header */}
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -40,7 +40,7 @@ export function UpsellModal({ open, currentPlanSlug, onClose }: UpsellModalProps
                             <Zap className="h-5 w-5" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-white">Seus créditos acabaram!</h2>
+                            <h2 className="text-lg font-semibold text-fg">Seus créditos acabaram!</h2>
                             <p className="text-sm text-slate-400">
                                 {currentPlan
                                     ? `Plano atual: ${currentPlan.name} (${currentPlan.credits} créditos/mês)`
@@ -51,7 +51,7 @@ export function UpsellModal({ open, currentPlanSlug, onClose }: UpsellModalProps
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-xl p-2 text-slate-500 transition hover:bg-[#172033] hover:text-white"
+                        className="rounded-xl p-2 text-slate-500 transition hover:bg-raised hover:text-fg"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -64,12 +64,12 @@ export function UpsellModal({ open, currentPlanSlug, onClose }: UpsellModalProps
                             <Zap size={16} />
                             <span className="text-sm font-semibold">Upgrade recomendado</span>
                         </div>
-                        <h3 className="mt-2 text-xl font-bold text-white">{nextPlan.name}</h3>
+                        <h3 className="mt-2 text-xl font-bold text-fg">{nextPlan.name}</h3>
                         <p className="mt-1 text-sm text-slate-300">
                             {nextPlan.credits.toLocaleString("pt-BR")} créditos por mês
                         </p>
                         <div className="mt-3 flex items-baseline gap-2">
-                            <span className="text-2xl font-bold text-white">
+                            <span className="text-2xl font-bold text-fg">
                                 {formatBRL(nextPlan.priceInCents - currentPlan.priceInCents)}
                             </span>
                             <span className="text-sm text-slate-400">/mês a mais</span>
@@ -80,7 +80,7 @@ export function UpsellModal({ open, currentPlanSlug, onClose }: UpsellModalProps
                         <button
                             type="button"
                             onClick={handleUpgrade}
-                            className="mt-4 w-full rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
+                            className="mt-4 w-full rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-white transition hover:bg-accent-hover"
                         >
                             Fazer upgrade para {nextPlan.name}
                         </button>
@@ -97,7 +97,7 @@ export function UpsellModal({ open, currentPlanSlug, onClose }: UpsellModalProps
                     <button
                         type="button"
                         onClick={handleDecline}
-                        className="flex items-center gap-2 rounded-xl border border-[#2A3445] px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-[#3A4A61] hover:text-white"
+                        className="flex items-center gap-2 rounded-xl border border-line-strong px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-line-strong hover:text-fg"
                     >
                         <Package size={14} />
                         {isOnMaxPlan ? "Comprar créditos avulsos" : "Prefiro comprar créditos avulsos"}

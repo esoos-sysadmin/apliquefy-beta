@@ -13,12 +13,15 @@ export function createMainWindow(onClosed: () => void) {
         maxWidth: 1000,
         maxHeight: 600,
         frame: false,
-        transparent: false,
+        // Transparente para os cantos arredondados do CSS (--window-radius) aparecerem.
+        transparent: true,
         resizable: false,
         maximizable: false,
         fullscreenable: false,
         show: false,
-        backgroundColor: "#0d1117",
+        backgroundColor: "#00000000",
+        // Ícone da janela/taskbar (Linux/Windows); __dirname = dist-electron/electron/main.
+        icon: path.join(__dirname, "../../../resources/icon.png"),
         titleBarStyle: process.platform === "darwin" ? "hiddenInset" : undefined,
         webPreferences: {
             preload: path.join(__dirname, "../preload.js"),

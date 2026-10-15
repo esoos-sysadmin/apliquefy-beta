@@ -33,7 +33,7 @@ export function ResumeIdiomsSection({
             </div>
 
             {idioms.map((idiom, i) => (
-                <div key={i} style={{ background: "#1C2333", borderRadius: 8, padding: 16, marginBottom: 12 }}>
+                <div key={i} style={{ background: "rgb(var(--c-raised))", borderRadius: 8, padding: 16, marginBottom: 12 }}>
                     {isEditing && (
                         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
                             <button onClick={() => onRemove(i)} style={removeButtonStyle}>Remover</button>
@@ -64,7 +64,7 @@ export function ResumeIdiomsSection({
             ))}
 
             {idioms.length === 0 && (
-                <p style={{ color: "#555", fontSize: 14, textAlign: "center", padding: "24px 0" }}>
+                <p style={{ color: "rgb(var(--c-slate-600))", fontSize: 14, textAlign: "center", padding: "24px 0" }}>
                     Nenhum idioma adicionado ainda.
                 </p>
             )}

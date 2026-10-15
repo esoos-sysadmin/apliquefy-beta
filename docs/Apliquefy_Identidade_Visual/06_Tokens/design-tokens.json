@@ -1,0 +1,366 @@
+{
+  "metadata": {
+    "name": "Apliquefy",
+    "version": "1.0.0",
+    "status": "Base visual e componentes demonstrativos",
+    "description": "Cores com funções estáveis; gradiente reservado à assinatura. Conteúdo do catálogo é demonstração."
+  },
+  "color": {
+    "purple": {
+      "$type": "color",
+      "$value": "#7A3BFF"
+    },
+    "purple-hover": {
+      "$type": "color",
+      "$value": "#6527DC"
+    },
+    "purple-active": {
+      "$type": "color",
+      "$value": "#5420BF"
+    },
+    "orange": {
+      "$type": "color",
+      "$value": "#FF7A00"
+    },
+    "green": {
+      "$type": "color",
+      "$value": "#22D36A"
+    },
+    "ink": {
+      "$type": "color",
+      "$value": "#14121C"
+    },
+    "white": {
+      "$type": "color",
+      "$value": "#FFFFFF"
+    },
+    "surface": {
+      "$type": "color",
+      "$value": "#F6F4FA"
+    },
+    "surface-purple": {
+      "$type": "color",
+      "$value": "#F0E9FF"
+    },
+    "border": {
+      "$type": "color",
+      "$value": "#D8D4E2"
+    },
+    "muted": {
+      "$type": "color",
+      "$value": "#625D6C"
+    },
+    "success": {
+      "$type": "color",
+      "$value": "#08773A"
+    },
+    "success-surface": {
+      "$type": "color",
+      "$value": "#EAF8EF"
+    },
+    "warning": {
+      "$type": "color",
+      "$value": "#A64500"
+    },
+    "warning-surface": {
+      "$type": "color",
+      "$value": "#FFF2E6"
+    },
+    "error": {
+      "$type": "color",
+      "$value": "#B42318"
+    },
+    "error-surface": {
+      "$type": "color",
+      "$value": "#FFF0EE"
+    },
+    "info": {
+      "$type": "color",
+      "$value": "#345A90"
+    },
+    "info-surface": {
+      "$type": "color",
+      "$value": "#EDF3FC"
+    },
+    "disabled-surface": {
+      "$type": "color",
+      "$value": "#ECE9F1"
+    },
+    "disabled-text": {
+      "$type": "color",
+      "$value": "#756F80"
+    },
+    "focus": {
+      "$type": "color",
+      "$value": "#5420BF"
+    }
+  },
+  "space": {
+    "0": {
+      "$type": "dimension",
+      "$value": {
+        "value": 0,
+        "unit": "px"
+      }
+    },
+    "4": {
+      "$type": "dimension",
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      }
+    },
+    "8": {
+      "$type": "dimension",
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      }
+    },
+    "12": {
+      "$type": "dimension",
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      }
+    },
+    "16": {
+      "$type": "dimension",
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
+    "24": {
+      "$type": "dimension",
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      }
+    },
+    "32": {
+      "$type": "dimension",
+      "$value": {
+        "value": 32,
+        "unit": "px"
+      }
+    },
+    "48": {
+      "$type": "dimension",
+      "$value": {
+        "value": 48,
+        "unit": "px"
+      }
+    },
+    "64": {
+      "$type": "dimension",
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      }
+    },
+    "96": {
+      "$type": "dimension",
+      "$value": {
+        "value": 96,
+        "unit": "px"
+      }
+    }
+  },
+  "radius": {
+    "small": {
+      "$type": "dimension",
+      "$value": {
+        "value": 6,
+        "unit": "px"
+      }
+    },
+    "control": {
+      "$type": "dimension",
+      "$value": {
+        "value": 10,
+        "unit": "px"
+      }
+    },
+    "card": {
+      "$type": "dimension",
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
+    "pill": {
+      "$type": "dimension",
+      "$value": {
+        "value": 999,
+        "unit": "px"
+      }
+    }
+  },
+  "font": {
+    "body": {
+      "$type": "fontFamily",
+      "$value": [
+        "Inter",
+        "system-ui",
+        "-apple-system",
+        "Segoe UI",
+        "sans-serif"
+      ]
+    },
+    "display": {
+      "$type": "fontFamily",
+      "$value": [
+        "Apliquefy Display",
+        "system-ui",
+        "sans-serif"
+      ]
+    },
+    "size": {
+      "12": {
+        "$type": "dimension",
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        }
+      },
+      "14": {
+        "$type": "dimension",
+        "$value": {
+          "value": 14,
+          "unit": "px"
+        }
+      },
+      "16": {
+        "$type": "dimension",
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "20": {
+        "$type": "dimension",
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        }
+      },
+      "24": {
+        "$type": "dimension",
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "28": {
+        "$type": "dimension",
+        "$value": {
+          "value": 28,
+          "unit": "px"
+        }
+      },
+      "36": {
+        "$type": "dimension",
+        "$value": {
+          "value": 36,
+          "unit": "px"
+        }
+      },
+      "48": {
+        "$type": "dimension",
+        "$value": {
+          "value": 48,
+          "unit": "px"
+        }
+      }
+    },
+    "lineHeight": {
+      "body": 1.5,
+      "heading": 1.12
+    }
+  },
+  "control": {
+    "height": {
+      "$type": "dimension",
+      "$value": {
+        "value": 44,
+        "unit": "px"
+      }
+    },
+    "heightCompact": {
+      "$type": "dimension",
+      "$value": {
+        "value": 36,
+        "unit": "px"
+      }
+    },
+    "icon": {
+      "$type": "dimension",
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      }
+    },
+    "stroke": {
+      "$type": "number",
+      "$value": 1.8
+    }
+  },
+  "motion": {
+    "fast": {
+      "$type": "duration",
+      "$value": {
+        "value": 120,
+        "unit": "ms"
+      }
+    },
+    "standard": {
+      "$type": "duration",
+      "$value": {
+        "value": 180,
+        "unit": "ms"
+      }
+    },
+    "reducedMotion": "Desativar movimentos não essenciais quando prefers-reduced-motion: reduce."
+  },
+  "semantic": {
+    "action": "{color.purple}",
+    "actionHover": "{color.purple-hover}",
+    "actionActive": "{color.purple-active}",
+    "text": "{color.ink}",
+    "textSecondary": "{color.muted}",
+    "background": "{color.white}",
+    "surface": "{color.surface}",
+    "border": "{color.border}",
+    "focus": "{color.focus}",
+    "danger": "{color.error}",
+    "positive": "{color.success}",
+    "attention": "{color.warning}"
+  },
+  "brandGradient": {
+    "coordinateSystem": "objectBoundingBox",
+    "x1": 0.26,
+    "y1": 0,
+    "x2": 0.65,
+    "y2": 1,
+    "stops": [
+      {
+        "color": "#7A3BFF",
+        "position": 0
+      },
+      {
+        "color": "#7A3BFF",
+        "position": 34
+      },
+      {
+        "color": "#FF7A00",
+        "position": 72
+      },
+      {
+        "color": "#FF7A00",
+        "position": 100
+      }
+    ],
+    "usage": "Referência cromática do símbolo; não aplicar como fundo padrão de botões ou texto funcional. A geometria e o gradiente oficiais estão no SVG mestre do símbolo."
+  }
+}

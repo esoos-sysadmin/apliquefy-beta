@@ -1,0 +1,15 @@
+/* Apliquefy Display CSS family: Regular R2 at 400, original Bold at 700. */
+@font-face {
+  font-family: 'Apliquefy Display';
+  src: url('./ApliquefyDisplayR2-Regular.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Apliquefy Display';
+  src: url('./ApliquefyDisplay-Bold.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}

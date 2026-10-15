@@ -39,16 +39,16 @@ export function CampaignEditModal({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#020817]/75 px-4 py-8 backdrop-blur-sm">
-            <div className="w-full max-w-md overflow-hidden rounded-[22px] border border-[#273247] bg-[#1B2331] shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
-                <div className="flex items-center justify-between border-b border-[#273247] px-5 py-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ap-ink/75 px-4 py-8 backdrop-blur-sm">
+            <div className="w-full max-w-md overflow-hidden rounded-[22px] border border-line-strong bg-surface shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+                <div className="flex items-center justify-between border-b border-line-strong px-5 py-5">
                     <h2 className="text-xl font-semibold text-blue-400">Editar campanha</h2>
 
                     <button
                         type="button"
                         onClick={onClose}
                         aria-label="Fechar modal de edição"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-[#243146] hover:text-white"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-overlay hover:text-fg"
                     >
                         <X size={18} />
                     </button>
@@ -61,7 +61,7 @@ export function CampaignEditModal({
                             value={campaignName}
                             onChange={(event) => setCampaignName(event.target.value)}
                             placeholder="Nome da campanha"
-                            className="h-11 w-full rounded-xl border border-[#202A3A] bg-[#0F1623] px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#3B82F6]"
+                            className="h-11 w-full rounded-xl border border-line bg-sunken px-4 text-sm text-fg outline-none transition placeholder:text-slate-500 focus:border-accent"
                         />
                     </label>
 
@@ -83,7 +83,7 @@ export function CampaignEditModal({
                             onChange={(event) => setDailyLimit(event.target.value.replace(/\D/g, "").slice(0, 3))}
                             inputMode="numeric"
                             placeholder="50"
-                            className="h-11 w-full rounded-xl border border-[#202A3A] bg-[#0F1623] px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#3B82F6]"
+                            className="h-11 w-full rounded-xl border border-line bg-sunken px-4 text-sm text-fg outline-none transition placeholder:text-slate-500 focus:border-accent"
                         />
                         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                             Limite entre 1 e 200 candidaturas
@@ -91,11 +91,11 @@ export function CampaignEditModal({
                     </label>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 border-t border-[#273247] bg-[#242C3A] px-5 py-4">
+                <div className="flex items-center justify-end gap-3 border-t border-line-strong bg-overlay px-5 py-4">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="inline-flex h-11 items-center justify-center rounded-xl border border-[#313A49] px-4 text-sm font-semibold text-slate-300 transition hover:border-[#3D4658] hover:text-white"
+                        className="inline-flex h-11 items-center justify-center rounded-xl border border-line-strong px-4 text-sm font-semibold text-slate-300 transition hover:border-line-strong hover:text-fg"
                     >
                         Cancelar
                     </button>
@@ -103,7 +103,7 @@ export function CampaignEditModal({
                         type="button"
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="inline-flex h-11 items-center justify-center rounded-xl bg-[#3B82F6] px-5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(59,130,246,0.25)] transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-11 items-center justify-center rounded-xl bg-accent-hover px-5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(122,59,255,0.25)] transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {isSaving ? "Salvando..." : "Salvar alterações"}
                     </button>

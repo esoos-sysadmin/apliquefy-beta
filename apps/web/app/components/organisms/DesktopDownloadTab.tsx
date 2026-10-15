@@ -27,14 +27,14 @@ export function DesktopDownloadTab() {
                 {desktopPlatforms.map((platform) => (
                     <div
                         key={platform.name}
-                        className="flex flex-col gap-5 rounded-2xl border border-[#1C2333] bg-[#131B2A] p-6 transition-colors hover:border-[#283349]"
+                        className="flex flex-col gap-5 rounded-2xl border border-line bg-surface p-6 transition-colors hover:border-line-strong"
                     >
                         <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#2A3445] bg-[#101826] text-slate-400">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-line-strong bg-sunken text-slate-400">
                                 {platform.icon}
                             </div>
                             <div>
-                                <p className="text-base font-semibold text-white">{platform.name}</p>
+                                <p className="text-base font-semibold text-fg">{platform.name}</p>
                                 <p className="text-xs text-slate-500">{platform.version}</p>
                             </div>
                         </div>
@@ -43,7 +43,7 @@ export function DesktopDownloadTab() {
 
                         <a
                             href={platform.downloadUrl}
-                            className="mt-auto flex h-10 items-center justify-center gap-2 rounded-xl border border-[#2A3445] bg-[#101826] text-sm font-semibold text-slate-300 transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-300"
+                            className="mt-auto flex h-10 items-center justify-center gap-2 rounded-xl border border-line-strong bg-sunken text-sm font-semibold text-slate-300 transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-300"
                         >
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -56,8 +56,8 @@ export function DesktopDownloadTab() {
                 ))}
             </div>
 
-            <div className="rounded-2xl border border-[#1C2333] bg-[#131B2A] p-6">
-                <h2 className="mb-4 text-base font-bold text-white">Requisitos do sistema</h2>
+            <div className="rounded-2xl border border-line bg-surface p-6">
+                <h2 className="mb-4 text-base font-bold text-fg">Requisitos do sistema</h2>
                 <div className="grid gap-4 text-sm text-slate-400 sm:grid-cols-3">
                     {desktopPlatforms.map((platform) => (
                         <div key={platform.name}>

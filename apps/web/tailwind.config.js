@@ -1,5 +1,8 @@
+import { themeBase, themeColors } from "./theme.palette.js";
+
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: ["selector", '[data-theme="dark"]'],
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -8,26 +11,34 @@ export default {
   ],
   theme: {
     extend: {
-      // Tokens do funil /lp (definidos em app/lp/lp.css), namespaced para não vazar no app.
+      // Tokens da marca (docs/Apliquefy_Identidade_Visual/06_Tokens), usados pelo funil /lp.
       colors: {
-        lp: {
-          paper: "var(--lp-paper)",
-          field: "var(--lp-field)",
-          ink: "var(--lp-ink)",
-          ink2: "var(--lp-ink2)",
-          rule: "var(--lp-rule)",
-          act: "var(--lp-act)",
-          est: "var(--lp-est)",
-          bad: "var(--lp-bad)",
-          ok: "var(--lp-ok)",
+        ...themeColors,
+        ap: {
+          ink: "#14121C",
+          purple: "#7A3BFF",
+          "purple-hover": "#6527DC",
+          "purple-active": "#5420BF",
+          orange: "#FF7A00",
+          green: "#22D36A",
+          surface: "#F6F4FA",
+          "surface-purple": "#F0E9FF",
+          border: "#D8D4E2",
+          muted: "#625D6C",
+          success: "#08773A",
+          "success-surface": "#EAF8EF",
+          warning: "#A64500",
+          "warning-surface": "#FFF2E6",
+          error: "#B42318",
+          "error-surface": "#FFF0EE",
         },
       },
       fontFamily: {
-        "lp-serif": ["var(--font-lp-serif)", "Georgia", "serif"],
-        "lp-sans": ["var(--font-lp-sans)", "system-ui", "sans-serif"],
-        "lp-mono": ["var(--font-lp-mono)", "ui-monospace", "monospace"],
+        "ap-display": ["var(--font-ap-display)", "system-ui", "sans-serif"],
+        "ap-body": ["var(--font-ap-body)", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
       },
+      borderRadius: { "ap-tag": "6px", "ap-control": "10px", "ap-card": "16px" },
     },
   },
-  plugins: [],
+  plugins: [({ addBase }) => addBase(themeBase)],
 };

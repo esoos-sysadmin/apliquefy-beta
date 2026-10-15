@@ -18,7 +18,7 @@ export function ResumeCard({
     const isSynced = meta.status === "synced";
 
     return (
-        <article className="flex min-h-[220px] overflow-hidden rounded-2xl border border-[#1C2333] bg-[#131B2A] transition-colors hover:border-[#283349]">
+        <article className="flex min-h-[220px] overflow-hidden rounded-2xl border border-line bg-surface transition-colors hover:border-line-strong">
             <div className="flex flex-1 flex-col justify-between p-6">
                 <div>
                     <div className="mb-5 flex items-start justify-between gap-4">
@@ -36,7 +36,7 @@ export function ResumeCard({
                             <Link
                                 href={`/curriculos/${resume.id}`}
                                 aria-label={`Preview ${resume.title}`}
-                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#263149] bg-[#182233] text-white transition-colors hover:border-[#3b4a63] hover:bg-[#22314a]"
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-line-strong bg-raised text-fg transition-colors hover:border-line-strong hover:bg-overlay"
                             >
                                 <Eye size={17} />
                             </Link>
@@ -44,14 +44,14 @@ export function ResumeCard({
                                 type="button"
                                 onClick={() => onDelete(resume)}
                                 aria-label={`Excluir ${resume.title}`}
-                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-200 transition-colors hover:border-rose-500 hover:bg-rose-600 hover:text-white"
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-200 transition-colors hover:border-rose-500 hover:bg-rose-600 hover:text-fg"
                             >
                                 <Trash2 size={17} />
                             </button>
                         </div>
                     </div>
 
-                    <h2 className="text-xl font-semibold text-white">{resume.title}</h2>
+                    <h2 className="text-xl font-semibold text-fg">{resume.title}</h2>
                     <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-400">
                         <span className="font-medium text-sky-300">{meta.role}</span>
                         <span className="text-slate-600">•</span>
@@ -65,7 +65,7 @@ export function ResumeCard({
                 <div className="mt-6 flex items-center gap-3">
                     <Link
                         href={`/curriculos/${resume.id}`}
-                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-blue-400/30 bg-blue-500/15 px-4 text-sm font-semibold text-blue-300 transition hover:border-blue-500 hover:bg-blue-600 hover:text-white"
+                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-blue-400/30 bg-blue-500/15 px-4 text-sm font-semibold text-blue-300 transition hover:border-blue-500 hover:bg-blue-600 hover:text-fg"
                     >
                         <Pencil size={15} />
                         Editar currículo
@@ -73,7 +73,7 @@ export function ResumeCard({
                     <button
                         type="button"
                         onClick={() => downloadResumePdf(resume)}
-                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#3b4a63] bg-[#182233] px-4 text-sm font-semibold text-white transition hover:border-[#4a5c7a] hover:bg-[#243350]"
+                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong bg-raised px-4 text-sm font-semibold text-fg transition hover:border-line-strong hover:bg-overlay"
                     >
                         <Download size={15} />
                         Baixar PDF
@@ -81,8 +81,8 @@ export function ResumeCard({
                 </div>
             </div>
 
-            <div className="hidden w-44 shrink-0 border-l border-[#1C2333] bg-[radial-gradient(circle_at_top,#1d2a42,transparent_55%),linear-gradient(180deg,#172132_0%,#111827_100%)] lg:flex lg:items-center lg:justify-center">
-                <div className="rounded-2xl border border-[#2A3445] bg-[#101826]/80 px-5 py-6 text-center">
+            <div className="hidden w-44 shrink-0 border-l border-line bg-[radial-gradient(circle_at_top,rgb(var(--c-accent-soft)),transparent_55%)] bg-sunken lg:flex lg:items-center lg:justify-center">
+                <div className="rounded-2xl border border-line-strong bg-sunken/80 px-5 py-6 text-center">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                         Currículo
                     </p>

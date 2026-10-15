@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "wordmark_source": "apliquefy-wordmark-master.svg",
+  "wordmark_viewbox": [
+    26.0,
+    -760.552,
+    4217.67,
+    970.552
+  ],
+  "name_height_in_master": 150,
+  "horizontal_mark_visible_height": 144,
+  "horizontal_gap": 40,
+  "clearspace": "mínimo 0,5 × altura-x do wordmark; artboards incluem margem de exportação",
+  "min_width_px": {
+    "horizontal": 160,
+    "wordmark": 110,
+    "symbol": 24,
+    "micro": 16
+  },
+  "palette": {
+    "purple": "#7A3BFF",
+    "orange": "#FF7A00",
+    "green": "#22D36A",
+    "ink": "#14121C",
+    "white": "#FFFFFF",
+    "paper": "#F6F4FA"
+  }
+}

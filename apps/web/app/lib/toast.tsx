@@ -61,8 +61,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                         key={item.id}
                         className={`pointer-events-auto flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-[0_24px_60px_rgba(2,6,23,0.45)] ${
                             item.variant === "success"
-                                ? "border-emerald-500/30 bg-[#0F1F1A] text-emerald-100"
-                                : "border-rose-500/30 bg-[#261317] text-rose-100"
+                                ? "border-emerald-500/30 bg-surface text-emerald-100"
+                                : "border-rose-500/30 bg-surface text-rose-100"
                         }`}
                     >
                         {item.variant === "success" ? (
@@ -74,7 +74,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                         <button
                             type="button"
                             onClick={() => setItems((current) => current.filter((toastItem) => toastItem.id !== item.id))}
-                            className="rounded-lg p-1 text-slate-400 transition hover:bg-white/10 hover:text-white"
+                            className="rounded-lg p-1 text-slate-400 transition hover:bg-fg/10 hover:text-fg"
                             aria-label="Fechar notificação"
                         >
                             <X className="h-4 w-4" />

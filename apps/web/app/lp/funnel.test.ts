@@ -2,15 +2,14 @@
  * npx tsx app/lp/funnel.test.ts
  *
  * Os números do laudo vão para a frente de quem está decidindo pagar. Trava: as contas
- * saem só das respostas, o arredondamento nunca adianta prazo, a nota do CV vem dos
- * critérios e o leitor de .docx acha o texto.
+ * saem só das respostas, o arredondamento nunca adianta prazo e o índice vem dos critérios.
  */
 import assert from "node:assert/strict"
-import { deflateRawSync } from "node:zlib"
-import { PLANS } from "../lib/constants/plans"
-import { analyzeCv, extractText, findings } from "./cv"
+import { isUpsellSlug, PLANS, UPSELLS } from "../lib/constants/plans"
 import {
+    dailyLimitFor,
     destination,
+    diagnose,
     formatDuration,
     hoursPerMonth,
     hoursSoFar,
@@ -18,7 +17,6 @@ import {
     planAppsPerWeek,
     questionsFor,
     REFERENCE_DESTINATION,
-    dailyLimitFor,
     responseRate,
     targetSalary,
     weeksTo,
@@ -30,7 +28,7 @@ const a: Answers = { segment: "varejo", appsPerWeek: 10, minutesPerApp: 15, sear
 // 10 × 15 min × 52/12 semanas = 650 min = 10,83 h
 assert.equal(hoursPerMonth(a)!.toFixed(2), "10.83")
 assert.equal(hoursSoFar(a), 32.5) // 13 sem × 10 × 15 / 60
-assert.equal(responseRate(a)!.toFixed(4), (1 / (10 * 52 / 12)).toFixed(4))
+assert.equal(responseRate(a)!.toFixed(4), (1 / ((10 * 52) / 12)).toFixed(4))
 assert.equal(hoursPerMonth({ appsPerWeek: 0 }), null, "sem ritmo, sem número")
 assert.equal(responseRate({ responsesLastMonth: 2 }), null, "sem candidatura, sem taxa")
 
@@ -63,61 +61,29 @@ assert.ok(ids({ appsPerWeek: 3 }).includes("responsesLastMonth"))
 assert.ok(!ids({ segment: "varejo" }).includes("english"))
 assert.ok(ids({ segment: "dev" }).includes("english"))
 assert.equal(nextQuizScreen({ segment: "dev" }, "feeling"), "bridge")
-assert.equal(nextQuizScreen({ segment: "dev" }, "bridge"), "english")
-assert.equal(nextQuizScreen({}, "cv"), "analysis")
+assert.equal(nextQuizScreen({ segment: "dev" }, "bridge"), "profile")
+assert.equal(nextQuizScreen({}, "targetRole"), "analysis")
 const n = questionsFor({ segment: "dev", appsPerWeek: 5 }).length
 assert.ok(n >= 8 && n <= 15, `quiz com ${n} perguntas`)
 
-// Análise do CV
-const cv = `Maria Souza — Vendedora
-maria@email.com · (11) 98765-4321 · Disponibilidade: escala 6x1
-Experiência
-Loja X (2021–2024): vendas no balcão, atendimento ao cliente. Bati 120% da meta em 2023 e atendi 40 clientes por dia.
-Formação
-Ensino médio completo.
-Habilidades
-Proativa, comunicativa, pontual, trabalho em equipe.
-${"Atendimento caixa estoque reposição vitrine. ".repeat(25)}`
-const r = analyzeCv(cv, { targetRole: "Vendedor", segment: "varejo" })!
-const by = (id: string) => r.criteria.find((c) => c.id === id)!
-assert.ok(by("role").pass, "vendedora ↔ vendedor")
-assert.ok(by("contact").pass)
-assert.ok(by("results").pass, by("results").evidence)
-assert.ok(by("sections").pass)
-assert.ok(by("link").pass, "disponibilidade conta para varejo")
-assert.ok(!by("cliches").pass, by("cliches").evidence)
-assert.equal(r.score, 89) // só clichês reprovou: 80 de 90 pontos aplicáveis
-assert.deepEqual(findings(r).map((c) => c.id), ["cliches"])
-assert.ok(!analyzeCv(cv, { targetRole: "Analista de Dados", segment: "varejo" })!.criteria.find((c) => c.id === "role")!.pass)
-assert.equal(analyzeCv("curto demais", { targetRole: "X", segment: "dev" }), null)
-// Ano não é telefone
-assert.ok(!analyzeCv(`contato: a@b.com 2019-2020 ${"palavra ".repeat(60)}`, { targetRole: "x", segment: "dev" })!.criteria.find((c) => c.id === "contact")!.pass)
+// Índice: tudo marcado e volume na meta = 100; nada marcado e zero candidaturas = 0
+assert.equal(diagnose({ appsPerWeek: 25, profile: ["role", "results", "updated", "tailored", "linkedin"] }).score, 100)
+const empty = diagnose({ appsPerWeek: 0, profile: [] })
+assert.equal(empty.score, 0)
+assert.deepEqual(
+    empty.problems.map((c) => c.id),
+    ["volume", "role", "results"],
+    "os 3 de maior peso",
+)
+// 10/semana com cargo e LinkedIn: 20 + 15 de 100
+assert.equal(diagnose({ appsPerWeek: 10, profile: ["role", "linkedin"] }).score, 35)
 
-// .docx mínimo (zip com word/document.xml deflate) → texto
-function zip(name: string, content: string) {
-    const data = deflateRawSync(Buffer.from(content))
-    const fname = Buffer.from(name)
-    const local = Buffer.alloc(30)
-    local.writeUInt32LE(0x04034b50, 0)
-    local.writeUInt16LE(8, 8)
-    local.writeUInt32LE(data.length, 18)
-    local.writeUInt16LE(fname.length, 26)
-    const central = Buffer.alloc(46)
-    central.writeUInt32LE(0x02014b50, 0)
-    central.writeUInt16LE(8, 10)
-    central.writeUInt32LE(data.length, 20)
-    central.writeUInt16LE(fname.length, 28)
-    central.writeUInt32LE(0, 42)
-    const cdOffset = local.length + fname.length + data.length
-    const eocd = Buffer.alloc(22)
-    eocd.writeUInt32LE(0x06054b50, 0)
-    eocd.writeUInt16LE(1, 10)
-    eocd.writeUInt32LE(central.length + fname.length, 12)
-    eocd.writeUInt32LE(cdOffset, 16)
-    return Uint8Array.from(Buffer.concat([local, fname, data, central, fname, eocd]))
-}
-const docx = zip("word/document.xml", "<w:document><w:p><w:r><w:t>Experiência &amp; vendas</w:t></w:r></w:p><w:p><w:t>Linha 2</w:t></w:p></w:document>")
-extractText(new File([docx], "cv.docx")).then(({ text }) => {
-    assert.equal(text, "Experiência & vendas\nLinha 2\n")
-    console.log("ok — funil e análise de CV")
-})
+// Upsells: slug vem da URL do checkout; chave herdada do protótipo não pode passar.
+assert.ok(isUpsellSlug("cv") && isUpsellSlug("voice"))
+assert.ok(!isUpsellSlug("toString") && !isUpsellSlug("__proto__") && !isUpsellSlug("starter"))
+assert.deepEqual(
+    Object.entries(UPSELLS).filter(([, u]) => u.kind === "oto").map(([k]) => k),
+    ["voice", "text"],
+)
+
+console.log("ok — funil e diagnóstico")

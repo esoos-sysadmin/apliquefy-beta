@@ -9,6 +9,7 @@ import { getStorageStatePath } from "./session-service";
 import { getRpaAuthToken, rpaApiRequest, startRpaProcess } from "./rpa-process-service";
 import { registerRunContext, subscribeRunEvents } from "./rpa-events-service";
 import { resolveCurrentAuthState } from "./auth-service";
+import { CHROME_REQUIRED_MESSAGE, isChromeInstalled } from "../helpers/chrome";
 
 /**
  * Inicia um run do RPA para a campanha: garante o engine de pé, resolve a sessão
@@ -16,6 +17,10 @@ import { resolveCurrentAuthState } from "./auth-service";
  * Lançado a partir da ativação da campanha ("play").
  */
 export async function startCampaignRun(campaign: RunnerCampaign): Promise<RpaRunResponse> {
+    if (!isChromeInstalled()) {
+        throw new Error(CHROME_REQUIRED_MESSAGE);
+    }
+
     // O engine pode estar ligado (idempotente); garante antes de renderizar/rodar.
     await startRpaProcess();
 

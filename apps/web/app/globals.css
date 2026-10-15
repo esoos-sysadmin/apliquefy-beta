@@ -3,16 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --background: #0e1119;
-  --foreground: #ededed;
-
-  /* Canvas do app: base grafite (menos azul que o #0B111A antigo) + dois halos
-     quentes/violeta de baixa opacidade que dão profundidade sem brigar com os
-     cards navy (#111827) nem com o accent azul dos botões. */
+  /* Cores claro/escuro: theme.palette.js (variáveis --c-*, alternadas por data-theme no <html>).
+     Canvas: superfície da marca + halos roxo/laranja de baixa opacidade (cores da assinatura). */
   --app-canvas:
-    radial-gradient(1100px 700px at 85% -5%, rgba(244, 164, 96, 0.07), transparent 60%),
-    radial-gradient(900px 700px at 0% 100%, rgba(129, 110, 255, 0.07), transparent 60%),
-    linear-gradient(165deg, #141824 0%, #0e1119 45%, #0a0c12 100%);
+    radial-gradient(1100px 700px at 85% -5%, rgba(255, 122, 0, 0.06), transparent 60%),
+    radial-gradient(900px 700px at 0% 100%, rgba(122, 59, 255, 0.07), transparent 60%);
+}
+
+[data-theme="dark"] {
+  --app-canvas:
+    radial-gradient(1100px 700px at 85% -5%, rgba(255, 122, 0, 0.06), transparent 60%),
+    radial-gradient(900px 700px at 0% 100%, rgba(122, 59, 255, 0.1), transparent 60%),
+    linear-gradient(165deg, #17141f 0%, #100e16 45%, #0b0a10 100%);
 }
 
 html,
@@ -22,8 +24,8 @@ body {
 }
 
 body {
-  color: var(--foreground);
-  background-color: var(--background);
+  color: rgb(var(--c-fg));
+  background-color: rgb(var(--c-canvas));
   /* fixed: o degradê é do viewport, não do documento — não repete ao rolar. */
   background-image: var(--app-canvas);
   background-attachment: fixed;
@@ -82,27 +84,26 @@ button:disabled:active,
 }
 
 /* Restam <select> nativos só no editor de currículo; o popup de <option> é
-   desenhado pelo SO e sem color-scheme dark vem branco com highlight azul. */
+   desenhado pelo SO e segue o color-scheme do tema (setado com as variáveis). */
 select {
-  color-scheme: dark;
   cursor: pointer;
 }
 
 select option {
-  background-color: #101826;
-  color: #e2e8f0;
+  background-color: rgb(var(--c-surface));
+  color: rgb(var(--c-fg));
   padding: 8px;
 }
 
 select option:checked {
-  background-color: #1c2b46;
-  color: #fff;
+  background-color: rgb(var(--c-accent-soft));
+  color: rgb(var(--c-fg));
 }
 
 /* Itens do menu lateral: hover não é expressável em style inline. */
 .nav-item:not([data-active="true"]):hover {
-  background: #16213a !important;
-  color: #cbd5e1 !important;
+  background: rgb(var(--c-raised)) !important;
+  color: rgb(var(--c-fg)) !important;
 }
 
 .nav-item:active {
@@ -120,26 +121,9 @@ select option:checked {
 .resume-editor input:focus,
 .resume-editor textarea:focus,
 .resume-editor select:focus {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  box-shadow: 0 0 0 3px rgb(var(--c-accent) / 0.2);
 }
 .resume-editor input::placeholder,
 .resume-editor textarea::placeholder {
-  color: #61708c;
-}
-
-.imgDark {
-  display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-
-  .imgLight {
-    display: none;
-  }
-  .imgDark {
-    display: unset;
-  }
+  color: rgb(var(--c-slate-500));
 }
