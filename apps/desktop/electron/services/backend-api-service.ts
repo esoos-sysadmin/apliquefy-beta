@@ -20,7 +20,8 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
         ...options,
         headers: {
             Authorization: `Bearer ${getAuthToken()}`,
-            "Content-Type": "application/json",
+            // FormData leva o boundary no Content-Type, que o fetch gera sozinho.
+            ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
             ...options.headers,
         },
     });

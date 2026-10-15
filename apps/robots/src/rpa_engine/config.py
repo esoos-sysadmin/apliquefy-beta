@@ -12,7 +12,7 @@ class Settings:
     user_data_dir: Path
     web_api_url: str
     web_api_token: str | None
-    openai_api_key: str | None
+    openai_base_url: str
     openai_model: str
     cost_per_application: int
     fit_min_score: int
@@ -30,12 +30,16 @@ def load_settings() -> Settings:
     user_data = Path(os.environ.get("RPA_USER_DATA_DIR") or Path.home() / ".apliquefy")
     user_data.mkdir(parents=True, exist_ok=True)
 
+    web_url = os.environ.get("APLIQUEFY_WEB_URL", "http://localhost:3000").rstrip("/")
+
     return Settings(
         auth_token=token,
         user_data_dir=user_data,
-        web_api_url=os.environ.get("APLIQUEFY_WEB_URL", "http://localhost:3000").rstrip("/"),
+        web_api_url=web_url,
         web_api_token=os.environ.get("APLIQUEFY_WEB_TOKEN"),
-        openai_api_key=os.environ.get("OPENAI_API_KEY"),
+        # A OpenAI passa pelo proxy da API web (/api/ai/openai), autenticado com o
+        # web_api_token: a chave nunca chega à máquina do usuário.
+        openai_base_url=f"{web_url}/api/ai/openai",
         # browser-use precisa de um modelo capaz de visão+decisão; gpt-4o-mini é
         # fraco pro loop de navegação. Default gpt-4.1-mini (bom custo-benefício).
         openai_model=os.environ.get("OPENAI_MODEL", "gpt-4.1-mini"),

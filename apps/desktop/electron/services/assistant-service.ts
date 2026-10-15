@@ -3,22 +3,14 @@ import { DEFAULT_PERSONA } from "../../shared/runner-types";
 import { createCampaignController } from "../controllers/campaign-controller";
 import { matchByName } from "../helpers/match-by-name";
 import { fetchCampaigns } from "./campaign-service";
-import { apiRequest } from "./backend-api-service";
+import { apiFetch, apiRequest } from "./backend-api-service";
 
-// O engine RPA e a web já usam gpt-4o-mini via fetch cru (ver resume-ai.ts). Mantemos
-// o mesmo padrão aqui — sem SDK — para não somar dependência. O Apollo vive no main
-// process porque é aqui que a OPENAI_API_KEY é carregada (main.ts / .env) e onde os
-// services de campanha/currículo já rodam.
+// OpenAI e fish.audio passam pela API web (/api/ai/*), que guarda as chaves: o
+// desktop só manda o token Clerk, via apiFetch. Fetch cru, sem SDK, para não somar
+// dependência. O Apollo vive no main process porque é onde os services de
+// campanha/currículo já rodam.
 
-const OPENAI_BASE = "https://api.openai.com/v1";
-
-function getApiKey() {
-    const key = process.env.OPENAI_API_KEY;
-    if (!key) {
-        throw new Error("OPENAI_API_KEY não configurada no ambiente do desktop (.env)");
-    }
-    return key;
-}
+const SESSION_EXPIRED = "Sessão do desktop expirada, faça login novamente.";
 
 function getChatModel() {
     return process.env.OPENAI_MODEL || "gpt-4o-mini";
@@ -33,13 +25,13 @@ export async function transcribeAudio(audioBase64: string): Promise<string> {
     form.append("model", "whisper-1");
     form.append("language", "pt");
 
-    const response = await fetch(`${OPENAI_BASE}/audio/transcriptions`, {
+    const response = await apiFetch("/api/ai/openai/audio/transcriptions", {
         method: "POST",
-        headers: { Authorization: `Bearer ${getApiKey()}` },
         body: form,
     });
 
     if (!response.ok) {
+        if (response.status === 401) throw new Error(SESSION_EXPIRED);
         const detail = await response.text().catch(() => "");
         console.error("[apollo] Whisper falhou", response.status, detail);
         throw new Error("Falha ao transcrever o áudio.");
@@ -51,40 +43,22 @@ export async function transcribeAudio(audioBase64: string): Promise<string> {
 
 // ============================ TTS (fish.audio) ============================
 
-const FISH_BASE = "https://api.fish.audio/v1";
-
 // Devolve mp3 em base64: o áudio precisa atravessar o IPC até o renderer tocar.
 // O speechSynthesis do Chromium não serve aqui — no Linux o Electron não expõe
 // voz nenhuma e speak() vira no-op silencioso.
 export async function speakText(text: string, persona: PersonaId = DEFAULT_PERSONA): Promise<string> {
-    const key = process.env.FISH_API_KEY;
-    if (!key) {
-        throw new Error("FISH_API_KEY não configurada no ambiente do desktop (.env)");
-    }
-
     const { referenceId } = getPersona(persona);
-    const response = await fetch(`${FISH_BASE}/tts`, {
+    const response = await apiFetch("/api/ai/tts", {
         method: "POST",
-        headers: {
-            Authorization: `Bearer ${key}`,
-            "Content-Type": "application/json",
-            // A fish.audio escolhe o modelo por header, não por campo do body.
-            model: process.env.FISH_MODEL || "s2.1-pro",
-        },
-        body: JSON.stringify({
-            text,
-            format: "mp3",
-            // Sem reference_id cai na voz default do modelo.
-            ...(referenceId ? { reference_id: referenceId } : {}),
-        }),
+        body: JSON.stringify({ text, referenceId }),
     });
 
     if (!response.ok) {
-        const detail = await response.text().catch(() => "");
-        console.error("[apollo] fish.audio/tts falhou", response.status, detail);
-        if (response.status === 401) throw new Error("FISH_API_KEY inválida.");
-        if (response.status === 402) throw new Error("Sem créditos na fish.audio — comprar não resolve na hora se o app estiver aberto: reinicie depois.");
-        if (response.status === 422) throw new Error("A fish.audio rejeitou o texto ou o reference_id da voz.");
+        const detail = (await response.json().catch(() => null)) as { upstreamStatus?: number } | null;
+        console.error("[apollo] /api/ai/tts falhou", response.status, detail);
+        if (response.status === 401) throw new Error(SESSION_EXPIRED);
+        if (detail?.upstreamStatus === 402) throw new Error("Sem créditos na fish.audio.");
+        if (detail?.upstreamStatus === 422) throw new Error("A fish.audio rejeitou o texto ou o reference_id da voz.");
         throw new Error("Falha ao gerar a voz.");
     }
 
@@ -293,9 +267,8 @@ type OpenAiMessage = {
 };
 
 async function chatCompletion(messages: OpenAiMessage[]): Promise<OpenAiMessage> {
-    const response = await fetch(`${OPENAI_BASE}/chat/completions`, {
+    const response = await apiFetch("/api/ai/openai/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getApiKey()}` },
         // 0.6: a 0.3 o Apollo repetia as mesmas alfinetadas e clonava os exemplos do prompt.
         // Não subir mais que isto sem reconferir o tool calling — é o que degrada primeiro.
         body: JSON.stringify({ model: getChatModel(), temperature: 0.6, messages, tools: TOOLS, tool_choice: "auto" }),
@@ -304,7 +277,7 @@ async function chatCompletion(messages: OpenAiMessage[]): Promise<OpenAiMessage>
     if (!response.ok) {
         const detail = await response.text().catch(() => "");
         console.error("[apollo] chat/completions falhou", response.status, detail);
-        if (response.status === 401) throw new Error("OPENAI_API_KEY inválida.");
+        if (response.status === 401) throw new Error(SESSION_EXPIRED);
         if (response.status === 429) throw new Error("Limite/cota da OpenAI atingido. Tente novamente em instantes.");
         throw new Error("Falha ao consultar o Apollo (OpenAI).");
     }

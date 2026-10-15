@@ -9,13 +9,26 @@ import { startRpaProcess, stopRpaProcess } from "./services/rpa-process-service"
 import { startSessionHeartbeat, stopSessionHeartbeat } from "./services/session-heartbeat";
 import { getRunnerState } from "./store";
 
-// Carrega apps/desktop/.env (ex.: OPENAI_API_KEY) em process.env antes de iniciar
-// o engine RPA, que herda essas vars via buildEnv. Node 20.12+/22 tem suporte
-// nativo a loadEnvFile; se o arquivo não existir (app empacotado), ignora.
+// Nome que o Linux mostra no dock/alt-tab (vem do WM_CLASS). Em dev o padrão é
+// "Electron". O userData é fixado antes porque deriva do nome: sem isso as sessões
+// e o estado salvo mudariam de pasta.
+const userDataDir = app.getPath("userData");
+app.setName("Apliquefy");
+app.setPath("userData", userDataDir);
+
+// Carrega o .env (config sem segredo, ex.: SENTRY_DSN_RUNNER) em process.env antes
+// de iniciar o engine RPA, que herda essas vars via buildEnv. Em dev é
+// apps/desktop/.env; empacotado é o runtime.env que o CI grava em extraResources.
+// Chaves de API não entram aqui: ficam na Vercel, atrás de /api/ai/*.
+// Node 20.12+/22 tem suporte nativo a loadEnvFile; se o arquivo não existir, ignora.
 const loadEnvFile = (process as { loadEnvFile?: (filePath?: string) => void }).loadEnvFile;
 if (typeof loadEnvFile === "function") {
     try {
-        loadEnvFile(path.resolve(__dirname, "../../.env"));
+        loadEnvFile(
+            app.isPackaged
+                ? path.join(process.resourcesPath, "runtime.env")
+                : path.resolve(__dirname, "../../.env"),
+        );
     } catch {
         // .env ausente — segue com o ambiente atual
     }
