@@ -362,3 +362,21 @@ async def test_sweep_runs_on_its_own_schedule() -> None:
     assert await client.sweep() == 2
     assert seen == [("POST", "/api/internal/applications/sweep")]
     await client.aclose()
+
+
+async def test_handoff_checks_one_last_time_at_the_deadline(monkeypatch) -> None:
+    # 1 min / 5 s = 12 checagens falsas; a 13ª, no prazo, vê a tela de sucesso.
+    outcome, client, _ = await _handoff_run(monkeypatch, [False] * 12 + [True], minutes=1)
+    assert outcome == "applied"
+    assert [c for c in client.calls if c[0] == "debit"] == [("debit", "a1", 1)]
+
+
+def test_handoff_pins_navigation_to_the_ats() -> None:
+    # Navegar para fora do ATS no live view esconderia a tela de sucesso (envio sem débito).
+    from rpa_engine.cloud.form_run import leaves_ats
+
+    assert not leaves_ats("https://job-boards.greenhouse.io/embed/job_app/confirmation", "greenhouse")
+    assert not leaves_ats("https://boards.greenhouse.io/acme/jobs/1", "greenhouse")
+    assert leaves_ats("https://google.com/", "greenhouse")
+    assert leaves_ats("https://greenhouse.io.evil.example/", "greenhouse")
+    assert not leaves_ats("https://jobs.lever.co/acme/1/thanks", "lever")

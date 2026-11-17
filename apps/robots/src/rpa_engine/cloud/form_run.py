@@ -11,8 +11,27 @@ from playwright.async_api import async_playwright
 from .adapters.base import FormAdapter, FormFiller, page_text
 from .answers import Answerer
 from .browser import Browserbase
+from .discovery.canonical import detect_ats
 
 logger = logging.getLogger(__name__)
+
+
+def leaves_ats(url: str, ats: str) -> bool:
+    return detect_ats(url) != ats
+
+
+async def _pin_to_ats(page, ats: str) -> None:
+    """Durante o handoff o usuário controla a página. Enviar e navegar para outro site
+    esconderia a tela de sucesso: envio sem débito. Só o frame principal é preso; os
+    iframes do captcha vêm de outro domínio e seguem livres."""
+    async def guard(route) -> None:
+        req = route.request
+        if req.is_navigation_request() and req.frame == page.main_frame and leaves_ats(req.url, ats):
+            await route.abort()
+        else:
+            await route.continue_()
+
+    await page.route("**/*", guard)
 
 
 @dataclass
@@ -56,6 +75,7 @@ async def run_form(
                 result = await adapter.submit(page, baseline=baseline)
                 kind, _, detail = result.partition(":")
                 if kind == "challenge" and handoff is not None:
+                    await _pin_to_ats(page, adapter.name)
                     if await handoff(session.id, lambda: adapter.confirmed(page, baseline)):
                         return FormResult("submitted", "handoff", filler.questions)
                     return FormResult("handoff", "tempo esgotado", filler.questions)

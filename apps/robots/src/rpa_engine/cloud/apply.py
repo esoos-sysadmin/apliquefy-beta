@@ -84,6 +84,7 @@ async def wait_for_user(bb, session_id: str, confirmed, *, client, user_id: str,
             await asyncio.sleep(HANDOFF_POLL_S)
             if await confirmed():
                 return True
+        return await confirmed()  # última olhada: concluiu entre a checagem e o prazo
     except Exception as exc:  # noqa: BLE001
         logger.warning("handoff %s: %s", app_id, type(exc).__name__)
     return False
