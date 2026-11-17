@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Awaitable, Callable
 
 from playwright.async_api import async_playwright
 
-from .adapters.base import FormAdapter, FormFiller
+from .adapters.base import FormAdapter, FormFiller, page_text
 from .answers import Answerer
 from .browser import Browserbase
 
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class FormResult:
-    # submitted | challenge | validation | blocked | missing | filled (dry-run)
+    # submitted | challenge | handoff | validation | blocked | missing | filled (dry-run)
     outcome: str
     detail: str = ""
     questions: int = 0
@@ -31,7 +32,10 @@ async def run_form(
     answerer: Answerer,
     *,
     submit: bool = True,
+    handoff: Callable[[str, Callable[[], Awaitable[bool]]], Awaitable[bool]] | None = None,
 ) -> FormResult:
+    """`handoff(session_id, confirmed)`: no desafio, entrega a sessão ao usuário (§8) e diz se
+    ele concluiu. A sessão só fecha depois, no `finally` — é ela que o live view mostra."""
     session = await bb.open(adapter.name)
     try:
         async with async_playwright() as pw:
@@ -48,8 +52,13 @@ async def run_form(
                     return FormResult("missing", filler.missing[0], filler.questions)
                 if not submit:
                     return FormResult("filled", questions=filler.questions)
-                result = await adapter.submit(page)
+                baseline = await page_text(page)
+                result = await adapter.submit(page, baseline=baseline)
                 kind, _, detail = result.partition(":")
+                if kind == "challenge" and handoff is not None:
+                    if await handoff(session.id, lambda: adapter.confirmed(page, baseline)):
+                        return FormResult("submitted", "handoff", filler.questions)
+                    return FormResult("handoff", "tempo esgotado", filler.questions)
                 return FormResult(kind, detail, filler.questions)
             finally:
                 await browser.close()

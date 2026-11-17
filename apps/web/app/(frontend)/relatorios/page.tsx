@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { SelectField } from "../../components/atoms/SelectField";
 import { useCampaigns } from "../../hooks/use-campaigns";
@@ -240,6 +241,11 @@ export default function ReportsPage() {
                                                             {statusLabel[item.status]}
                                                         </span>
                                                     ) : "—"}
+                                                    {item.status === "needs_user" && (
+                                                        <Link href={`/candidaturas/${item.id}/concluir`} className="ml-2 text-xs text-accent-text underline">
+                                                            Concluir
+                                                        </Link>
+                                                    )}
                                                 </td>
                                                 <td className="max-w-xs px-5 py-3 text-slate-400">
                                                     {formatReason(item.reason) ? (

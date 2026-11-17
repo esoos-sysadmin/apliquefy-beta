@@ -121,7 +121,7 @@ def run(monkeypatch: pytest.MonkeyPatch):
         async def fake_precheck_greenhouse(http, posting, answerer, resume):
             return missing or []
 
-        async def fake_run_form(bb, adapter, url, resume, pdf, answerer, *, submit=True):
+        async def fake_run_form(bb, adapter, url, resume, pdf, answerer, *, submit=True, handoff=None):
             seen_pdfs.append(pdf)
             assert os.path.exists(pdf)
             if isinstance(result, Exception):
@@ -221,7 +221,7 @@ async def test_fill_slots_claims_only_free_slots_of_supported_ats() -> None:
 async def test_greenhouse_url_is_rebuilt_from_ids_not_trusted(run, monkeypatch) -> None:
     urls = []
 
-    async def fake_run_form(bb, adapter, url, resume, pdf, answerer, *, submit=True):
+    async def fake_run_form(bb, adapter, url, resume, pdf, answerer, *, submit=True, handoff=None):
         urls.append(url)
         return FormResult("submitted")
 
@@ -251,7 +251,7 @@ async def test_patch_applied_failure_is_retried_never_resubmitted(run, monkeypat
     monkeypatch.setattr(apply_mod.asyncio, "sleep", _no_sleep)
     sent = []
 
-    async def fake_run_form(bb, adapter, url, resume, pdf, answerer, *, submit=True):
+    async def fake_run_form(bb, adapter, url, resume, pdf, answerer, *, submit=True, handoff=None):
         sent.append(url)
         return FormResult("submitted")
 
@@ -285,3 +285,80 @@ async def test_crash_release_backs_off(run) -> None:
 
 async def _no_sleep(*a, **k):
     return None
+
+
+# ── handoff (Fase 3, §8) ────────────────────────────────────────────────────
+
+class FakeBB:
+    async def live_view_url(self, session_id):
+        return f"https://live/{session_id}"
+
+
+async def _handoff_run(monkeypatch, confirms: list[bool], minutes: float = 10):
+    """run_form falso que cai em desafio e chama o handoff; `confirms` = o que a página
+    mostra a cada checagem. O relógio anda 5 s por sleep (sem esperar de verdade)."""
+    clock = [0.0]
+
+    async def fake_sleep(s, *a, **k):
+        clock[0] += s
+
+    monkeypatch.setattr(apply_mod.asyncio, "sleep", fake_sleep)
+    monkeypatch.setattr(apply_mod.time, "monotonic", lambda: clock[0])
+    checks = iter(confirms)
+
+    async def confirmed():
+        return next(checks, False)
+
+    async def fake_run_form(bb, adapter, url, resume, pdf, answerer, *, submit=True, handoff=None):
+        assert handoff is not None
+        ok = await handoff("s1", confirmed)
+        return FormResult("submitted", "handoff", 1) if ok else FormResult("handoff", "tempo esgotado")
+
+    async def no_precheck(*a):
+        return []
+
+    monkeypatch.setattr(apply_mod, "run_form", fake_run_form)
+    monkeypatch.setattr(apply_mod, "precheck_posting", no_precheck)
+    client = ApplyClient()
+    outcome = await apply_mod.process(ITEM, client=client, bb=FakeBB(), http=object(), ask=None, handoff_min=minutes)
+    return outcome, client, clock[0]
+
+
+async def test_handoff_resolved_by_user_applies_and_debits_once(monkeypatch) -> None:
+    outcome, client, _ = await _handoff_run(monkeypatch, [False, False, True])
+    assert outcome == "applied"
+    first, *rest = _patches(client)
+    assert first["status"] == "needs_user" and first["liveViewUrl"] == "https://live/s1"
+    assert first["needsUserUntil"]  # a web mostra a contagem regressiva
+    assert rest == [{"status": "applied"}]
+    assert [c for c in client.calls if c[0] == "debit"] == [("debit", "a1", 1)]
+
+
+async def test_handoff_timeout_fails_without_debit(monkeypatch) -> None:
+    outcome, client, elapsed = await _handoff_run(monkeypatch, [], minutes=1)
+    assert outcome == "failed"
+    assert _patches(client)[-1] == {"status": "failed", "errorLog": "HANDOFF: tempo esgotado"}
+    assert not any(c[0] == "debit" for c in client.calls)
+    assert 60 <= elapsed <= 65  # espera o prazo, não mais
+
+
+async def test_handoff_off_when_timeout_is_zero(run) -> None:
+    # HANDOFF_TIMEOUT_MIN=0 desliga: desafio volta a ser falha direta.
+    outcome, client, _ = await run(FormResult("challenge", "captcha"))
+    assert _patches(client) == [{"status": "failed", "errorLog": "DESAFIO: captcha"}]
+
+
+async def test_sweep_runs_on_its_own_schedule() -> None:
+    from rpa_engine.cloud.internal_client import InternalClient
+    import httpx
+
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append((request.method, request.url.path))
+        return httpx.Response(200, json={"data": {"failed": 2}})
+
+    client = InternalClient("https://app.example", "t", transport=httpx.MockTransport(handler))
+    assert await client.sweep() == 2
+    assert seen == [("POST", "/api/internal/applications/sweep")]
+    await client.aclose()

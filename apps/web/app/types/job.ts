@@ -28,6 +28,7 @@ export interface ApplicationHistoryItem {
     jobUrl: string | null;
     status: ApplicationStatus | null;
     reason: string | null;
+    needsUserUntil?: string | null;
     appliedAt: string | null;
     createdAt: string | null;
     campaignName: string | null;

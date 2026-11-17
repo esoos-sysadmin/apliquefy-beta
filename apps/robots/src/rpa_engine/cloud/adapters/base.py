@@ -309,7 +309,7 @@ def classify_page_text(url: str, body: str, success: re.Pattern = _GENERIC_SUCCE
     return None
 
 
-async def _body(page: Page) -> str:
+async def page_text(page: Page) -> str:
     try:
         return await page.locator("body").inner_text(timeout=2_000) or ""
     except Exception:  # noqa: BLE001 — navegação em curso
@@ -349,22 +349,23 @@ class FormAdapter:
 
     async def check_access(self, page: Page) -> bool:
         """False = o ATS barrou antes do formulário."""
-        return classify_page_text(page.url, await _body(page), self.success) != "blocked"
+        return classify_page_text(page.url, await page_text(page), self.success) != "blocked"
 
     async def fill(self, page: Page, filler: FormFiller) -> None:
         await page.wait_for_load_state("networkidle")
         await filler.run()
 
-    async def submit(self, page: Page, wait_s: int = 20) -> str:
+    async def submit(self, page: Page, wait_s: int = 20, baseline: str | None = None) -> str:
         """'submitted' | 'challenge:<tipo>' | 'validation:<texto>' | 'blocked'.
 
         Sem tela de sucesso em `wait_s` com o formulário ainda na página = desafio (§8.1):
         o reCAPTCHA invisível reprovou ou pediu algo que só o usuário resolve."""
-        baseline = await _body(page)
+        if baseline is None:
+            baseline = await page_text(page)
         await page.locator(self.submit_selector).first.click()
         for _ in range(wait_s):
             await page.wait_for_timeout(1_000)
-            if result := classify_page_text(page.url, await _body(page), self.success, baseline):
+            if result := classify_page_text(page.url, await page_text(page), self.success, baseline):
                 return result
             if await _visible_captcha(page):
                 return "challenge:captcha"
@@ -372,5 +373,5 @@ class FormAdapter:
             return f"validation:{error}"
         return "challenge:sem confirmação"
 
-    async def confirmed(self, page: Page) -> bool:
-        return classify_page_text(page.url, await _body(page), self.success) == "submitted"
+    async def confirmed(self, page: Page, baseline: str = "") -> bool:
+        return classify_page_text(page.url, await page_text(page), self.success, baseline) == "submitted"

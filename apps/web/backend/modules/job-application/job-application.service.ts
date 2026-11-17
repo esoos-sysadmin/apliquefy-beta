@@ -256,6 +256,7 @@ export class JobApplicationService {
                         jobUrl: true,
                         status: true,
                         errorLog: true,
+                        needsUserUntil: true,
                         appliedAt: true,
                         createdAt: true,
                         campaign: { select: { name: true, resume: { select: { title: true } } } },
@@ -273,6 +274,7 @@ export class JobApplicationService {
                 status: a.status,
                 // motivo de descarte/falha: é a resposta para "por que essa vaga não foi enviada?"
                 reason: a.errorLog,
+                needsUserUntil: a.needsUserUntil,
                 appliedAt: a.appliedAt,
                 createdAt: a.createdAt,
                 campaignName: a.campaign?.name ?? null,
@@ -529,6 +531,48 @@ export class JobApplicationService {
             },
         })
         return { success: true, data: application }
+    }
+
+    /**
+     * Varredor (§7.6), chamado pelo worker a cada 5 min. Cobre só o worker morto: o vivo
+     * encerra o próprio handoff no prazo. Daí a folga de 5 min — sem ela, quem conclui no
+     * último segundo virava `failed` e o `applied` do worker batia em CONFLICT.
+     * Nada a reembolsar: o débito só acontece em `applied`.
+     */
+    async sweepCloud(now = new Date()): Promise<number> {
+        const ago = (min: number) => new Date(now.getTime() - min * 60_000)
+        const stale = await prisma.jobApplication.findMany({
+            where: {
+                platform: "ats",
+                OR: [
+                    { status: "needs_user", needsUserUntil: { lt: ago(5) } },
+                    { status: "pending", attempts: { gte: 3 }, OR: [{ lockedAt: null }, { lockedAt: { lt: ago(15) } }] },
+                ],
+            },
+            select: { id: true, userId: true, status: true, errorLog: true },
+            take: 200, // ponytail: o resto sai na próxima rodada
+        })
+        let failed = 0
+        for (const a of stale) {
+            if (!a.userId) continue
+            // pending sem status no PATCH → o patchCloud já transforma em `TENTATIVAS: …`
+            const r = a.status === "needs_user"
+                ? await this.patchCloud(a.userId, a.id, { status: "failed", errorLog: "HANDOFF: tempo esgotado" })
+                : await this.patchCloud(a.userId, a.id, { errorLog: (a.errorLog ?? "worker parado").slice(0, 3900) })
+            if (r.success) failed++
+        }
+        return failed
+    }
+
+    /** Uma candidatura do dono, para a página de concluir (§8). O live view só sai daqui. */
+    async getOwnApplication(userId: string, id: string) {
+        return prisma.jobApplication.findFirst({
+            where: { id, userId },
+            select: {
+                id: true, status: true, jobTitle: true, companyName: true, ats: true,
+                liveViewUrl: true, needsUserUntil: true, errorLog: true,
+            },
+        })
     }
 
     /**

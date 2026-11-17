@@ -23,6 +23,7 @@ class CloudSettings:
     apify_token: str
     apify_actor: str
     discovery_interval_hours: float
+    handoff_timeout_min: float
 
 
 def load_cloud_settings() -> CloudSettings:
@@ -43,4 +44,6 @@ def load_cloud_settings() -> CloudSettings:
         apify_token=os.environ.get("APIFY_TOKEN", ""),
         apify_actor=os.environ.get("APIFY_LINKEDIN_ACTOR", "harvestapi~linkedin-job-search"),
         discovery_interval_hours=float(os.environ.get("DISCOVERY_INTERVAL_HOURS", "24")),
+        # 0 desliga o handoff: desafio vira falha direta (DESAFIO:).
+        handoff_timeout_min=float(os.environ.get("HANDOFF_TIMEOUT_MIN", "10")),
     )

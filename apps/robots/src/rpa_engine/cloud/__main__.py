@@ -1,8 +1,9 @@
 """Worker da nuvem: `python -m rpa_engine.cloud` (Railway, código-fonte com uv).
 
-Três tarefas no mesmo processo (§7.1), sem FastAPI: o desktop não fala com ele.
+Quatro tarefas no mesmo processo (§7.1), sem FastAPI: o desktop não fala com ele.
 - descoberta: na subida e a cada DISCOVERY_INTERVAL_HOURS;
 - matching: a cada hora (o limite diário libera vaga todo dia);
+- varredor: a cada 5 min (handoff vencido, tentativas esgotadas — §7.6);
 - envio: claim de até WORKER_CONCURRENCY itens, 30 s de espera com a fila vazia.
 Mais réplicas funcionam sem mudança: o claim é exclusivo.
 """
@@ -29,6 +30,7 @@ logger = logging.getLogger("rpa_engine.cloud")
 
 IDLE_SECONDS = 30
 MATCH_INTERVAL_SECONDS = 3600
+SWEEP_INTERVAL_SECONDS = 300
 
 
 async def fill_slots(client, tasks: set, *, worker_id: str, concurrency: int, supported: set[str],
@@ -64,7 +66,7 @@ async def _send_loop(s: CloudSettings, client: InternalClient, http: httpx.Async
     tasks: set[asyncio.Task] = set()
 
     async def work(item: dict) -> None:
-        outcome = await process(item, client=client, bb=bb, http=http, ask=ask)
+        outcome = await process(item, client=client, bb=bb, http=http, ask=ask, handoff_min=s.handoff_timeout_min)
         logger.info("candidatura %s: %s", item["application"]["id"], outcome)
 
     while True:
@@ -97,6 +99,7 @@ async def main() -> None:
         await asyncio.gather(
             _every(s.discovery_interval_hours * 3600, "descoberta", discover),
             _every(MATCH_INTERVAL_SECONDS, "matching", match),
+            _every(SWEEP_INTERVAL_SECONDS, "varredor", client.sweep),
             _send_loop(s, client, http),
         )
 

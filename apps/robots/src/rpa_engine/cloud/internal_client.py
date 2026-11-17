@@ -85,6 +85,10 @@ class InternalClient:
         body = {"workerId": worker_id, "limit": limit, "ats": ats}
         return await self._call("POST", "/applications/claim", json=body)
 
+    async def sweep(self) -> int:
+        """Varredor (§7.6): a web aplica as regras (handoff vencido, tentativas esgotadas)."""
+        return (await self._call("POST", "/applications/sweep"))["failed"]
+
     async def patch_application(self, user_id: str, application_id: str, **fields: Any) -> dict:
         return await self._call("PATCH", f"/applications/{application_id}", json={"userId": user_id, **fields})
 

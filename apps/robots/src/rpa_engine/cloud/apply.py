@@ -14,6 +14,7 @@ import asyncio
 import logging
 import os
 import tempfile
+import time
 from datetime import datetime, timedelta, timezone
 
 import httpx
@@ -31,7 +32,9 @@ logger = logging.getLogger(__name__)
 ADAPTERS: dict[str, FormAdapter] = {"greenhouse": GREENHOUSE}
 
 # desfecho do run_form → prefixo do errorLog (buckets do /relatorios)
-_FAIL_PREFIX = {"missing": "PERGUNTA", "blocked": "BLOQUEIO", "validation": "FORMULÁRIO", "challenge": "DESAFIO"}
+_FAIL_PREFIX = {"missing": "PERGUNTA", "blocked": "BLOQUEIO", "validation": "FORMULÁRIO", "challenge": "DESAFIO",
+                "handoff": "HANDOFF"}
+HANDOFF_POLL_S = 5
 
 
 def safe_apply_url(posting: dict) -> str | None:
@@ -67,7 +70,26 @@ async def precheck_posting(http: httpx.AsyncClient, posting: dict, answerer: Ans
     return await precheck(await fetch_questions(http, posting["boardToken"], posting["externalId"]), answerer, resume)
 
 
-async def process(item: dict, *, client, bb, http, ask: AskFn | None) -> str:
+async def wait_for_user(bb, session_id: str, confirmed, *, client, user_id: str, app_id: str, minutes: float) -> bool:
+    """Handoff (§8): manda o live view para a web (`needs_user`) e checa a página a cada 5 s
+    até o usuário concluir ou o prazo vencer. Erro aqui = não concluiu: depois do clique em
+    enviar o item nunca volta para a fila (podia duplicar a candidatura na empresa)."""
+    try:
+        live = await bb.live_view_url(session_id)
+        until = datetime.now(timezone.utc) + timedelta(minutes=minutes)
+        await client.patch_application(user_id, app_id, status="needs_user", liveViewUrl=live,
+                                       needsUserUntil=until.isoformat())
+        deadline = time.monotonic() + minutes * 60
+        while time.monotonic() < deadline:
+            await asyncio.sleep(HANDOFF_POLL_S)
+            if await confirmed():
+                return True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("handoff %s: %s", app_id, type(exc).__name__)
+    return False
+
+
+async def process(item: dict, *, client, bb, http, ask: AskFn | None, handoff_min: float = 0) -> str:
     """'applied' | 'failed' | 'retry' (volta para a fila; o claim já contou a tentativa)."""
     app, posting, campaign = item["application"], item["posting"], item["campaign"]
     user_id, app_id = app["userId"], app["id"]
@@ -98,9 +120,13 @@ async def process(item: dict, *, client, bb, http, ask: AskFn | None) -> str:
         with os.fdopen(fd, "wb") as fh:
             fh.write(await client.resume_pdf(user_id, campaign["resumeId"]))
 
-        result = await run_form(bb, adapter, url, resume, pdf_path, answerer)
+        async def handoff(session_id: str, confirmed) -> bool:
+            return await wait_for_user(bb, session_id, confirmed, client=client, user_id=user_id,
+                                       app_id=app_id, minutes=handoff_min)
+
+        result = await run_form(bb, adapter, url, resume, pdf_path, answerer,
+                                handoff=handoff if handoff_min > 0 else None)
         if result.outcome != "submitted":
-            # ponytail: desafio vira failed até a Fase 3 (handoff com live view).
             return await fail(f"{_FAIL_PREFIX.get(result.outcome, 'ERRO')}: {result.detail}")
 
         # Enviado ao empregador: daqui em diante o item NUNCA volta para a fila, senão

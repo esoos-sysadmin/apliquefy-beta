@@ -256,6 +256,31 @@ async function main() {
     assert.equal(d.success, false)
     assert.equal((d as { code?: string }).code, "CLOUD_PRICE_UNSET")
 
+    // ── varredor (§7.6) ─────────────────────────────────────────────────────────
+    const ago = (min: number) => new Date(Date.now() - min * 60_000)
+    const mk = (jobUrl: string, data: object) => prisma.jobApplication.create({
+        data: { userId: "u1", campaignId: c1.id, platform: "ats", ats: "greenhouse", jobUrl, ...data } as never,
+    })
+    const expiredH = await mk("https://s/1", { status: "needs_user", needsUserUntil: ago(6), liveViewUrl: "https://live/1", lockedAt: ago(16) })
+    const graceH = await mk("https://s/2", { status: "needs_user", needsUserUntil: ago(1), liveViewUrl: "https://live/2", lockedAt: ago(11) })
+    const dead = await mk("https://s/3", { status: "pending", attempts: 3, lockedAt: ago(16), errorLog: "ERRO: X" })
+    const busy = await mk("https://s/4", { status: "pending", attempts: 3, lockedAt: ago(1) })
+    const fresh = await mk("https://s/5", { status: "pending", attempts: 1 })
+    assert.equal(await jobApplicationService.sweepCloud(), 2)
+    const st = async (id: string) => prisma.jobApplication.findUniqueOrThrow({ where: { id } })
+    const h = await st(expiredH.id)
+    assert.equal(h.status, "failed")
+    assert.equal(h.errorLog, "HANDOFF: tempo esgotado")
+    assert.equal(h.liveViewUrl, null) // §9.2.5
+    assert.equal((await st(graceH.id)).status, "needs_user") // o worker vivo encerra o próprio handoff
+    const d2 = await st(dead.id)
+    assert.equal(d2.status, "failed")
+    assert.equal(d2.errorLog, "TENTATIVAS: ERRO: X")
+    assert.equal((await st(busy.id)).status, "pending") // ainda na mão de um worker
+    assert.equal((await st(fresh.id)).status, "pending")
+    assert.equal(await jobApplicationService.sweepCloud(), 0) // reexecutar não mexe em nada
+    assert.equal(await prisma.transaction.count({ where: { metadata: { path: ["jobApplicationId"], equals: expiredH.id } } }), 0)
+
     // ── criar campanha ats (rota do usuário, Clerk) ─────────────────────────────
     const createdAts = await campaignService.createAtsCampaign("u1", {
         name: "Sites de empresas", resumeId: resume.id, dailyLimit: 10,
