@@ -157,3 +157,10 @@ def test_session_payload_proxy_only_for_listed_ats() -> None:
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
+
+
+def test_free_text_answer_is_capped() -> None:
+    # A pergunta vem do formulário (terceiro): uma resposta que despeja o currículo inteiro
+    # não passa. 600 caracteres cobrem "até 3 frases".
+    assert fit("x" * 601, None) is None
+    assert fit("ok", None) == "ok"
