@@ -241,12 +241,18 @@ async function main() {
     d = await creditsService.debitFlat("u1", debit as never)
     assert.equal((d as { data: { creditsDebited: number } }).data.creditsDebited, 0) // matar o worker e reprocessar não cobra 2x
     assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: "u1" } })).credits, 7)
+    // A chave é da candidatura: registrar "application:<nuvem>" apontando para uma
+    // candidatura barata do desktop faria o débito real da nuvem sair idempotente (0).
+    const cheap = await prisma.jobApplication.create({ data: { userId: "u1", campaignId: c3.id, platform: "linkedin", jobUrl: "https://linkedin.com/jobs/view/2" } })
+    const other3 = await prisma.jobApplication.findFirstOrThrow({ where: { jobPostingId: p3.id } })
+    d = await creditsService.debitFlat("u1", { campaignId: c3.id, jobApplicationId: cheap.id, idempotencyKey: `application:${other3.id}` } as never)
+    assert.equal(code(d), "INVALID_KEY")
     // desktop continua 1 crédito por padrão
     const li = await prisma.jobApplication.create({ data: { userId: "u1", campaignId: c3.id, platform: "linkedin", jobUrl: "https://linkedin.com/jobs/view/1" } })
     d = await creditsService.debitFlat("u1", { campaignId: c3.id, jobApplicationId: li.id, idempotencyKey: `application:${li.id}` } as never)
     assert.equal((d as { data: { creditsDebited: number } }).data.creditsDebited, 1)
     delete process.env.CLOUD_COST_PER_APPLICATION
-    d = await creditsService.debitFlat("u1", { ...debit, idempotencyKey: "outra" } as never)
+    d = await creditsService.debitFlat("u1", { ...debit, jobApplicationId: other3.id, idempotencyKey: `application:${other3.id}` } as never)
     assert.equal(d.success, false)
     assert.equal((d as { code?: string }).code, "CLOUD_PRICE_UNSET")
 

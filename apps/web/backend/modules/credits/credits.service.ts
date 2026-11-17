@@ -80,6 +80,12 @@ export class CreditsService {
         }
 
         const { campaign_id, job_application_id, idempotency_key, questions, steps } = validation.data
+        // A chave pertence à candidatura (é o que o engine e o worker mandam). Sem isso, uma
+        // chave "application:<nuvem>" registrada antes contra uma candidatura barata do
+        // desktop faria o débito real da nuvem cair no ramo idempotente e cobrar 0.
+        if (idempotency_key !== `application:${job_application_id}`) {
+            return { success: false, message: "Chave de idempotência inválida", code: "INVALID_KEY" }
+        }
         // O canal sai da candidatura, nunca do chamador (ADR-08): senão o usuário pagava
         // o preço do desktop por uma candidatura da nuvem, com a mesma chave idempotente.
         const application = await prisma.jobApplication.findFirst({
@@ -98,7 +104,7 @@ export class CreditsService {
         try {
             const result = await prisma.$transaction(async (tx) => {
                 const existing = await tx.transaction.findFirst({
-                    where: { idempotencyKey: idempotency_key },
+                    where: { idempotencyKey: idempotency_key, userId },
                 })
 
                 if (existing) {
