@@ -388,6 +388,8 @@ export class CampaignService {
      * sem preço da nuvem definido (CLOUD_COST_PER_APPLICATION), nenhuma (§6.3, ADR-08).
      * `remainingToday` desconta o que já foi enviado hoje E tudo que está na fila
      * (`pending`/`needs_user` de qualquer dia): fila de ontem ainda vai gastar o limite.
+     * E nunca passa do que o saldo paga: floor(créditos/preço) menos a fila do usuário,
+     * dividido entre as campanhas dele. Item esgotado (3 tentativas) não conta.
      */
     async listActiveCloudCampaigns() {
         const cost = flatCost("cloud", 0)
@@ -403,27 +405,43 @@ export class CampaignService {
         const startOfDay = new Date()
         startOfDay.setUTCHours(0, 0, 0, 0)
         const ids = campaigns.map((c) => c.id)
+        const queued = { status: { in: ["pending", "needs_user"] as ("pending" | "needs_user")[] }, attempts: { lt: 3 } }
         const busy = await prisma.jobApplication.groupBy({
             by: ["campaignId"],
             where: {
                 campaignId: { in: ids },
-                OR: [
-                    { status: "applied", appliedAt: { gte: startOfDay } },
-                    { status: { in: ["pending", "needs_user"] } },
-                ],
+                OR: [{ status: "applied", appliedAt: { gte: startOfDay } }, queued],
             },
             _count: { _all: true },
         })
         const used = new Map(busy.map((b) => [b.campaignId, b._count._all]))
+        // Fila de nuvem por usuário (todas as campanhas ats dele): é crédito já comprometido.
+        const userQueue = await prisma.jobApplication.groupBy({
+            by: ["userId"],
+            where: { userId: { in: [...new Set(campaigns.map((c) => c.userId))] }, platform: "ats", ...queued },
+            _count: { _all: true },
+        })
+        const budget = new Map(
+            campaigns.map((c) => [c.userId, Math.floor(c.user.credits / cost)]),
+        )
+        for (const q of userQueue) {
+            if (q.userId) budget.set(q.userId, (budget.get(q.userId) ?? 0) - q._count._all)
+        }
 
         return campaigns
             .filter((c) => c.atsConfig)
-            .map((c) => ({
+            .map((c) => {
+                const byLimit = Math.max(0, (c.dailyLimit ?? 0) - (used.get(c.id) ?? 0))
+                const remaining = Math.max(0, Math.min(byLimit, budget.get(c.userId) ?? 0))
+                budget.set(c.userId, (budget.get(c.userId) ?? 0) - remaining)
+                return { c, remaining }
+            })
+            .map(({ c, remaining }) => ({
                 campaignId: c.id,
                 userId: c.userId,
                 resumeId: c.resumeId as string,
                 dailyLimit: c.dailyLimit ?? 0,
-                remainingToday: Math.max(0, (c.dailyLimit ?? 0) - (used.get(c.id) ?? 0)),
+                remainingToday: remaining,
                 credits: c.user.credits,
                 config: {
                     searchTerms: c.atsConfig!.searchTerms,

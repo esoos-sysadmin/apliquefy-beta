@@ -43,8 +43,8 @@ class MatchClient:
         self.asked_ats: list[str] = []
         self.enqueued: list[str] = []
 
-    async def candidates(self, user_id, ats, limit=1000):
-        self.asked_ats = ats
+    async def candidates(self, user_id, ats, limit=1000, terms=None):
+        self.asked_ats, self.asked_terms = ats, terms
         return self._cands
 
     async def enqueue(self, *, user_id, campaign_id, job_posting_id, run_after=None):
@@ -69,6 +69,7 @@ async def test_match_and_enqueue_respects_allowlist_supported_and_daily_limit() 
     client = MatchClient(cands, conflict={"p1"})
     n = await match_and_enqueue(client, CAMPAIGN, supported={"greenhouse"})
     assert client.asked_ats == ["greenhouse"]  # allowlist ∩ suportados
+    assert client.asked_terms == "engenheiro de dados, data engineer"  # pré-filtro no banco
     assert client.enqueued == ["p1", "p2", "p3"]  # 409 do p1 não conta no limite
     assert n == 2
 
@@ -175,7 +176,7 @@ async def test_crash_releases_lock_and_deletes_pdf(run) -> None:
     outcome, client, pdfs = await run(RuntimeError("cdp caiu com dado sensível"))
     assert outcome == "retry"
     # volta para a fila (attempts já contou no claim); a mensagem do erro não vai para a web
-    assert _patches(client) == [{"errorLog": "ERRO: RuntimeError"}]
+    assert [{k: v for k, v in p.items() if k != "runAfter"} for p in _patches(client)] == [{"errorLog": "ERRO: RuntimeError"}]
     assert not any(c[0] == "debit" for c in client.calls)
     assert not os.path.exists(pdfs[0])
 
@@ -213,3 +214,74 @@ async def test_fill_slots_claims_only_free_slots_of_supported_ats() -> None:
     assert len(asked) == 1  # sem vaga livre, nem chama o claim
     gate.set()
     await asyncio.gather(*tasks)
+
+
+# ── revisão final ───────────────────────────────────────────────────────────
+
+async def test_greenhouse_url_is_rebuilt_from_ids_not_trusted(run, monkeypatch) -> None:
+    urls = []
+
+    async def fake_run_form(bb, adapter, url, resume, pdf, answerer, *, submit=True):
+        urls.append(url)
+        return FormResult("submitted")
+
+    async def no_precheck(*a):
+        return []
+
+    monkeypatch.setattr(apply_mod, "run_form", fake_run_form)
+    monkeypatch.setattr(apply_mod, "precheck_posting", no_precheck)
+    item = {**ITEM, "posting": {**ITEM["posting"], "applyUrl": "https://boards.greenhouse.io.evil.example/acme/jobs/9"}}
+    assert await apply_mod.process(item, client=ApplyClient(), bb=object(), http=object(), ask=None) == "applied"
+    assert urls == ["https://job-boards.greenhouse.io/embed/job_app?for=acme&token=9"]
+
+
+async def test_untrusted_url_without_ids_fails_without_browser(monkeypatch) -> None:
+    async def boom(*a, **k):
+        raise AssertionError("não pode abrir o navegador")
+
+    monkeypatch.setattr(apply_mod, "run_form", boom)
+    item = {**ITEM, "posting": {**ITEM["posting"], "boardToken": None, "externalId": None,
+                                "applyUrl": "https://boards.greenhouse.io.evil.example/acme/jobs/9"}}
+    client = ApplyClient()
+    assert await apply_mod.process(item, client=client, bb=object(), http=object(), ask=None) == "failed"
+    assert _patches(client) == [{"status": "failed", "errorLog": "URL: fora do domínio do ATS"}]
+
+
+async def test_patch_applied_failure_is_retried_never_resubmitted(run, monkeypatch) -> None:
+    monkeypatch.setattr(apply_mod.asyncio, "sleep", _no_sleep)
+    sent = []
+
+    async def fake_run_form(bb, adapter, url, resume, pdf, answerer, *, submit=True):
+        sent.append(url)
+        return FormResult("submitted")
+
+    async def no_precheck(*a):
+        return []
+
+    class Flaky(ApplyClient):
+        fails = 1
+
+        async def patch_application(self, user_id, application_id, **fields):
+            if fields.get("status") == "applied" and Flaky.fails:
+                Flaky.fails -= 1
+                raise RuntimeError("504")
+            return await super().patch_application(user_id, application_id, **fields)
+
+    monkeypatch.setattr(apply_mod, "run_form", fake_run_form)
+    monkeypatch.setattr(apply_mod, "precheck_posting", no_precheck)
+    client = Flaky()
+    assert await apply_mod.process(ITEM, client=client, bb=object(), http=object(), ask=None) == "applied"
+    assert _patches(client) == [{"status": "applied"}]  # nenhum release: o item não volta à fila
+    assert len(sent) == 1
+    assert any(c[0] == "debit" for c in client.calls)
+
+
+async def test_crash_release_backs_off(run) -> None:
+    outcome, client, _ = await run(RuntimeError("x"))
+    patch = _patches(client)[0]
+    assert patch["errorLog"] == "ERRO: RuntimeError"
+    assert "runAfter" in patch  # sem backoff, uma queda de 1 min queimava as 3 tentativas
+
+
+async def _no_sleep(*a, **k):
+    return None

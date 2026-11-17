@@ -9,6 +9,25 @@ const text = (max: number) => z.string().trim().max(max)
 // Token de board vira caminho de URL na descoberta: só slug simples.
 const boardToken = z.string().regex(/^[A-Za-z0-9_-]{1,100}$/, "token de board inválido")
 
+// Domínio de cada ATS que a nuvem envia. O navegador abre o applyUrl e preenche o
+// currículo ali: host que só PARECE o do ATS ("greenhouse.io.evil.example") é recusado.
+export const ATS_DOMAINS: Record<string, string> = {
+    greenhouse: "greenhouse.io", lever: "lever.co", ashby: "ashbyhq.com", workable: "workable.com",
+    recruitee: "recruitee.com", breezy: "breezy.hr", teamtailor: "teamtailor.com", quickin: "quickin.io",
+}
+
+export function onAtsDomain(url: string, ats: string): boolean {
+    const domain = ATS_DOMAINS[ats]
+    if (!domain) return false
+    let host: string
+    try {
+        host = new URL(url).hostname.toLowerCase().replace(/\.$/, "")
+    } catch {
+        return false
+    }
+    return host === domain || host.endsWith(`.${domain}`)
+}
+
 export const jobPostingInputSchema = z.object({
     canonicalUrl: httpsUrl,
     applyUrl: httpsUrl,
@@ -25,9 +44,10 @@ export const jobPostingInputSchema = z.object({
     closed: z.boolean().optional(),
     source: z.enum(["ats_api", "apify_linkedin"]),
     sourceRef: text(200).optional().nullable(),
-})
+}).refine((p) => onAtsDomain(p.applyUrl, p.ats), { message: "applyUrl fora do domínio do ATS", path: ["applyUrl"] })
 
-export const upsertPostingsSchema = z.object({ postings: z.array(jobPostingInputSchema).min(1).max(500) })
+// Cada vaga é validada sozinha no service: uma torta não derruba o lote.
+export const upsertPostingsSchema = z.object({ postings: z.array(z.unknown()).min(1).max(500) })
 
 export const upsertBoardsSchema = z.object({
     boards: z
@@ -53,6 +73,7 @@ export const candidatesQuerySchema = z.object({
     userId: z.string().min(1).max(200),
     ats: z.string().transform((s) => s.split(",").map((x) => x.trim()).filter(Boolean)).pipe(z.array(z.string().max(40)).min(1).max(20)),
     limit: z.coerce.number().int().min(1).max(2000).default(1000),
+    terms: z.string().max(500).optional(),
 })
 
 export const patchCloudApplicationSchema = z.object({

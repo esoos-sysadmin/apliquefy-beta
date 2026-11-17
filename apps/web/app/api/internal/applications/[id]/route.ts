@@ -11,7 +11,7 @@ export const PATCH = workerRoute(async (request, context: { params: Promise<{ id
 
     const result = await jobApplicationService.patchCloud(user.data, id, body)
     if (!result.success) {
-        const status = result.code === "NOT_FOUND" ? 404 : 400
+        const status = result.code === "NOT_FOUND" ? 404 : result.code === "CONFLICT" ? 409 : 400
         return NextResponse.json({ message: result.message ?? "Dados inválidos", errorDesc: result.errorDesc }, { status })
     }
     return NextResponse.json({ success: true, data: result.data })

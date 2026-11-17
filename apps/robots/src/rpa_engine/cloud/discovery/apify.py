@@ -15,13 +15,18 @@ import httpx
 
 from ..adapters.greenhouse import greenhouse_ids
 from .ats_sources import MAX_DESCRIPTION
-from .canonical import canonical_url, detect_ats
+from .canonical import BOARD_TOKEN, canonical_url, detect_ats
 
 logger = logging.getLogger(__name__)
 
 API = "https://api.apify.com/v2/acts"
 # ATS que a nuvem conhece; o resto (Gupy, Workday…) exige conta e não entra no catálogo.
 CLOUD_ATS = {"greenhouse", "lever", "ashby", "workable", "recruitee", "breezy", "teamtailor", "quickin"}
+
+
+def _auth(token: str) -> dict:
+    # No cabeçalho, não na query: URL com token vai parar em log e no Sentry.
+    return {"Authorization": f"Bearer {token}"}
 
 
 def normalize_item(item: dict) -> dict | None:
@@ -47,8 +52,6 @@ def normalize_item(item: dict) -> dict | None:
 
 
 _SLUG = {"lever": re.compile(r"^/([^/]+)/"), "ashby": re.compile(r"^/([^/]+)/")}
-# O token vira caminho de URL na descoberta e vem de URL raspada: só slug simples.
-BOARD_TOKEN = re.compile(r"^[A-Za-z0-9_-]{1,100}$")
 
 
 def board_of(url: str) -> tuple[str, str] | None:
@@ -69,7 +72,7 @@ async def search(client: httpx.AsyncClient, token: str, actor: str, terms: str, 
     if location:
         body["locations"] = [location]
     r = await client.post(
-        f"{API}/{actor}/run-sync-get-dataset-items", params={"token": token}, json=body, timeout=600
+        f"{API}/{actor}/run-sync-get-dataset-items", headers=_auth(token), json=body, timeout=600
     )
     r.raise_for_status()
     return r.json()
@@ -80,7 +83,7 @@ async def seed_greenhouse_boards(client: httpx.AsyncClient, token: str, max_comp
     As chaves da linha não estão documentadas: aceita as variações prováveis."""
     r = await client.post(
         f"{API}/johnvc~greenhouse-job-board-api/run-sync-get-dataset-items",
-        params={"token": token},
+        headers=_auth(token),
         json={"outputMode": "companiesOnly", "verifyCompanies": True, "maxCompanies": max_companies},
         timeout=900,
     )

@@ -55,7 +55,7 @@ async def match_and_enqueue(client, campaign: dict, supported: set[str]) -> int:
         return 0
     terms = terms_of(config["searchTerms"])
     enqueued = 0
-    for p in await client.candidates(campaign["userId"], ats):
+    for p in await client.candidates(campaign["userId"], ats, terms=config["searchTerms"]):
         if enqueued >= room:
             break
         if not title_matches(p["title"], terms) or not location_matches(p, config.get("locationTerm"), config.get("remoteOnly")):

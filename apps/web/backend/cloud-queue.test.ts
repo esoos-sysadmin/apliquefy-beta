@@ -73,12 +73,18 @@ async function main() {
         companyName: "Acme", source: "ats_api", ...extra,
     })
     let up = await jobPostingService.upsertPostings({ postings: [posting(1), posting(2)] })
-    assert.deepEqual(up, { success: true, data: { upserted: 2, created: 2 } })
+    assert.deepEqual(up, { success: true, data: { upserted: 2, created: 2, rejected: 0 } })
     up = await jobPostingService.upsertPostings({ postings: [posting(1, { closed: true }), posting(3)] })
-    assert.deepEqual(up, { success: true, data: { upserted: 2, created: 1 } })
+    assert.deepEqual(up, { success: true, data: { upserted: 2, created: 1, rejected: 0 } })
     assert.ok((await prisma.jobPosting.findUnique({ where: { canonicalUrl: posting(1).canonicalUrl } }))?.closedAt)
-    const bad = await jobPostingService.upsertPostings({ postings: [{ ...posting(9), applyUrl: "javascript:alert(1)" }] })
-    assert.equal(bad.success, false)
+    // Uma vaga torta não derruba o lote; host que só PARECE o do ATS é recusado.
+    const mixed = await jobPostingService.upsertPostings({ postings: [
+        { ...posting(9), applyUrl: "javascript:alert(1)" },
+        { ...posting(8), applyUrl: "https://boards.greenhouse.io.evil.example/acme/jobs/8" },
+        { ...posting(7), title: "" },
+        posting(2),
+    ] })
+    assert.deepEqual(mixed, { success: true, data: { upserted: 1, created: 0, rejected: 3 } })
     const [p1, , p3] = (await prisma.jobPosting.findMany({ orderBy: { externalId: "asc" } })) as [JP, JP, JP]
 
     // ── boards ──────────────────────────────────────────────────────────────────
@@ -93,7 +99,7 @@ async function main() {
     process.env.CLOUD_COST_PER_APPLICATION = "3"
     let active = await campaignService.listActiveCloudCampaigns()
     assert.deepEqual(active.map((c) => c.campaignId), [c1.id]) // c2 sem saldo, c3 é desktop
-    assert.equal(first(active).remainingToday, 5)
+    assert.equal(first(active).remainingToday, 3) // limite 5, mas o saldo (10) só paga 3 envios de 3
     assert.equal(first(active).userId, "u1")
     assert.equal(first(active).resumeId, resume.id)
     assert.deepEqual(first(active).config.atsAllowlist, ["greenhouse"])
@@ -123,7 +129,14 @@ async function main() {
     const e3 = await jobApplicationService.enqueueCloud("u1", { campaignId: c1.id, jobPostingId: p3.id, runAfter: later })
     assert.equal(e3.success, true)
     active = await campaignService.listActiveCloudCampaigns()
-    assert.equal(first(active).remainingToday, 3) // dois pending ocupam vaga do dia
+    assert.equal(first(active).remainingToday, 1) // dois pending já comprometem 6 dos 10 créditos
+    // o saldo é do usuário, não da campanha: duas campanhas dividem a mesma folga
+    const c4 = await prisma.campaign.create({
+        data: { userId: "u1", resumeId: resume.id, name: "nuvem 2", platform: "ats", status: "active", atsConfig: { create: { searchTerms: "x" } } },
+    })
+    active = await campaignService.listActiveCloudCampaigns()
+    assert.equal(active.reduce((n, c) => n + c.remainingToday, 0), 1)
+    await campaignService.deleteCampaign("u1", c4.id)
 
     // ── candidatas ao matching ──────────────────────────────────────────────────
     // p1 e p3 já estão na fila do u1; p2 está aberta e é do greenhouse
@@ -132,6 +145,9 @@ async function main() {
     assert.equal("description" in first(cands), false) // payload leve: a descrição não vai
     assert.equal((await jobPostingService.listCandidates("u2", ["greenhouse"], 100)).length, 2) // p1 fechou
     assert.equal((await jobPostingService.listCandidates("u2", ["lever"], 100)).length, 0)
+    // termos filtram no banco: sem isso o corte de `limit` pegava só as vagas mais novas do mundo
+    assert.equal((await jobPostingService.listCandidates("u2", ["greenhouse"], 100, "designer")).length, 0)
+    assert.equal((await jobPostingService.listCandidates("u2", ["greenhouse"], 100, "designer, engenheiro de dados")).length, 2)
     await prisma.jobPosting.updateMany({ where: { externalId: "2" }, data: { lastSeenAt: new Date(Date.now() - 49 * 3600_000) } })
     cands = await jobPostingService.listCandidates("u2", ["greenhouse"], 100)
     assert.deepEqual(cands.map((c) => c.externalId), ["3"]) // não vista há 48 h: fora
@@ -139,6 +155,15 @@ async function main() {
     // ── claim ───────────────────────────────────────────────────────────────────
     // ATS pausado (fora de SUPPORTED_ATS no worker) não é pego nem gasta tentativa
     assert.equal((await jobApplicationService.claimCloud("w0", 10, ["lever"])).length, 0)
+    assert.equal((await prisma.jobApplication.findUniqueOrThrow({ where: { id: app1.id } })).attempts, 0)
+    // campanha pausada: a fila dela para de sair
+    await prisma.campaign.update({ where: { id: c1.id }, data: { status: "paused" } })
+    assert.equal((await jobApplicationService.claimCloud("wp", 10, ["greenhouse"])).length, 0)
+    await prisma.campaign.update({ where: { id: c1.id }, data: { status: "active" } })
+    // preço da nuvem retirado do env: nada sai (sairia de graça)
+    delete process.env.CLOUD_COST_PER_APPLICATION
+    assert.equal((await jobApplicationService.claimCloud("wq", 10, ["greenhouse"])).length, 0)
+    process.env.CLOUD_COST_PER_APPLICATION = "3"
     assert.equal((await prisma.jobApplication.findUniqueOrThrow({ where: { id: app1.id } })).attempts, 0)
     let claimed = await jobApplicationService.claimCloud("w1", 10, ["greenhouse"])
     assert.equal(claimed.length, 1) // p3 tem runAfter no futuro
@@ -164,6 +189,8 @@ async function main() {
     assert.equal((await prisma.jobApplication.findUniqueOrThrow({ where: { id: app1.id } })).attempts, 2)
     await prisma.jobApplication.update({ where: { id: app1.id }, data: { lockedAt: null, attempts: 3 } })
     assert.equal((await jobApplicationService.claimCloud("w4", 10, ["greenhouse"])).length, 0)
+    // item esgotado não ocupa o limite do dia nem o saldo (senão a campanha emperra)
+    assert.equal(first(await campaignService.listActiveCloudCampaigns()).remainingToday, 2)
     await prisma.jobApplication.update({ where: { id: app1.id }, data: { lockedAt: new Date(), lockedBy: "w3", attempts: 2 } })
 
     // ── PATCH interno ───────────────────────────────────────────────────────────
@@ -184,6 +211,9 @@ async function main() {
     assert.equal(row.lockedAt, null)
     assert.equal(row.liveViewUrl, null) // §9.2.5: live view some no status final
     assert.equal(row.needsUserUntil, null)
+    // worker atrasado (lock vencido, outro worker já enviou) não reverte applied nem reembolsa
+    assert.equal(code(await jobApplicationService.patchCloud("u1", app1.id, { status: "failed", errorLog: "DESAFIO: x" })), "CONFLICT")
+    assert.equal((await prisma.jobApplication.findUniqueOrThrow({ where: { id: app1.id } })).status, "applied")
 
     // release sem status: só solta o lock
     const other = await prisma.jobApplication.findFirstOrThrow({ where: { jobPostingId: p3.id } })
@@ -192,16 +222,29 @@ async function main() {
     const released = await prisma.jobApplication.findUniqueOrThrow({ where: { id: other.id } })
     assert.equal(released.lockedAt, null)
     assert.equal(released.status, "pending")
+    // na 3ª tentativa o release vira failed (o varredor completo é da Fase 3)
+    await prisma.jobApplication.update({ where: { id: other.id }, data: { attempts: 3, lockedAt: new Date() } })
+    await jobApplicationService.patchCloud("u1", other.id, { errorLog: "ERRO: Timeout" })
+    const exhausted = await prisma.jobApplication.findUniqueOrThrow({ where: { id: other.id } })
+    assert.equal(exhausted.status, "failed")
+    assert.equal(exhausted.errorLog, "TENTATIVAS: ERRO: Timeout")
 
     // ── débito da nuvem ─────────────────────────────────────────────────────────
     const key = `application:${app1.id}`
-    const debit = { campaignId: c1.id, jobApplicationId: app1.id, idempotencyKey: key, channel: "cloud" as const }
+    // O preço vem da candidatura, não do chamador: a rota pública com channel=desktop
+    // numa candidatura da nuvem paga o preço da nuvem.
+    const debit = { campaignId: c1.id, jobApplicationId: app1.id, idempotencyKey: key, channel: "desktop" }
+    assert.equal(code(await creditsService.debitFlat("u2", debit as never)), "NOT_FOUND") // candidatura de outro
     let d = await creditsService.debitFlat("u1", debit as never)
     assert.equal(d.success, true)
     assert.equal((d as { data: { creditsDebited: number } }).data.creditsDebited, 3)
     d = await creditsService.debitFlat("u1", debit as never)
     assert.equal((d as { data: { creditsDebited: number } }).data.creditsDebited, 0) // matar o worker e reprocessar não cobra 2x
     assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: "u1" } })).credits, 7)
+    // desktop continua 1 crédito por padrão
+    const li = await prisma.jobApplication.create({ data: { userId: "u1", campaignId: c3.id, platform: "linkedin", jobUrl: "https://linkedin.com/jobs/view/1" } })
+    d = await creditsService.debitFlat("u1", { campaignId: c3.id, jobApplicationId: li.id, idempotencyKey: `application:${li.id}` } as never)
+    assert.equal((d as { data: { creditsDebited: number } }).data.creditsDebited, 1)
     delete process.env.CLOUD_COST_PER_APPLICATION
     d = await creditsService.debitFlat("u1", { ...debit, idempotencyKey: "outra" } as never)
     assert.equal(d.success, false)

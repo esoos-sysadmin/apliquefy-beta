@@ -164,3 +164,22 @@ def test_free_text_answer_is_capped() -> None:
     # não passa. 600 caracteres cobrem "até 3 frases".
     assert fit("x" * 601, None) is None
     assert fit("ok", None) == "ok"
+
+
+# ── revisão final: host exato, URL reconstruída, marcador novo ──────────────
+
+def test_detect_ats_requires_exact_host_or_subdomain() -> None:
+    assert detect_ats("https://boards.greenhouse.io.evil.example/acme/jobs/1") is None
+    assert detect_ats("https://notgreenhouse.io/acme/jobs/1") is None
+    assert detect_ats("https://user@evil.example/?x=greenhouse.io") is None
+    assert detect_ats("https://greenhouse.io/acme/jobs/1") == "greenhouse"
+    assert canonical_url("https://boards.greenhouse.io.evil.example/acme/jobs/1") != "https://greenhouse.io/acme/jobs/1"
+
+
+def test_classify_ignores_markers_already_on_the_form() -> None:
+    # A descrição da vaga fica na página do embed: "thank you for your interest" ou
+    # "security check" nela não é resultado do envio.
+    before = "Thank you for your interest in Acme. We run a security check on hires."
+    assert classify_page_text("https://x", before + " Apply", baseline=before) is None
+    assert classify_page_text("https://x/confirmation", before, baseline=before) == "submitted"
+    assert classify_page_text("https://x", before + " Application submitted", baseline=before) == "submitted"

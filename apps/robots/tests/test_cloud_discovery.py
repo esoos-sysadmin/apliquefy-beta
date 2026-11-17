@@ -102,7 +102,7 @@ async def test_internal_client_token_batches_and_409() -> None:
 
     client = InternalClient("https://app.example", "secret", transport=httpx.MockTransport(handler))
     total = await client.upsert_postings([{"canonicalUrl": f"u{i}"} for i in range(1001)])
-    assert total == {"upserted": 1001, "created": 1001}
+    assert total == {"upserted": 1001, "created": 1001, "rejected": 0}
     assert [len(json.loads(c.content)["postings"]) for c in calls] == [500, 500, 1]
     assert all(c.headers["x-worker-token"] == "secret" for c in calls)
     assert await client.enqueue(user_id="u", campaign_id="c", job_posting_id="p") is None
@@ -166,3 +166,39 @@ def test_board_of_rejects_tokens_that_are_not_plain_slugs() -> None:
     assert board_of("https://jobs.lever.co/../abc") is None
     assert board_of("https://jobs.ashbyhq.com/a%2F..%2Fb/u1") is None
     assert board_of("https://job-boards.greenhouse.io/x.y/jobs/1") is None
+
+
+def test_apify_item_with_spoofed_host_is_dropped() -> None:
+    item = {"id": "1", "title": "Dados", "applyMethod": {"companyApplyUrl": "https://boards.greenhouse.io.x.com/acme/jobs/1"}}
+    assert normalize_item(item) is None
+
+
+async def test_apify_token_goes_in_header_not_url() -> None:
+    from rpa_engine.cloud.discovery.apify import search
+
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json=[])
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        await search(http, "segredo", "a~b", "dados", None)
+    assert "segredo" not in str(seen[0].url)
+    assert seen[0].headers["authorization"] == "Bearer segredo"
+
+
+async def test_upsert_batches_by_size() -> None:
+    sizes = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)["postings"]
+        sizes.append(len(request.content))
+        return httpx.Response(200, json={"data": {"upserted": len(body), "created": 0, "rejected": 0}})
+
+    client = InternalClient("https://app.example", "t", transport=httpx.MockTransport(handler))
+    big = [{"canonicalUrl": f"u{i}", "description": "x" * 20_000} for i in range(300)]
+    total = await client.upsert_postings(big)
+    assert total["upserted"] == 300
+    assert max(sizes) < 4_000_000  # limite de corpo das funções da Vercel é 4,5 MB
+    await client.aclose()

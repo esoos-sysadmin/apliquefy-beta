@@ -8,6 +8,7 @@ import {
     type ListJobApplicationsQuery,
 } from "../../../app/lib/validations/job-application"
 import { claimSchema, enqueueSchema, patchCloudApplicationSchema } from "../../../app/lib/validations/internal"
+import { flatCost } from "../credits/credits.service"
 
 type ServiceResponse =
     | { success: true; data?: unknown; pagination?: unknown }
@@ -430,12 +431,15 @@ export class JobApplicationService {
      */
     async claimCloud(workerId: string, limit: number, ats: string[]) {
         const parsed = claimSchema.parse({ workerId, limit, ats })
+        // Sem preço da nuvem o envio sairia de graça (o débito recusa): a fila espera.
+        if (flatCost("cloud", 0) === null) return []
         const rows = await prisma.$queryRaw<{ id: string }[]>`
             UPDATE job_applications
                SET locked_at = now(), locked_by = ${parsed.workerId}, attempts = attempts + 1
              WHERE id IN (
                SELECT id FROM job_applications
                 WHERE platform = 'ats' AND status = 'pending' AND ats = ANY(${parsed.ats})
+                  AND campaign_id IN (SELECT id FROM campaigns WHERE status = 'active')
                   AND (run_after IS NULL OR run_after <= now())
                   AND (locked_at IS NULL OR locked_at < now() - interval '15 minutes')
                   AND attempts < 3
@@ -490,13 +494,27 @@ export class JobApplicationService {
     async patchCloud(userId: string, id: string, raw: unknown): Promise<ServiceResponse> {
         const parsed = patchCloudApplicationSchema.safeParse(raw)
         if (!parsed.success) return { success: false, errorDesc: parsed.error.format() }
-        const { status, errorLog, liveViewUrl, needsUserUntil, runAfter } = parsed.data
+        const { errorLog, liveViewUrl, needsUserUntil, runAfter } = parsed.data
+        let { status } = parsed.data
 
-        if (status !== undefined || errorLog !== undefined) {
-            const updated = await this.updateApplication(userId, id, { status, error_log: errorLog })
+        const current = await prisma.jobApplication.findFirst({ where: { id, userId }, select: { status: true, attempts: true } })
+        if (!current) return { success: false, message: "Candidatura não encontrada", code: "NOT_FOUND" }
+        // Status final não volta: um worker atrasado (lock vencido, outro já enviou) não pode
+        // transformar `applied` em `failed` — isso ainda dispararia o reembolso.
+        if (current.status !== "pending" && current.status !== "needs_user") {
+            return { success: false, message: "Candidatura já finalizada", code: "CONFLICT" }
+        }
+        // Release da 3ª tentativa: o claim não pega mais, então vira failed aqui.
+        // ponytail: o varredor da Fase 3 cobre o worker que morre sem soltar o lock.
+        let log = errorLog
+        if (status === undefined && current.status === "pending" && current.attempts >= 3) {
+            status = "failed"
+            log = `TENTATIVAS: ${errorLog ?? "sem detalhe"}`
+        }
+
+        if (status !== undefined || log !== undefined) {
+            const updated = await this.updateApplication(userId, id, { status, error_log: log })
             if (!updated.success) return updated
-        } else if (!(await prisma.jobApplication.findFirst({ where: { id, userId }, select: { id: true } }))) {
-            return { success: false, message: "Candidatura não encontrada", code: "NOT_FOUND" }
         }
 
         const final = status === "applied" || status === "failed" || status === "skipped"

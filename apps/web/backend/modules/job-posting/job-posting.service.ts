@@ -1,7 +1,26 @@
 import { prisma } from "@repo/database"
-import { upsertBoardsSchema, upsertPostingsSchema } from "../../../app/lib/validations/internal"
+import { jobPostingInputSchema, upsertBoardsSchema, upsertPostingsSchema } from "../../../app/lib/validations/internal"
 
 type Result<T> = { success: true; data: T } | { success: false; errorDesc: unknown }
+
+const STOP = new Set("a o as os de da do das dos e em para com of the and for in at to".split(" "))
+
+/**
+ * Pré-filtro de título no banco: algum termo com todas as palavras de conteúdo no título.
+ * Sem ele, o `limit` cortava as vagas mais novas do MUNDO antes de olhar os termos e uma
+ * campanha "engenheiro de dados" não via nenhuma. O worker refaz o casamento exato.
+ * ponytail: ILIKE não ignora acento ("análise" ≠ "analise"); unaccent se doer.
+ */
+function termsFilter(terms?: string) {
+    const groups = (terms ?? "")
+        .split(/[,;|]/)
+        .map((t) => t.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 1 && !STOP.has(w)))
+        .filter((words) => words.length)
+    if (!groups.length) return {}
+    return {
+        OR: groups.map((words) => ({ AND: words.map((w) => ({ title: { contains: w, mode: "insensitive" as const } })) })),
+    }
+}
 
 export class JobPostingService {
     /**
@@ -11,12 +30,19 @@ export class JobPostingService {
      * ponytail: um upsert por vaga numa transação (≤500, uma vez por dia); INSERT … ON
      * CONFLICT em lote via SQL bruto se a descoberta ficar lenta.
      */
-    async upsertPostings(raw: unknown): Promise<Result<{ upserted: number; created: number }>> {
+    async upsertPostings(raw: unknown): Promise<Result<{ upserted: number; created: number; rejected: number }>> {
         const parsed = upsertPostingsSchema.safeParse(raw)
         if (!parsed.success) return { success: false, errorDesc: parsed.error.format() }
 
+        const valid = parsed.data.postings.flatMap((item) => {
+            const one = jobPostingInputSchema.safeParse(item)
+            return one.success ? [one.data] : []
+        })
+        const rejected = parsed.data.postings.length - valid.length
+        if (!valid.length) return { success: true, data: { upserted: 0, created: 0, rejected } }
+
         // A mesma URL duas vezes no lote: fica a última.
-        const postings = [...new Map(parsed.data.postings.map((p) => [p.canonicalUrl, p])).values()]
+        const postings = [...new Map(valid.map((p) => [p.canonicalUrl, p])).values()]
         const urls = postings.map((p) => p.canonicalUrl)
         const existing = await prisma.jobPosting.count({ where: { canonicalUrl: { in: urls } } })
         const now = new Date()
@@ -33,7 +59,7 @@ export class JobPostingService {
             }),
         )
 
-        return { success: true, data: { upserted: postings.length, created: postings.length - existing } }
+        return { success: true, data: { upserted: postings.length, created: postings.length - existing, rejected } }
     }
 
     /**
@@ -42,9 +68,12 @@ export class JobPostingService {
      * canônica). Sem descrição: o fit gate por texto (Fase 5) busca a de cada aprovada.
      * ponytail: corta em `limit` mais recentes; paginar se o catálogo crescer.
      */
-    async listCandidates(userId: string, ats: string[], limit: number) {
+    async listCandidates(userId: string, ats: string[], limit: number, terms?: string) {
         const postings = await prisma.jobPosting.findMany({
-            where: { ats: { in: ats }, closedAt: null, lastSeenAt: { gte: new Date(Date.now() - 48 * 3600_000) } },
+            where: {
+                ats: { in: ats }, closedAt: null, lastSeenAt: { gte: new Date(Date.now() - 48 * 3600_000) },
+                ...termsFilter(terms),
+            },
             select: {
                 id: true, canonicalUrl: true, ats: true, title: true, companyName: true,
                 location: true, isRemote: true, externalId: true, postedAt: true,

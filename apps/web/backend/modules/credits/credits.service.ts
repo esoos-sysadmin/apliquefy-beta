@@ -79,7 +79,17 @@ export class CreditsService {
             return { success: false, errorDesc: validation.error.format() }
         }
 
-        const { campaign_id, job_application_id, idempotency_key, questions, steps, channel } = validation.data
+        const { campaign_id, job_application_id, idempotency_key, questions, steps } = validation.data
+        // O canal sai da candidatura, nunca do chamador (ADR-08): senão o usuário pagava
+        // o preço do desktop por uma candidatura da nuvem, com a mesma chave idempotente.
+        const application = await prisma.jobApplication.findFirst({
+            where: { id: job_application_id, userId },
+            select: { platform: true },
+        })
+        if (!application) {
+            return { success: false, message: "Candidatura não encontrada", code: "NOT_FOUND" }
+        }
+        const channel = application.platform === "ats" ? "cloud" : "desktop"
         const cost = flatCost(channel, questions)
         if (cost === null) {
             return { success: false, message: "Preço da candidatura na nuvem não definido", code: "CLOUD_PRICE_UNSET" }

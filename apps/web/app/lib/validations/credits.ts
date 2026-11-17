@@ -13,7 +13,6 @@ export const debitFlatSchema = z.preprocess((value) => {
         idempotency_key: payload.idempotency_key ?? payload.idempotencyKey,
         questions: payload.questions,
         steps: payload.steps,
-        channel: payload.channel,
     }
 }, z.object({
     campaign_id: z.string().uuid("campaign_id deve ser um UUID válido"),
@@ -23,8 +22,6 @@ export const debitFlatSchema = z.preprocess((value) => {
     // Opcionais p/ compat: cliente antigo sem esses campos cai em 0.
     questions: z.coerce.number().int().min(0).default(0),
     steps: z.coerce.number().int().min(0).default(0),
-    // Quem decide o preço é o servidor (ADR-08); o canal só escolhe a tabela.
-    channel: z.enum(["desktop", "cloud"]).default("desktop"),
 }))
 
 export type DebitFlatInput = z.infer<typeof debitFlatSchema>

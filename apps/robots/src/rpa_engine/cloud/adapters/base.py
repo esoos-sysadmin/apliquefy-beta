@@ -288,13 +288,23 @@ _CAPTCHA_FRAMES = ("hcaptcha.com", "recaptcha/api2/bframe", "recaptcha/enterpris
 _GENERIC_SUCCESS = re.compile(rf"/confirmation|/thanks|{_THANKS}", re.I)
 
 
-def classify_page_text(url: str, body: str, success: re.Pattern = _GENERIC_SUCCESS) -> str | None:
-    """'submitted' | 'challenge:verificação' | 'blocked' | None (nada conclusivo ainda)."""
-    if success.search(url) or success.search(body or ""):
+def classify_page_text(url: str, body: str, success: re.Pattern = _GENERIC_SUCCESS, baseline: str = "") -> str | None:
+    """'submitted' | 'challenge:verificação' | 'blocked' | None (nada conclusivo ainda).
+
+    `baseline` é o texto da página ANTES do clique: o embed mostra a descrição da vaga
+    junto do formulário, e "thank you for your interest" ou "security check" escritos
+    nela não são resultado do envio. Só conta marcador que apareceu depois."""
+    body = body or ""
+
+    def new(pattern: re.Pattern) -> bool:
+        # Conta ocorrências: um marcador novo não pode sumir atrás de um igual da descrição.
+        return sum(1 for _ in pattern.finditer(body)) > sum(1 for _ in pattern.finditer(baseline))
+
+    if success.search(url) or new(success):
         return "submitted"
-    if _BLOCK_TEXT.search(body or ""):
+    if new(_BLOCK_TEXT):
         return "blocked"
-    if _VERIFY_TEXT.search(body or ""):
+    if new(_VERIFY_TEXT):
         return "challenge:verificação"
     return None
 
@@ -350,10 +360,11 @@ class FormAdapter:
 
         Sem tela de sucesso em `wait_s` com o formulário ainda na página = desafio (§8.1):
         o reCAPTCHA invisível reprovou ou pediu algo que só o usuário resolve."""
+        baseline = await _body(page)
         await page.locator(self.submit_selector).first.click()
         for _ in range(wait_s):
             await page.wait_for_timeout(1_000)
-            if result := classify_page_text(page.url, await _body(page), self.success):
+            if result := classify_page_text(page.url, await _body(page), self.success, baseline):
                 return result
             if await _visible_captcha(page):
                 return "challenge:captcha"

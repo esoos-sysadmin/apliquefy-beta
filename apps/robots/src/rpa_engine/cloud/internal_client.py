@@ -5,11 +5,29 @@ Nada de corpo de requisição em log: ele carrega currículo. Erro HTTP sobe com
 """
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import httpx
 
 BATCH = 500  # teto do upsert de vagas na web
+# Corpo da função na Vercel vai até 4,5 MB; 500 vagas de 20 mil caracteres passam disso.
+MAX_BATCH_BYTES = 3_000_000
+
+
+def _batches(items: list[dict]):
+    """Lotes de até BATCH itens e MAX_BATCH_BYTES de JSON."""
+    batch: list[dict] = []
+    size = 0
+    for item in items:
+        n = len(json.dumps(item, ensure_ascii=False).encode())
+        if batch and (len(batch) >= BATCH or size + n > MAX_BATCH_BYTES):
+            yield batch
+            batch, size = [], 0
+        batch.append(item)
+        size += n
+    if batch:
+        yield batch
 
 
 class InternalClient:
@@ -28,10 +46,10 @@ class InternalClient:
 
     # ── descoberta ──────────────────────────────────────────────────────────
     async def upsert_postings(self, postings: list[dict]) -> dict[str, int]:
-        total = {"upserted": 0, "created": 0}
-        for i in range(0, len(postings), BATCH):
-            got = await self._call("POST", "/postings/upsert", json={"postings": postings[i : i + BATCH]})
-            total = {k: total[k] + got[k] for k in total}
+        total = {"upserted": 0, "created": 0, "rejected": 0}
+        for batch in _batches(postings):
+            got = await self._call("POST", "/postings/upsert", json={"postings": batch})
+            total = {k: total[k] + got.get(k, 0) for k in total}
         return total
 
     async def list_boards(self, ats: str | None = None) -> list[dict]:
@@ -47,8 +65,8 @@ class InternalClient:
     async def active_campaigns(self) -> list[dict]:
         return await self._call("GET", "/campaigns/active")
 
-    async def candidates(self, user_id: str, ats: list[str], limit: int = 1000) -> list[dict]:
-        params = {"userId": user_id, "ats": ",".join(ats), "limit": limit}
+    async def candidates(self, user_id: str, ats: list[str], limit: int = 1000, terms: str | None = None) -> list[dict]:
+        params = {"userId": user_id, "ats": ",".join(ats), "limit": limit, **({"terms": terms} if terms else {})}
         return await self._call("GET", "/postings/candidates", params=params)
 
     async def enqueue(
