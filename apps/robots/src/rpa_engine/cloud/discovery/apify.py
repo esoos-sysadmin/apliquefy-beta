@@ -47,17 +47,19 @@ def normalize_item(item: dict) -> dict | None:
 
 
 _SLUG = {"lever": re.compile(r"^/([^/]+)/"), "ashby": re.compile(r"^/([^/]+)/")}
+# O token vira caminho de URL na descoberta e vem de URL raspada: só slug simples.
+BOARD_TOKEN = re.compile(r"^[A-Za-z0-9_-]{1,100}$")
 
 
 def board_of(url: str) -> tuple[str, str] | None:
     """(ats, token) do board público por trás da URL, para a descoberta varrer depois."""
     ats = detect_ats(url)
+    token = None
     if ats == "greenhouse":
-        ids = greenhouse_ids(url)
-        return ("greenhouse", ids[0]) if ids else None
-    if ats in _SLUG and (m := _SLUG[ats].match(urlsplit(url).path + "/")):
-        return ats, m[1]
-    return None
+        token = (greenhouse_ids(url) or (None,))[0]
+    elif ats in _SLUG and (m := _SLUG[ats].match(urlsplit(url).path + "/")):
+        token = m[1]
+    return (ats, token) if token and BOARD_TOKEN.match(token) else None
 
 
 async def search(client: httpx.AsyncClient, token: str, actor: str, terms: str, location: str | None,

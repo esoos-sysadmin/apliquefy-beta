@@ -159,3 +159,10 @@ async def test_run_discovery() -> None:
         "https://greenhouse.io/acme/jobs/1", "https://jobs.lever.co/beta/abc"}
     assert client.boards == [{"ats": "lever", "token": "beta", "companyName": "Beta"}]
     assert stats == {"postings": 2, "created": 2, "boards": 1, "failed_boards": 1}
+
+
+def test_board_of_rejects_tokens_that_are_not_plain_slugs() -> None:
+    # O token vira caminho de URL na descoberta: nada de "..", "%2F" ou query.
+    assert board_of("https://jobs.lever.co/../abc") is None
+    assert board_of("https://jobs.ashbyhq.com/a%2F..%2Fb/u1") is None
+    assert board_of("https://job-boards.greenhouse.io/x.y/jobs/1") is None

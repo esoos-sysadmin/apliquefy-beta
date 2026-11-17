@@ -85,6 +85,7 @@ async function main() {
     const b = { ats: "greenhouse", token: "acme", companyName: "Acme" }
     assert.deepEqual(await jobPostingService.upsertBoards({ boards: [b, b] }), { success: true, data: { created: 1 } })
     assert.deepEqual(await jobPostingService.upsertBoards({ boards: [b] }), { success: true, data: { created: 0 } })
+    assert.equal((await jobPostingService.upsertBoards({ boards: [{ ats: "lever", token: "../x" }] })).success, false)
     assert.equal((await jobPostingService.listBoards("greenhouse")).length, 1)
     assert.equal((await jobPostingService.listBoards("lever")).length, 0)
 
@@ -124,8 +125,22 @@ async function main() {
     active = await campaignService.listActiveCloudCampaigns()
     assert.equal(first(active).remainingToday, 3) // dois pending ocupam vaga do dia
 
+    // ── candidatas ao matching ──────────────────────────────────────────────────
+    // p1 e p3 já estão na fila do u1; p2 está aberta e é do greenhouse
+    let cands = await jobPostingService.listCandidates("u1", ["greenhouse"], 100)
+    assert.deepEqual(cands.map((c) => c.externalId), ["2"])
+    assert.equal("description" in first(cands), false) // payload leve: a descrição não vai
+    assert.equal((await jobPostingService.listCandidates("u2", ["greenhouse"], 100)).length, 2) // p1 fechou
+    assert.equal((await jobPostingService.listCandidates("u2", ["lever"], 100)).length, 0)
+    await prisma.jobPosting.updateMany({ where: { externalId: "2" }, data: { lastSeenAt: new Date(Date.now() - 49 * 3600_000) } })
+    cands = await jobPostingService.listCandidates("u2", ["greenhouse"], 100)
+    assert.deepEqual(cands.map((c) => c.externalId), ["3"]) // não vista há 48 h: fora
+
     // ── claim ───────────────────────────────────────────────────────────────────
-    let claimed = await jobApplicationService.claimCloud("w1", 10)
+    // ATS pausado (fora de SUPPORTED_ATS no worker) não é pego nem gasta tentativa
+    assert.equal((await jobApplicationService.claimCloud("w0", 10, ["lever"])).length, 0)
+    assert.equal((await prisma.jobApplication.findUniqueOrThrow({ where: { id: app1.id } })).attempts, 0)
+    let claimed = await jobApplicationService.claimCloud("w1", 10, ["greenhouse"])
     assert.equal(claimed.length, 1) // p3 tem runAfter no futuro
     assert.equal(first(claimed).application.id, app1.id)
     assert.equal(first(claimed).posting?.applyUrl, p1.applyUrl)
@@ -135,20 +150,20 @@ async function main() {
     row = await prisma.jobApplication.findUniqueOrThrow({ where: { id: app1.id } })
     assert.equal(row.attempts, 1)
     assert.equal(row.lockedBy, "w1")
-    assert.equal((await jobApplicationService.claimCloud("w2", 10)).length, 0) // travado
+    assert.equal((await jobApplicationService.claimCloud("w2", 10, ["greenhouse"])).length, 0) // travado
 
     // concorrência: dois workers ao mesmo tempo, um item → só um leva
     await prisma.jobApplication.update({ where: { id: e3.success ? (e3 as { data: { id: string } }).data.id : "" }, data: { runAfter: null } })
-    const [a, bb] = await Promise.all([jobApplicationService.claimCloud("wa", 10), jobApplicationService.claimCloud("wb", 10)])
+    const [a, bb] = await Promise.all([jobApplicationService.claimCloud("wa", 10, ["greenhouse"]), jobApplicationService.claimCloud("wb", 10, ["greenhouse"])])
     assert.equal(a.length + bb.length, 1)
 
     // lock velho (worker morreu) volta para a fila; 3 tentativas não voltam
     await prisma.jobApplication.update({ where: { id: app1.id }, data: { lockedAt: new Date(Date.now() - 16 * 60_000) } })
-    claimed = await jobApplicationService.claimCloud("w3", 10)
+    claimed = await jobApplicationService.claimCloud("w3", 10, ["greenhouse"])
     assert.deepEqual(claimed.map((c) => c.application.id), [app1.id])
     assert.equal((await prisma.jobApplication.findUniqueOrThrow({ where: { id: app1.id } })).attempts, 2)
     await prisma.jobApplication.update({ where: { id: app1.id }, data: { lockedAt: null, attempts: 3 } })
-    assert.equal((await jobApplicationService.claimCloud("w4", 10)).length, 0)
+    assert.equal((await jobApplicationService.claimCloud("w4", 10, ["greenhouse"])).length, 0)
     await prisma.jobApplication.update({ where: { id: app1.id }, data: { lockedAt: new Date(), lockedBy: "w3", attempts: 2 } })
 
     // ── PATCH interno ───────────────────────────────────────────────────────────

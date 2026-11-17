@@ -6,12 +6,14 @@ import { z } from "zod"
 
 const httpsUrl = z.string().url().max(2048).refine((u) => u.startsWith("https://"), "URL precisa ser https")
 const text = (max: number) => z.string().trim().max(max)
+// Token de board vira caminho de URL na descoberta: só slug simples.
+const boardToken = z.string().regex(/^[A-Za-z0-9_-]{1,100}$/, "token de board inválido")
 
 export const jobPostingInputSchema = z.object({
     canonicalUrl: httpsUrl,
     applyUrl: httpsUrl,
     ats: text(40).min(1),
-    boardToken: text(200).optional().nullable(),
+    boardToken: boardToken.optional().nullable(),
     externalId: text(200).optional().nullable(),
     title: text(500).min(1),
     companyName: text(300).optional().nullable(),
@@ -29,7 +31,7 @@ export const upsertPostingsSchema = z.object({ postings: z.array(jobPostingInput
 
 export const upsertBoardsSchema = z.object({
     boards: z
-        .array(z.object({ ats: text(40).min(1), token: text(200).min(1), companyName: text(300).optional().nullable() }))
+        .array(z.object({ ats: text(40).min(1), token: boardToken, companyName: text(300).optional().nullable() }))
         .min(1)
         .max(500),
 })
@@ -43,6 +45,14 @@ export const enqueueSchema = z.object({
 export const claimSchema = z.object({
     workerId: text(200).min(1),
     limit: z.coerce.number().int().min(1).max(20),
+    // ATS que o worker envia hoje (SUPPORTED_ATS): pausado não é pego nem gasta tentativa.
+    ats: z.array(text(40).min(1)).min(1).max(20),
+})
+
+export const candidatesQuerySchema = z.object({
+    userId: z.string().min(1).max(200),
+    ats: z.string().transform((s) => s.split(",").map((x) => x.trim()).filter(Boolean)).pipe(z.array(z.string().max(40)).min(1).max(20)),
+    limit: z.coerce.number().int().min(1).max(2000).default(1000),
 })
 
 export const patchCloudApplicationSchema = z.object({

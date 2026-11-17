@@ -6,6 +6,6 @@ import { jobApplicationService } from "../../../../../backend/modules/job-applic
 export const POST = workerRoute(async (request) => {
     const parsed = claimSchema.safeParse(await request.json())
     if (!parsed.success) return NextResponse.json({ message: "Dados inválidos", errorDesc: parsed.error.format() }, { status: 400 })
-    const items = await jobApplicationService.claimCloud(parsed.data.workerId, parsed.data.limit)
+    const items = await jobApplicationService.claimCloud(parsed.data.workerId, parsed.data.limit, parsed.data.ats)
     return NextResponse.json({ success: true, data: items })
 })

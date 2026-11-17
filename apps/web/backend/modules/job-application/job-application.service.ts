@@ -428,14 +428,14 @@ export class JobApplicationService {
      * workers nunca levam o mesmo item. Lock com mais de 15 min = worker morto, o item
      * volta. `attempts >= 3` não volta (o varredor da Fase 3 o marca `failed`).
      */
-    async claimCloud(workerId: string, limit: number) {
-        const parsed = claimSchema.parse({ workerId, limit })
+    async claimCloud(workerId: string, limit: number, ats: string[]) {
+        const parsed = claimSchema.parse({ workerId, limit, ats })
         const rows = await prisma.$queryRaw<{ id: string }[]>`
             UPDATE job_applications
                SET locked_at = now(), locked_by = ${parsed.workerId}, attempts = attempts + 1
              WHERE id IN (
                SELECT id FROM job_applications
-                WHERE platform = 'ats' AND status = 'pending'
+                WHERE platform = 'ats' AND status = 'pending' AND ats = ANY(${parsed.ats})
                   AND (run_after IS NULL OR run_after <= now())
                   AND (locked_at IS NULL OR locked_at < now() - interval '15 minutes')
                   AND attempts < 3

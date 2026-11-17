@@ -29,6 +29,8 @@ a = Analysis(
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
+    # O worker da nuvem roda no Railway a partir do código-fonte; não vai para o desktop.
+    excludes=['rpa_engine.cloud'],
 )
 
 pyz = PYZ(a.pure, a.zipped_data)

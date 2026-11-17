@@ -63,8 +63,9 @@ class InternalClient:
         return res.json()["data"]
 
     # ── envio ───────────────────────────────────────────────────────────────
-    async def claim(self, worker_id: str, limit: int) -> list[dict]:
-        return await self._call("POST", "/applications/claim", json={"workerId": worker_id, "limit": limit})
+    async def claim(self, worker_id: str, limit: int, ats: list[str]) -> list[dict]:
+        body = {"workerId": worker_id, "limit": limit, "ats": ats}
+        return await self._call("POST", "/applications/claim", json=body)
 
     async def patch_application(self, user_id: str, application_id: str, **fields: Any) -> dict:
         return await self._call("PATCH", f"/applications/{application_id}", json={"userId": user_id, **fields})
