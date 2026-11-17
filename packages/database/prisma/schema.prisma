@@ -28,6 +28,7 @@ enum AppStatus {
   applied
   failed
   skipped
+  needs_user // esperando o usuário concluir pelo live view (nuvem)
 
   @@map("app_status")
 }
@@ -35,6 +36,7 @@ enum AppStatus {
 enum Platform {
   linkedin
   infojobs
+  ats // "Sites de empresas": roda sempre na nuvem; linkedin/infojobs sempre no desktop
 
   @@map("platform")
 }
@@ -353,6 +355,7 @@ model Campaign {
   // Configurações específicas (1:1 Opcional)
   linkedinConfig CampaignLinkedin?
   infojobsConfig CampaignInfojobs?
+  atsConfig      CampaignAts?
 
   jobApplications JobApplication[]
   jobs            Job[]
@@ -407,6 +410,20 @@ model CampaignInfojobs {
   @@map("campaign_infojobs")
 }
 
+model CampaignAts {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId   String   @unique @map("campaign_id") @db.Uuid
+  searchTerms  String   @map("search_terms") @db.VarChar
+  locationTerm String?  @map("location_term") @db.VarChar
+  remoteOnly   Boolean  @default(false) @map("remote_only")
+  atsAllowlist String[] @map("ats_allowlist") // vazio = todos os suportados
+  fitMinScore  Int      @default(0) @map("fit_min_score")
+
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+
+  @@map("campaign_ats")
+}
+
 model Job {
   id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   campaignId           String?   @map("campaign_id") @db.Uuid
@@ -456,9 +473,20 @@ model JobApplication {
   gotResponse  Boolean @default(false) @map("got_response")
   gotInterview Boolean @default(false) @map("got_interview")
 
+  // Fila da nuvem (platform = ats): `pending` = na fila. O claim usa SKIP LOCKED.
+  jobPostingId   String?   @map("job_posting_id") @db.Uuid
+  ats            String?   @db.VarChar
+  attempts       Int       @default(0)
+  lockedAt       DateTime? @map("locked_at") @db.Timestamp
+  lockedBy       String?   @map("locked_by") @db.VarChar
+  runAfter       DateTime? @map("run_after") @db.Timestamp
+  liveViewUrl    String?   @map("live_view_url") @db.VarChar
+  needsUserUntil DateTime? @map("needs_user_until") @db.Timestamp
+
   // Relacionamentos
-  campaign Campaign? @relation(fields: [campaignId], references: [id])
-  user     User?     @relation(fields: [userId], references: [id])
+  campaign   Campaign?   @relation(fields: [campaignId], references: [id])
+  user       User?       @relation(fields: [userId], references: [id])
+  jobPosting JobPosting? @relation(fields: [jobPostingId], references: [id])
 
   // Uma candidatura por vaga POR USUÁRIO. Era @unique global no jobUrl, o que
   // impedia dois usuários diferentes de se candidatarem à mesma vaga.
@@ -468,7 +496,48 @@ model JobApplication {
   @@index([campaignId])
   @@index([userId, appliedAt])
   @@index([campaignId, appliedAt])
+  @@index([platform, status, runAfter]) // claim da nuvem
   @@map("job_applications")
+}
+
+// Catálogo global de vagas da nuvem, compartilhado entre usuários. `Job` continua
+// por campanha, para o desktop.
+model JobPosting {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  canonicalUrl String    @unique @map("canonical_url") @db.VarChar
+  applyUrl     String    @map("apply_url") @db.VarChar
+  ats          String    @db.VarChar // greenhouse|lever|ashby|workable|…|gupy|unknown
+  boardToken   String?   @map("board_token") @db.VarChar
+  externalId   String?   @map("external_id") @db.VarChar
+  title        String    @db.VarChar
+  companyName  String?   @map("company_name") @db.VarChar
+  location     String?   @db.VarChar
+  isRemote     Boolean?  @map("is_remote")
+  description  String? // texto puro, até ~20 mil caracteres
+  postedAt     DateTime? @map("posted_at") @db.Timestamp
+  closedAt     DateTime? @map("closed_at") @db.Timestamp
+  source       String    @db.VarChar // ats_api | apify_linkedin
+  sourceRef    String?   @map("source_ref") @db.VarChar
+  firstSeenAt  DateTime  @default(now()) @map("first_seen_at") @db.Timestamp
+  lastSeenAt   DateTime  @default(now()) @map("last_seen_at") @db.Timestamp
+
+  applications JobApplication[]
+
+  @@index([ats, lastSeenAt])
+  @@map("job_postings")
+}
+
+// Boards públicos de ATS que a descoberta varre.
+model AtsBoard {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ats           String    @db.VarChar
+  token         String    @db.VarChar
+  companyName   String?   @map("company_name") @db.VarChar
+  active        Boolean   @default(true)
+  lastFetchedAt DateTime? @map("last_fetched_at") @db.Timestamp
+
+  @@unique([ats, token])
+  @@map("ats_boards")
 }
 
 // ======================= BILLING & CREDITS =======================
