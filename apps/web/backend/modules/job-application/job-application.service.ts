@@ -7,6 +7,7 @@ import {
     type UpdateJobApplicationInput,
     type ListJobApplicationsQuery,
 } from "../../../app/lib/validations/job-application"
+import { claimSchema, enqueueSchema, patchCloudApplicationSchema } from "../../../app/lib/validations/internal"
 
 type ServiceResponse =
     | { success: true; data?: unknown; pagination?: unknown }
@@ -378,6 +379,138 @@ export class JobApplicationService {
             console.error("Erro ao buscar métricas de candidaturas:", error)
             throw new Error("Falha de comunicação no banco de dados ao buscar métricas")
         }
+    }
+
+    // ── fila da nuvem (SDD-candidatura-nuvem §6.2, ADR-03) ─────────────────────────
+
+    /**
+     * Enfileira uma vaga do catálogo para a campanha `ats` do usuário: vira uma
+     * JobApplication `pending` com `jobUrl` = URL canônica, então o `@@unique([userId,
+     * jobUrl])` deduplica a mesma vaga vinda de fontes diferentes. Qualquer candidatura
+     * existente para a vaga (de qualquer status) é DUPLICATE: a fila nunca ressuscita
+     * uma `failed` ou `skipped`.
+     */
+    async enqueueCloud(userId: string, raw: unknown): Promise<ServiceResponse> {
+        const parsed = enqueueSchema.safeParse(raw)
+        if (!parsed.success) return { success: false, errorDesc: parsed.error.format() }
+        const { campaignId, jobPostingId, runAfter } = parsed.data
+
+        const posting = await prisma.jobPosting.findUnique({ where: { id: jobPostingId } })
+        if (!posting) return { success: false, message: "Vaga não encontrada", code: "NOT_FOUND" }
+
+        const campaign = await prisma.campaign.findFirst({ where: { id: campaignId, userId, platform: "ats" }, select: { id: true } })
+        if (!campaign) return { success: false, message: "Campanha não pertence ao usuário", code: "FORBIDDEN" }
+
+        const existing = await prisma.jobApplication.findUnique({
+            where: { userId_jobUrl: { userId, jobUrl: posting.canonicalUrl } },
+            select: { id: true },
+        })
+        if (existing) return { success: false, message: "Vaga já registrada para o usuário", code: "DUPLICATE" }
+
+        const created = await this.createApplication(userId, {
+            campaign_id: campaignId,
+            platform: "ats",
+            company_name: posting.companyName,
+            job_title: posting.title,
+            job_url: posting.canonicalUrl,
+        })
+        if (!created.success) return created
+
+        const application = await prisma.jobApplication.update({
+            where: { id: (created.data as { id: string }).id },
+            data: { jobPostingId, ats: posting.ats, runAfter: runAfter ? new Date(runAfter) : null },
+        })
+        return { success: true, data: application }
+    }
+
+    /**
+     * Pega até `limit` itens da fila para um worker. Um UPDATE só com SKIP LOCKED: dois
+     * workers nunca levam o mesmo item. Lock com mais de 15 min = worker morto, o item
+     * volta. `attempts >= 3` não volta (o varredor da Fase 3 o marca `failed`).
+     */
+    async claimCloud(workerId: string, limit: number) {
+        const parsed = claimSchema.parse({ workerId, limit })
+        const rows = await prisma.$queryRaw<{ id: string }[]>`
+            UPDATE job_applications
+               SET locked_at = now(), locked_by = ${parsed.workerId}, attempts = attempts + 1
+             WHERE id IN (
+               SELECT id FROM job_applications
+                WHERE platform = 'ats' AND status = 'pending'
+                  AND (run_after IS NULL OR run_after <= now())
+                  AND (locked_at IS NULL OR locked_at < now() - interval '15 minutes')
+                  AND attempts < 3
+                ORDER BY created_at
+                FOR UPDATE SKIP LOCKED
+                LIMIT ${parsed.limit})
+            RETURNING id`
+        if (!rows.length) return []
+
+        const apps = await prisma.jobApplication.findMany({
+            where: { id: { in: rows.map((r) => r.id) } },
+            orderBy: { createdAt: "asc" },
+            include: {
+                jobPosting: true,
+                campaign: { select: { id: true, userId: true, resumeId: true, atsConfig: true } },
+            },
+        })
+        return apps.map(({ jobPosting, campaign, ...application }) => ({
+            application: {
+                id: application.id,
+                userId: application.userId,
+                campaignId: application.campaignId,
+                attempts: application.attempts,
+                ats: application.ats,
+            },
+            posting: jobPosting && {
+                id: jobPosting.id,
+                canonicalUrl: jobPosting.canonicalUrl,
+                applyUrl: jobPosting.applyUrl,
+                ats: jobPosting.ats,
+                boardToken: jobPosting.boardToken,
+                externalId: jobPosting.externalId,
+                title: jobPosting.title,
+                companyName: jobPosting.companyName,
+                description: jobPosting.description,
+            },
+            campaign: campaign && {
+                id: campaign.id,
+                userId: campaign.userId,
+                resumeId: campaign.resumeId,
+                config: campaign.atsConfig,
+            },
+        }))
+    }
+
+    /**
+     * PATCH do worker. Status/errorLog passam pelo `updateApplication` (dono, appliedAt,
+     * reembolso em `failed`); as colunas da fila são tratadas aqui. Todo PATCH solta o
+     * lock, exceto `needs_user` (o worker ainda segura a sessão). Status final apaga o
+     * live view: a URL dá controle da sessão a quem a tiver (§9.2.5).
+     */
+    async patchCloud(userId: string, id: string, raw: unknown): Promise<ServiceResponse> {
+        const parsed = patchCloudApplicationSchema.safeParse(raw)
+        if (!parsed.success) return { success: false, errorDesc: parsed.error.format() }
+        const { status, errorLog, liveViewUrl, needsUserUntil, runAfter } = parsed.data
+
+        if (status !== undefined || errorLog !== undefined) {
+            const updated = await this.updateApplication(userId, id, { status, error_log: errorLog })
+            if (!updated.success) return updated
+        } else if (!(await prisma.jobApplication.findFirst({ where: { id, userId }, select: { id: true } }))) {
+            return { success: false, message: "Candidatura não encontrada", code: "NOT_FOUND" }
+        }
+
+        const final = status === "applied" || status === "failed" || status === "skipped"
+        const application = await prisma.jobApplication.update({
+            where: { id },
+            data: {
+                ...(liveViewUrl !== undefined && { liveViewUrl }),
+                ...(needsUserUntil !== undefined && { needsUserUntil: needsUserUntil ? new Date(needsUserUntil) : null }),
+                ...(runAfter !== undefined && { runAfter: runAfter ? new Date(runAfter) : null }),
+                ...(status !== "needs_user" && { lockedAt: null, lockedBy: null }),
+                ...(final && { liveViewUrl: null, needsUserUntil: null }),
+            },
+        })
+        return { success: true, data: application }
     }
 
     /**

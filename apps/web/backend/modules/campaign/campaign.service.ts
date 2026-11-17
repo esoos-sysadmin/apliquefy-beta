@@ -1,4 +1,5 @@
 import { prisma } from "@repo/database"
+import { flatCost } from "../credits/credits.service";
 import {
     createLinkedinCampaignSchema,
     createInfojobsCampaignSchema,
@@ -15,6 +16,7 @@ export class CampaignService {
     private campaignRelations = {
         linkedinConfig: true,
         infojobsConfig: true,
+        atsConfig: true,
         resume: {
             select: {
                 id: true,
@@ -353,6 +355,59 @@ export class CampaignService {
         }
     }
   
+    /**
+     * Campanhas `ats` ativas que o worker da nuvem deve alimentar (GET /api/internal/campaigns/active).
+     * Só entra campanha com currículo e cujo dono tem saldo para pelo menos um envio na nuvem;
+     * sem preço da nuvem definido (CLOUD_COST_PER_APPLICATION), nenhuma (§6.3, ADR-08).
+     * `remainingToday` desconta o que já foi enviado hoje E tudo que está na fila
+     * (`pending`/`needs_user` de qualquer dia): fila de ontem ainda vai gastar o limite.
+     */
+    async listActiveCloudCampaigns() {
+        const cost = flatCost("cloud", 0)
+        if (cost === null) return []
+
+        const campaigns = await prisma.campaign.findMany({
+            where: { platform: "ats", status: "active", resumeId: { not: null }, user: { credits: { gte: cost } } },
+            select: { id: true, userId: true, resumeId: true, dailyLimit: true, atsConfig: true, user: { select: { credits: true } } },
+            orderBy: { createdAt: "asc" },
+        })
+        if (!campaigns.length) return []
+
+        const startOfDay = new Date()
+        startOfDay.setUTCHours(0, 0, 0, 0)
+        const ids = campaigns.map((c) => c.id)
+        const busy = await prisma.jobApplication.groupBy({
+            by: ["campaignId"],
+            where: {
+                campaignId: { in: ids },
+                OR: [
+                    { status: "applied", appliedAt: { gte: startOfDay } },
+                    { status: { in: ["pending", "needs_user"] } },
+                ],
+            },
+            _count: { _all: true },
+        })
+        const used = new Map(busy.map((b) => [b.campaignId, b._count._all]))
+
+        return campaigns
+            .filter((c) => c.atsConfig)
+            .map((c) => ({
+                campaignId: c.id,
+                userId: c.userId,
+                resumeId: c.resumeId as string,
+                dailyLimit: c.dailyLimit ?? 0,
+                remainingToday: Math.max(0, (c.dailyLimit ?? 0) - (used.get(c.id) ?? 0)),
+                credits: c.user.credits,
+                config: {
+                    searchTerms: c.atsConfig!.searchTerms,
+                    locationTerm: c.atsConfig!.locationTerm,
+                    remoteOnly: c.atsConfig!.remoteOnly,
+                    atsAllowlist: c.atsConfig!.atsAllowlist,
+                    fitMinScore: c.atsConfig!.fitMinScore,
+                },
+            }))
+    }
+
     async deleteCampaign(userId: string, campaignId: string): Promise<CampaignResponse> {
         try {
 
@@ -375,6 +430,7 @@ export class CampaignService {
                 prisma.abTest.deleteMany({ where: { OR: [{ variantAId: campaignId }, { variantBId: campaignId }] } }),
                 prisma.campaignLinkedin.deleteMany({ where: { campaignId } }),
                 prisma.campaignInfojobs.deleteMany({ where: { campaignId } }),
+                prisma.campaignAts.deleteMany({ where: { campaignId } }),
                 prisma.report.deleteMany({ where: { campaignId } }),
                 prisma.job.deleteMany({ where: { campaignId } }),
                 prisma.jobApplication.deleteMany({ where: { campaignId } }),

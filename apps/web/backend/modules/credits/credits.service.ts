@@ -11,6 +11,25 @@ import type {
     DebitCreditsData,
 } from "../../../app/lib/types/credits-types"
 
+type CostEnv = Record<string, string | undefined>
+
+/**
+ * Custo de uma candidatura: base do canal + peso por pergunta dinâmica respondida, com
+ * teto opcional. Defaults (base=1, peso=0, teto=0) => 1 crédito/candidatura.
+ * `null` = canal cloud sem CLOUD_COST_PER_APPLICATION: o preço da nuvem é decisão de
+ * negócio em aberto e a rota recusa em vez de cobrar o preço do desktop (ADR-08).
+ */
+export function flatCost(channel: "desktop" | "cloud", questions: number, env: CostEnv = process.env): number | null {
+    const raw = channel === "cloud" ? env.CLOUD_COST_PER_APPLICATION : (env.COST_PER_APPLICATION ?? "1")
+    if (raw === undefined || raw === "") return null
+    const base = Math.max(0, Number.parseInt(raw, 10))
+    const perQuestion = Number.parseFloat(env.CREDIT_COST_PER_QUESTION ?? "0")
+    // Teto por candidatura: previsibilidade p/ o usuário pré-pago. 0 = sem teto.
+    const max = Math.max(0, Number.parseInt(env.CREDIT_COST_MAX_PER_APPLICATION ?? "0", 10))
+    const uncapped = Math.max(1, Math.ceil(base + questions * perQuestion))
+    return max > 0 ? Math.min(uncapped, max) : uncapped
+}
+
 export class CreditsService {
     /**
      * Returns the user's current credit balance and subscription status.
@@ -60,17 +79,11 @@ export class CreditsService {
             return { success: false, errorDesc: validation.error.format() }
         }
 
-        const { campaign_id, job_application_id, idempotency_key, questions, steps } = validation.data
-        // Custo variável: base por candidatura + peso por pergunta dinâmica respondida,
-        // com teto opcional. Defaults (base=1, peso=0, teto=0) => 1 crédito/candidatura,
-        // igual a hoje. Vira variável só ajustando os envs — sem mexer no engine.
-        const base = Math.max(0, Number.parseInt(process.env.COST_PER_APPLICATION ?? "1", 10))
-        const perQuestion = Number.parseFloat(process.env.CREDIT_COST_PER_QUESTION ?? "0")
-        // Teto por candidatura: máximo de créditos que UMA candidatura pode custar, por
-        // mais perguntas que tenha — previsibilidade p/ o usuário pré-pago. 0 = sem teto.
-        const maxPerApplication = Math.max(0, Number.parseInt(process.env.CREDIT_COST_MAX_PER_APPLICATION ?? "0", 10))
-        const costUncapped = Math.max(1, Math.ceil(base + questions * perQuestion))
-        const cost = maxPerApplication > 0 ? Math.min(costUncapped, maxPerApplication) : costUncapped
+        const { campaign_id, job_application_id, idempotency_key, questions, steps, channel } = validation.data
+        const cost = flatCost(channel, questions)
+        if (cost === null) {
+            return { success: false, message: "Preço da candidatura na nuvem não definido", code: "CLOUD_PRICE_UNSET" }
+        }
 
         try {
             const result = await prisma.$transaction(async (tx) => {
@@ -105,10 +118,7 @@ export class CreditsService {
                         metadata: {
                             flat: true,
                             cost,
-                            costUncapped,
-                            cap: maxPerApplication,
-                            base,
-                            perQuestion,
+                            channel,
                             questions,
                             steps,
                             campaignId: campaign_id,

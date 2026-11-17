@@ -25,7 +25,7 @@ export type CreditsResponseError = {
     success: false
     errorDesc?: unknown
     message?: string
-    code?: "NOT_FOUND" | "FORBIDDEN" | "CONFLICT" | "INSUFFICIENT_BALANCE"
+    code?: "NOT_FOUND" | "FORBIDDEN" | "CONFLICT" | "INSUFFICIENT_BALANCE" | "CLOUD_PRICE_UNSET"
 }
 
 export type CreditsResponseSuccess = {
