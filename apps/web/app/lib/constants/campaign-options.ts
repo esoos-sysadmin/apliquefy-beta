@@ -189,3 +189,17 @@ export const infojobsPcdOptions = [
     { label: "Intelectual", value: "intelectual" },
     { label: "TEA", value: "tea" },
 ] as const;
+
+// ATS que a campanha "Sites de empresas" pode escolher. Bate 1:1 com `atsEnum` em
+// validations/campaign.ts e com os nomes de detect_ats no worker (rpa_engine.cloud).
+// Gupy/Workday/Sólides exigem conta do candidato e ficam fora (SDD-candidatura-nuvem §0).
+export const atsOptions = [
+    { label: "Greenhouse", value: "greenhouse" },
+    { label: "Lever", value: "lever" },
+    { label: "Ashby", value: "ashby" },
+    { label: "Workable", value: "workable" },
+    { label: "Recruitee", value: "recruitee" },
+    { label: "Breezy", value: "breezy" },
+    { label: "Teamtailor", value: "teamtailor" },
+    { label: "Quickin", value: "quickin" },
+] as const;

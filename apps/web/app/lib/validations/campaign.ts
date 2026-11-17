@@ -88,3 +88,21 @@ export const updateCampaignSchema = z.object({
     (data) => data.name !== undefined || data.resumeId !== undefined || data.dailyLimit !== undefined,
     { message: "Ao menos um campo deve ser enviado para atualização (name, resumeId ou dailyLimit)" }
 );
+
+// ======================= ATS (nuvem) =======================
+
+export const atsEnum = z.enum(["greenhouse", "lever", "ashby", "workable", "recruitee", "breezy", "teamtailor", "quickin"]);
+
+export const atsConfigSchema = z.object({
+    searchTerms: z.string().trim().min(2, "O termo de busca deve ter ao menos 2 caracteres").max(200),
+    locationTerm: z.string().trim().min(2, "A localização deve ter ao menos 2 caracteres").max(200).optional(),
+    remoteOnly: z.boolean().optional().default(false),
+    // vazio = todos os ATS que o worker suporta
+    atsAllowlist: z.array(atsEnum).max(atsEnum.options.length).optional().default([]),
+    // 0 = gate de aderência desligado (ADR-07; o usuário escolhe ligar)
+    fitMinScore: z.number().int().min(0).max(100).optional().default(0),
+});
+
+export const createAtsCampaignSchema = campaignBaseSchema.extend({
+    atsConfig: atsConfigSchema,
+});

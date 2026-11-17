@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
     createLinkedinCampaignSchema,
     createInfojobsCampaignSchema,
+    createAtsCampaignSchema,
     updateCampaignSchema,
 } from "../validations/campaign";
 import { Campaign, CampaignLinkedin, CampaignInfojobs, Resume } from "@prisma/client";
@@ -10,6 +11,7 @@ import { Campaign, CampaignLinkedin, CampaignInfojobs, Resume } from "@prisma/cl
 
 export type CreateLinkedinCampaignInput = z.infer<typeof createLinkedinCampaignSchema>;
 export type CreateInfojobsCampaignInput = z.infer<typeof createInfojobsCampaignSchema>;
+export type CreateAtsCampaignInput = z.input<typeof createAtsCampaignSchema>;
 export type UpdateCampaignInput = z.infer<typeof updateCampaignSchema>;
 
 // ======================= RESPONSE TYPES =======================

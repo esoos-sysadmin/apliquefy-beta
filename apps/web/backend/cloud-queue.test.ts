@@ -192,6 +192,32 @@ async function main() {
     assert.equal(d.success, false)
     assert.equal((d as { code?: string }).code, "CLOUD_PRICE_UNSET")
 
+    // ── criar campanha ats (rota do usuário, Clerk) ─────────────────────────────
+    const createdAts = await campaignService.createAtsCampaign("u1", {
+        name: "Sites de empresas", resumeId: resume.id, dailyLimit: 10,
+        atsConfig: { searchTerms: "engenheiro de dados", remoteOnly: true, atsAllowlist: ["greenhouse"] },
+    })
+    assert.equal(createdAts.success, true)
+    const newCampaign = await prisma.campaign.findFirstOrThrow({
+        where: { userId: "u1", name: "Sites de empresas" }, include: { atsConfig: true },
+    })
+    assert.equal(newCampaign.platform, "ats")
+    assert.equal(newCampaign.status, "inactive")
+    assert.equal(newCampaign.atsConfig?.fitMinScore, 0) // gate desligado por padrão (ADR-07)
+    assert.deepEqual(newCampaign.atsConfig?.atsAllowlist, ["greenhouse"])
+    // currículo de outro usuário → recusa
+    const foreign = await campaignService.createAtsCampaign("u2", {
+        name: "x x x", resumeId: resume.id, atsConfig: { searchTerms: "dados" },
+    })
+    assert.equal(foreign.success, false)
+    // ATS fora da lista conhecida → recusa na validação
+    const unknownAts = await campaignService.createAtsCampaign("u1", {
+        name: "x x x", resumeId: resume.id, atsConfig: { searchTerms: "dados", atsAllowlist: ["workday"] },
+    } as never)
+    assert.equal(unknownAts.success, false)
+    // apagar a campanha apaga a config (FK RESTRICT)
+    assert.equal((await campaignService.deleteCampaign("u1", newCampaign.id)).success, true)
+
     await prisma.$disconnect()
     console.log("cloud-queue: ok")
 }

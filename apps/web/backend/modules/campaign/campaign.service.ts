@@ -3,12 +3,14 @@ import { flatCost } from "../credits/credits.service";
 import {
     createLinkedinCampaignSchema,
     createInfojobsCampaignSchema,
+    createAtsCampaignSchema,
     updateCampaignSchema,
 } from "../../../app/lib/validations/campaign";
 import {
     CampaignResponse,
     CreateLinkedinCampaignInput,
     CreateInfojobsCampaignInput,
+    CreateAtsCampaignInput,
     UpdateCampaignInput,
 } from "../../../app/lib/types/campaign-types";
 
@@ -154,6 +156,31 @@ export class CampaignService {
         } catch (error) {
             console.error("Erro ao criar campanha InfoJobs", error)
             throw new Error("Erro: Falha de comunicação na API, não foi possível criar a campanha InfoJobs")
+        }
+    }
+
+    /** Campanha "Sites de empresas": roda na nuvem, nasce inativa como as outras. */
+    async createAtsCampaign(userId: string, rawData: CreateAtsCampaignInput): Promise<CampaignResponse> {
+        const validation = createAtsCampaignSchema.safeParse(rawData)
+        if (!validation.success) {
+            return { success: false, errorDesc: validation.error.format() }
+        }
+        const { name, resumeId, dailyLimit, atsConfig } = validation.data
+
+        try {
+            const resume = await prisma.resume.findFirst({ where: { id: resumeId, userId }, select: { id: true } })
+            if (!resume) {
+                return { success: false, message: "Currículo não pertence ao usuário ou não encontrado" }
+            }
+
+            const campaign = await prisma.campaign.create({
+                data: { userId, resumeId, name, platform: "ats", dailyLimit, atsConfig: { create: atsConfig } },
+                include: this.campaignRelations,
+            })
+            return { success: true, data: campaign }
+        } catch (error) {
+            console.error("Erro ao criar campanha ats", error)
+            throw new Error("Erro: Falha de comunicação na API, não foi possível criar a campanha")
         }
     }
 
