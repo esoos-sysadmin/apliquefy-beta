@@ -1,4 +1,4 @@
-export type CampaignPlatform = "linkedin" | "infojobs";
+export type CampaignPlatform = "linkedin" | "infojobs" | "ats";
 export type CampaignStatus = "active" | "paused" | "inactive";
 
 export interface CampaignLinkedinConfig {

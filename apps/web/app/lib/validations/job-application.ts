@@ -1,7 +1,7 @@
 import { z } from "zod"
 
-const platformEnum = z.enum(["linkedin", "infojobs"])
-const statusEnum = z.enum(["pending", "applied", "failed", "skipped"])
+const platformEnum = z.enum(["linkedin", "infojobs", "ats"])
+const statusEnum = z.enum(["pending", "applied", "failed", "skipped", "needs_user"])
 
 export const createJobApplicationSchema = z.preprocess((value) => {
     if (!value || typeof value !== "object") return value

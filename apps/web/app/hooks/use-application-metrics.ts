@@ -8,7 +8,7 @@ import { getApplicationMetrics } from "../client/job.service";
 import type { ApplicationMetrics } from "../types/job";
 
 const EMPTY: ApplicationMetrics = {
-    summary: { total: 0, applied: 0, failed: 0, pending: 0, skipped: 0 },
+    summary: { total: 0, applied: 0, failed: 0, pending: 0, skipped: 0, needs_user: 0 },
     byResume: [],
     history: [],
     failureReasons: [],

@@ -11,6 +11,7 @@ const STATUS_LABEL: Record<string, string> = {
     failed: "Falha",
     pending: "Pendente",
     skipped: "Ignorada",
+    needs_user: "Precisa de você",
 };
 
 export function CampaignDetailsModal({

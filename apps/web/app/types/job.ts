@@ -18,11 +18,11 @@ export interface CreateJobInput {
     numberOfApplications?: number;
 }
 
-export type ApplicationStatus = "pending" | "applied" | "failed" | "skipped";
+export type ApplicationStatus = "pending" | "applied" | "failed" | "skipped" | "needs_user";
 
 export interface ApplicationHistoryItem {
     id: string;
-    platform: "linkedin" | "infojobs" | null;
+    platform: "linkedin" | "infojobs" | "ats" | null;
     companyName: string | null;
     jobTitle: string | null;
     jobUrl: string | null;
@@ -35,7 +35,7 @@ export interface ApplicationHistoryItem {
 }
 
 export interface ApplicationMetrics {
-    summary: { total: number; applied: number; failed: number; pending: number; skipped: number };
+    summary: { total: number; applied: number; failed: number; pending: number; skipped: number; needs_user: number };
     byResume: Array<{ resumeId: string; resumeTitle: string; total: number; applied: number }>;
     history: ApplicationHistoryItem[];
     failureReasons: Array<{ reason: string; count: number }>;

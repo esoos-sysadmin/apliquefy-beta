@@ -12,6 +12,7 @@ const statusLabel: Record<ApplicationStatus, string> = {
     failed: "Falhou",
     pending: "Pendente",
     skipped: "Ignorada",
+    needs_user: "Precisa de você",
 };
 
 const statusClass: Record<ApplicationStatus, string> = {
@@ -19,13 +20,14 @@ const statusClass: Record<ApplicationStatus, string> = {
     failed: "bg-rose-500/10 text-rose-300 border-rose-500/20",
     pending: "bg-amber-500/10 text-amber-300 border-amber-500/20",
     skipped: "bg-slate-500/10 text-slate-300 border-slate-500/20",
+    needs_user: "bg-accent-soft text-accent-text border-accent/20",
 };
 
 // `FIT:` / `ELEGIBILIDADE:` são marcadores que o engine grava para o backend agrupar
 // em buckets. Servem ao gráfico, não ao leitor — na linha do histórico vai só o texto.
 function formatReason(value: string | null) {
     if (!value?.trim()) return null;
-    return value.replace(/^(FIT|ELEGIBILIDADE):\s*/, "").trim() || null;
+    return value.replace(/^(FIT|ELEGIBILIDADE|PERGUNTA|BLOQUEIO|DESAFIO|HANDOFF|TENTATIVAS):\s*/, "").trim() || null;
 }
 
 function formatDate(value: string | null) {

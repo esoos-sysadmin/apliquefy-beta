@@ -50,8 +50,8 @@ export function CampaignCard({
                         </div>
 
                         <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-400">
-                            <span className={`font-semibold ${campaign.platform === "linkedin" ? "text-sky-400" : "text-orange-400"}`}>
-                                {campaign.platform === "linkedin" ? "LinkedIn" : "InfoJobs"}
+                            <span className={`font-semibold ${{ linkedin: "text-sky-400", infojobs: "text-orange-400", ats: "text-accent-text" }[campaign.platform]}`}>
+                                {{ linkedin: "LinkedIn", infojobs: "InfoJobs", ats: "Nuvem" }[campaign.platform]}
                             </span>
                             <span className="text-slate-600">•</span>
                             <span>{getCampaignLocation(campaign)}</span>

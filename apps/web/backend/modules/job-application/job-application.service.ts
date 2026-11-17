@@ -217,14 +217,14 @@ export class JobApplicationService {
                 _count: { _all: true },
             })
 
-            const summary = { total: 0, applied: 0, failed: 0, pending: 0, skipped: 0 }
+            const summary = { total: 0, applied: 0, failed: 0, pending: 0, skipped: 0, needs_user: 0 }
             const byResumeMap = new Map<string, { resumeId: string; resumeTitle: string; total: number; applied: number }>()
 
             for (const row of grouped) {
                 const count = row._count._all
                 summary.total += count
                 if (row.status && row.status in summary) {
-                    summary[row.status as "applied" | "failed" | "pending" | "skipped"] += count
+                    summary[row.status as keyof Omit<typeof summary, "total">] += count
                 }
 
                 const resume = row.campaignId ? campaignMap.get(row.campaignId)?.resume : null
@@ -415,13 +415,17 @@ export class JobApplicationService {
  * errorLog é texto semi-livre do agente. Agrupa os padrões conhecidos em buckets;
  * mensagens desconhecidas viram o próprio texto (truncado) para que falhas recorrentes apareçam.
  */
-function classifyErrorLog(log: string | null): string {
+export function classifyErrorLog(log: string | null): string {
     if (!log || !log.trim()) return "Sem detalhe"
     const l = log.toLowerCase()
     // Prefixos estáveis que o engine grava (fit_gate.FIT_MARKER e apply_agent.SKIP_MARKER).
     // Sem eles cada frase do LLM virava um bucket com contagem 1 e o painel não dizia nada.
     if (log.startsWith("FIT:")) return "Baixa aderência à vaga"
-    if (log.startsWith("ELEGIBILIDADE:")) return "Pergunta sem resposta no currículo"
+    if (log.startsWith("ELEGIBILIDADE:") || log.startsWith("PERGUNTA:")) return "Pergunta sem resposta no currículo"
+    // Prefixos do worker da nuvem (SDD-candidatura-nuvem §7.4/§7.6).
+    if (log.startsWith("BLOQUEIO:")) return "Site bloqueou o robô"
+    if (log.startsWith("DESAFIO:") || log.startsWith("HANDOFF:")) return "Verificação não concluída"
+    if (log.startsWith("TENTATIVAS:")) return "Tentativas esgotadas"
     if (l.includes("crash")) return "Erro no agente"
     if (l.includes("não concluiu") || l.includes("limite de passos") || l.includes("timeout")) return "Tempo/limite excedido"
     return log.length > 60 ? `${log.slice(0, 60)}…` : log
