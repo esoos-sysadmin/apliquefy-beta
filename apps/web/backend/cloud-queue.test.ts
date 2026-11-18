@@ -305,12 +305,17 @@ async function main() {
     assert.equal(isPushServiceUrl("https://evil.example/?h=fcm.googleapis.com"), false)
     assert.equal(isPushServiceUrl("http://fcm.googleapis.com/x"), false)
     assert.equal(isPushServiceUrl("https://fcm.googleapis.com:8443/x"), false)
+    // diferença entre parsers (o web-push usa url.parse legado)
+    assert.equal(isPushServiceUrl("https://evil.example\\@fcm.googleapis.com/x"), false)
+    assert.equal(isPushServiceUrl("https://evil.example\\.fcm.googleapis.com/x"), false)
+    assert.equal(isPushServiceUrl("https://fcm.googleapis.com\\@evil.example/x"), false)
+    assert.equal(isPushServiceUrl("https://xn--fcm-0na.googleapis.com.evil/x"), false)
 
     // ── aviso de needs_user: push, assinatura morta, fallback por e-mail (§6.5) ──
     const { notifyNeedsUser } = await import("./modules/notification/needs-user.service")
     await prisma.pushSubscription.createMany({ data: [
-        { userId: "u1", endpoint: "https://push.example/ok", p256dh: "k", auth: "a" },
-        { userId: "u1", endpoint: "https://push.example/gone", p256dh: "k", auth: "a" },
+        { userId: "u1", endpoint: "https://fcm.googleapis.com/fcm/send/ok", p256dh: "k", auth: "a" },
+        { userId: "u1", endpoint: "https://fcm.googleapis.com/fcm/send/gone", p256dh: "k", auth: "a" },
     ] })
     const pushed: string[] = []
     const mails: string[] = []
@@ -319,12 +324,13 @@ async function main() {
         pushed.push(payload)
     }
     const email = async (o: { to: string }) => { mails.push(o.to) }
+    await prisma.pushSubscription.create({ data: { userId: "u1", endpoint: "https://10.0.0.1/x", p256dh: "k", auth: "a" } })
     const target = { id: "00000000-0000-0000-0000-0000000000aa", jobTitle: "Dados", companyName: "Acme" }
     assert.equal(await notifyNeedsUser("u1", target, { send, email }), "push")
     assert.equal(mails.length, 0)
     const payload = JSON.parse(first(pushed)) as { url: string; title: string }
     assert.equal(payload.url, `/candidaturas/${target.id}/concluir`)
-    assert.deepEqual((await prisma.pushSubscription.findMany({ where: { userId: "u1" } })).map((x) => x.endpoint), ["https://push.example/ok"])
+    assert.deepEqual((await prisma.pushSubscription.findMany({ where: { userId: "u1" } })).map((x) => x.endpoint), ["https://fcm.googleapis.com/fcm/send/ok"])
     // sem assinatura que funcione → e-mail
     await prisma.pushSubscription.deleteMany({})
     assert.equal(await notifyNeedsUser("u1", target, { send, email }), "email")

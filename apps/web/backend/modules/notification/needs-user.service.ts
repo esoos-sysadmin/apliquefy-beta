@@ -2,6 +2,7 @@ import webpush from "web-push"
 import { prisma } from "@repo/database"
 import { sendEmail } from "../../../app/lib/email/client"
 import { NeedsUser } from "../../../app/lib/email/templates/NeedsUser"
+import { isPushServiceUrl } from "../../../app/lib/validations/push"
 
 type PushTarget = { endpoint: string; keys: { p256dh: string; auth: string } }
 type Send = (sub: PushTarget, payload: string) => Promise<unknown>
@@ -35,6 +36,11 @@ export async function notifyNeedsUser(
         if (deps.send) {
             const subs = await prisma.pushSubscription.findMany({ where: { userId } })
             for (const s of subs) {
+                // defesa em profundidade: endpoint fora dos serviços de push nunca recebe POST
+                if (!isPushServiceUrl(s.endpoint)) {
+                    await prisma.pushSubscription.delete({ where: { id: s.id } }).catch(() => undefined)
+                    continue
+                }
                 try {
                     await deps.send(
                         { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
