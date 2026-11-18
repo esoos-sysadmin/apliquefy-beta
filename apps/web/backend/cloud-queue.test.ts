@@ -295,6 +295,17 @@ async function main() {
     assert.equal(await jobApplicationService.sweepCloud(), 0) // reexecutar não mexe em nada
     assert.equal(await prisma.transaction.count({ where: { metadata: { path: ["jobApplicationId"], equals: expiredH.id } } }), 0)
 
+    // ── assinatura de push: só serviço de push conhecido (SSRF) ─────────────────
+    const { isPushServiceUrl } = await import("../app/lib/validations/push")
+    assert.equal(isPushServiceUrl("https://fcm.googleapis.com/fcm/send/abc"), true)
+    assert.equal(isPushServiceUrl("https://web.push.apple.com/QK"), true)
+    assert.equal(isPushServiceUrl("https://wns2-par02p.notify.windows.com/w/?token=x"), true)
+    assert.equal(isPushServiceUrl("https://169.254.169.254/latest"), false)
+    assert.equal(isPushServiceUrl("https://fcm.googleapis.com.evil.example/x"), false)
+    assert.equal(isPushServiceUrl("https://evil.example/?h=fcm.googleapis.com"), false)
+    assert.equal(isPushServiceUrl("http://fcm.googleapis.com/x"), false)
+    assert.equal(isPushServiceUrl("https://fcm.googleapis.com:8443/x"), false)
+
     // ── aviso de needs_user: push, assinatura morta, fallback por e-mail (§6.5) ──
     const { notifyNeedsUser } = await import("./modules/notification/needs-user.service")
     await prisma.pushSubscription.createMany({ data: [
