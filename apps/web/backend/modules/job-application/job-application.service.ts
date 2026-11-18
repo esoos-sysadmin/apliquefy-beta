@@ -621,6 +621,7 @@ export function classifyErrorLog(log: string | null): string {
     if (log.startsWith("BLOQUEIO:")) return "Site bloqueou o robô"
     if (log.startsWith("DESAFIO:") || log.startsWith("HANDOFF:")) return "Verificação não concluída"
     if (log.startsWith("TENTATIVAS:")) return "Tentativas esgotadas"
+    if (log.startsWith("AGENTE:")) return "Agente não concluiu"
     if (l.includes("crash")) return "Erro no agente"
     if (l.includes("não concluiu") || l.includes("limite de passos") || l.includes("timeout")) return "Tempo/limite excedido"
     return log.length > 60 ? `${log.slice(0, 60)}…` : log

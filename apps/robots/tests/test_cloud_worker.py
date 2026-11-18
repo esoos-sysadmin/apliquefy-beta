@@ -182,10 +182,10 @@ async def test_crash_releases_lock_and_deletes_pdf(run) -> None:
 
 
 async def test_unknown_ats_fails_without_browser(run, monkeypatch: pytest.MonkeyPatch) -> None:
-    item = {**ITEM, "posting": {**ITEM["posting"], "ats": "workable"}}
+    item = {**ITEM, "posting": {**ITEM["posting"], "ats": "gupy"}}  # exige conta: Fase 7
     client = ApplyClient()
     assert await apply_mod.process(item, client=client, bb=object(), http=object(), ask=None) == "failed"
-    assert _patches(client) == [{"status": "failed", "errorLog": "SEM ADAPTER: workable"}]
+    assert _patches(client) == [{"status": "failed", "errorLog": "SEM ADAPTER: gupy"}]
 
 
 async def test_fill_slots_claims_only_free_slots_of_supported_ats() -> None:
@@ -380,3 +380,74 @@ def test_handoff_pins_navigation_to_the_ats() -> None:
     assert leaves_ats("https://google.com/", "greenhouse")
     assert leaves_ats("https://greenhouse.io.evil.example/", "greenhouse")
     assert not leaves_ats("https://jobs.lever.co/acme/1/thanks", "lever")
+
+
+# ── Fase 4: Lever, Ashby e agente genérico ─────────────────────────────────
+
+def test_lever_and_ashby_have_deterministic_adapters() -> None:
+    from rpa_engine.cloud.adapters.base import classify_page_text
+
+    lever, ashby = apply_mod.ADAPTERS["lever"], apply_mod.ADAPTERS["ashby"]
+    assert classify_page_text("https://jobs.lever.co/acme/1/thanks", "", lever.success) == "submitted"
+    assert classify_page_text("https://jobs.ashbyhq.com/acme/1", "Thank you for applying!", ashby.success) == "submitted"
+    assert "Submit Application" in ashby.submit_selector
+
+
+WORKABLE = {**ITEM, "posting": {**ITEM["posting"], "ats": "workable", "boardToken": "acme", "externalId": "J1",
+                                "applyUrl": "https://apply.workable.com/acme/j/J1/apply"}}
+
+
+async def _agent_run(monkeypatch, result: FormResult):
+    seen = {}
+
+    async def fake_agent(bb, ats, url, resume, pdf, job_title=None):
+        seen.update(ats=ats, url=url, pdf_exists=os.path.exists(pdf))
+        return result
+
+    async def boom(*a, **k):
+        raise AssertionError("ATS genérico não passa pelo adapter")
+
+    monkeypatch.setattr(apply_mod, "run_agent", fake_agent)
+    monkeypatch.setattr(apply_mod, "run_form", boom)
+    client = ApplyClient()
+    outcome = await apply_mod.process(WORKABLE, client=client, bb=object(), http=object(), ask=None)
+    return outcome, client, seen
+
+
+async def test_generic_ats_goes_to_the_agent_and_debits_on_success(monkeypatch) -> None:
+    outcome, client, seen = await _agent_run(monkeypatch, FormResult("submitted", questions=3))
+    assert outcome == "applied"
+    assert seen == {"ats": "workable", "url": "https://apply.workable.com/acme/j/J1/apply", "pdf_exists": True}
+    assert [c for c in client.calls if c[0] == "debit"] == [("debit", "a1", 3)]
+
+
+@pytest.mark.parametrize("result, log", [
+    (FormResult("agent", "botão travou"), "AGENTE: botão travou"),
+    (FormResult("missing", "Possui CNH?"), "PERGUNTA: Possui CNH?"),
+])
+async def test_generic_ats_agent_failure_does_not_charge(monkeypatch, result, log) -> None:
+    outcome, client, _ = await _agent_run(monkeypatch, result)
+    assert outcome == "failed"
+    assert _patches(client) == [{"status": "failed", "errorLog": log}]
+    assert not any(c[0] == "debit" for c in client.calls)
+
+
+def test_agent_result_mapping() -> None:
+    from rpa_engine.cloud.agent import agent_result
+    from rpa_engine.runtime.apply_agent import AgentRun
+    from rpa_engine.runtime.state_machine import Outcome
+
+    assert agent_result(AgentRun(Outcome.SUCCESS, None, 2, 9)) == FormResult("submitted", "", 2)
+    assert agent_result(AgentRun(Outcome.SKIP_UNANSWERABLE, "ELEGIBILIDADE: Possui CNH?", 0, 5)) == \
+        FormResult("missing", "Possui CNH?", 0)
+    assert agent_result(AgentRun(Outcome.PAUSE_RETRY, "agent crashed: x", 0, 0)).outcome == "agent"
+
+
+def test_agent_task_keeps_answer_rules_and_never_logs_in() -> None:
+    from rpa_engine.cloud.agent import build_task
+    from rpa_engine.runtime.apply_agent import ANSWER_RULES
+
+    task = build_task("workable", {"personalInfo": {"name": "Ana", "linkedin": "https://linkedin.com/in/ana"}}, "Dev")
+    assert ANSWER_RULES in task
+    assert "upload_file" in task and "login" in task.lower()
+    assert "https://apply.workable.com" not in task  # a URL vai como ação inicial, não no texto

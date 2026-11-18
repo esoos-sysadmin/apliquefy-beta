@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import json
 import logging
+from dataclasses import dataclass
+from typing import Any, Awaitable, Callable
 
 from browser_use import Agent, ChatOpenAI
 
@@ -128,6 +130,73 @@ async def _attach_resume(page, pdf_path: str) -> bool:
     return False
 
 
+# Regras de resposta (grau, idioma, elegibilidade, pergunta aberta): valem para qualquer
+# formulário, então o worker da nuvem usa as mesmas no prompt de ATS genérico (§7.5).
+ANSWER_RULES = (
+    # Antes isto era uma regra só ("não sabe → aborta"), e ela sozinha respondia pela
+    # maioria das candidaturas ignoradas: qualquer campo fora do currículo matava o
+    # envio. A divisão abaixo é pela consequência de errar, não pela dificuldade:
+    # subestimar a si mesmo só prejudica quem se candidata; afirmar elegibilidade que
+    # não se tem é informação falsa para o empregador.
+    # Antes esta regra era "se o currículo não disser, responda o MENOR valor (0)". Só
+    # que o currículo NUNCA diz: `skills` é uma lista de nomes e nenhum campo guarda
+    # anos por tecnologia. Lido ao pé da letra, o modelo respondia 0 em quase toda
+    # pergunta de grau — inclusive para as tecnologias que dominam o currículo. O
+    # número tem que ser DERIVADO das datas das experiências, não defaultado.
+    "- Pergunta de GRAU (anos de experiência com X, escala 1-5, nível de uma "
+    "ferramenta): o currículo NÃO traz esse número pronto — DERIVE. Procure X em "
+    "`skills` e no `role`/`description` de CADA experiência e some o `durationMonths` "
+    "(meses, já calculado) das que citam X; divida por 12 e arredonde para baixo. "
+    "Anos totais de carreira = `totalExperienceMonths` / 12. Se X aparece só em "
+    "`skills`, sem experiência datada, responda o menor valor NÃO-nulo ('1', "
+    "'básico', 'Sim'). Responda 0/'nenhum'/'Não' apenas quando X não aparecer em "
+    "lugar NENHUM do currículo. Nunca chute para cima, nunca aborte por causa dela.\n"
+    # Currículo antigo (anterior à coluna `idioms`) chega sem idioma nenhum: sem esta
+    # regra o modelo respondia o piso até para o português.
+    "- Nível de IDIOMA: use `idioms` (língua + nível). Com `idioms` vazio, assuma "
+    "português nativo se o currículo está em português; para os outros idiomas "
+    "responda o menor nível e siga em frente.\n"
+    # A lista existia sem dizer ONDE procurar, e metade dela já está no currículo:
+    # o agente desistia de candidatura por pergunta que tinha resposta a um campo
+    # de distância. Só sobrou como "sem resposta" o que o schema realmente não guarda.
+    "- Pergunta de ELEGIBILIDADE (autorização de trabalho ou visto, formação exigida, "
+    "certificação, CNH, pretensão salarial, disponibilidade de mudança): não chute — "
+    "mas PROCURE antes, porque a maioria está no currículo: pretensão salarial em "
+    "`personalInfo.desiredSalary`; formação/escolaridade em `education` (`endDate` no "
+    "futuro = em curso); certificações em `experience[].certifications`; autorização "
+    "de trabalho no país onde o candidato mora (`personalInfo.location`) e já teve "
+    "emprego formal (`experience[].jobType`) = SIM — visto ou patrocínio para OUTRO "
+    "país continua sem resposta. Só se realmente não estiver lá, chame `done` com "
+    f"success=false e a mensagem COMEÇANDO com '{SKIP_MARKER}' seguido da pergunta, "
+    "SEM enviar a candidatura.\n"
+    # Campo aberto era o buraco do prompt: as regras acima cobrem pergunta de grau,
+    # de idioma e de elegibilidade — todas com resposta curta e verificável. "Fale
+    # sobre você" / "por que esta vaga" não tinha regra nenhuma, então o modelo caía
+    # no default de LLM (parágrafo genérico com adjetivo) ou gastava passos travado.
+    # Ele conta como `input` no _effort, ou seja: já é pago como pergunta.
+    "- Pergunta ABERTA (texto livre: 'fale sobre você', 'por que esta vaga/empresa', "
+    "'descreva uma situação em que...', resumo/carta curta): RESPONDA, nunca pule "
+    "nem deixe em branco. Toda afirmação tem que estar sustentada pelo currículo — o "
+    "campo SELECIONA o que já está no JSON e reorganiza para a pergunta; nunca "
+    "acrescenta experiência, número, cliente ou habilidade que não esteja lá.\n"
+    # Ordem cronológica enterra o material mais forte quando o melhor trabalho é o
+    # mais recente — que é o caso da maioria dos currículos.
+    "  Estrutura: (1) situação atual — `personalInfo.jobTitle` ou a experiência com "
+    "`current: true`; (2) a evidência MAIS FORTE do currículo com o número que ela "
+    "tiver (`durationMonths`/12 em anos, tecnologia de `skills`, escopo em "
+    "`description`) — comece por ela, não pela ordem cronológica; (3) uma frase "
+    "final ligando isso ao cargo e à empresa desta vaga, que estão visíveis na "
+    "página. Nunca escreva os nomes dos campos do JSON no texto.\n"
+    # Portal trunca sem avisar: resposta acima do limite é resposta cortada no meio.
+    "  Limite: se o campo declarar máximo de caracteres/palavras, fique ABAIXO dele; "
+    "sem limite declarado, no máximo 3 frases. Em campo curto (até ~200 caracteres) "
+    "uma situação concreta do currículo vale mais que adjetivo — nunca use "
+    "'proativo', 'apaixonado por tecnologia', 'aprendo rápido', 'trabalho bem em "
+    "equipe' e afins, que é o que todo mundo escreve. Escreva no idioma da vaga.\n"
+    "- Fora esses dois casos, não invente dados que não estejam no currículo.\n"
+)
+
+
 def _build_task(ctx: EngineContext, platform: str, job_title: str | None) -> str:
     # normalize() antes de serializar: o JSONB do banco usa os nomes do form web
     # (`companyName`, `jobStartDate`, `nameOfGraduation`…). Regra de prompt que cita
@@ -152,67 +221,7 @@ def _build_task(ctx: EngineContext, platform: str, job_title: str | None) -> str
         # atrás) sempre falha — e cada falha queima um passo e uma chamada de LLM.
         "- Use SOMENTE índices de elemento presentes no estado ATUAL da página. Nunca "
         "chute índices baixos (0, 1, 2...) nem reaproveite índices de passos anteriores.\n"
-        # Antes isto era uma regra só ("não sabe → aborta"), e ela sozinha respondia pela
-        # maioria das candidaturas ignoradas: qualquer campo fora do currículo matava o
-        # envio. A divisão abaixo é pela consequência de errar, não pela dificuldade:
-        # subestimar a si mesmo só prejudica quem se candidata; afirmar elegibilidade que
-        # não se tem é informação falsa para o empregador.
-        # Antes esta regra era "se o currículo não disser, responda o MENOR valor (0)". Só
-        # que o currículo NUNCA diz: `skills` é uma lista de nomes e nenhum campo guarda
-        # anos por tecnologia. Lido ao pé da letra, o modelo respondia 0 em quase toda
-        # pergunta de grau — inclusive para as tecnologias que dominam o currículo. O
-        # número tem que ser DERIVADO das datas das experiências, não defaultado.
-        "- Pergunta de GRAU (anos de experiência com X, escala 1-5, nível de uma "
-        "ferramenta): o currículo NÃO traz esse número pronto — DERIVE. Procure X em "
-        "`skills` e no `role`/`description` de CADA experiência e some o `durationMonths` "
-        "(meses, já calculado) das que citam X; divida por 12 e arredonde para baixo. "
-        "Anos totais de carreira = `totalExperienceMonths` / 12. Se X aparece só em "
-        "`skills`, sem experiência datada, responda o menor valor NÃO-nulo ('1', "
-        "'básico', 'Sim'). Responda 0/'nenhum'/'Não' apenas quando X não aparecer em "
-        "lugar NENHUM do currículo. Nunca chute para cima, nunca aborte por causa dela.\n"
-        # Currículo antigo (anterior à coluna `idioms`) chega sem idioma nenhum: sem esta
-        # regra o modelo respondia o piso até para o português.
-        "- Nível de IDIOMA: use `idioms` (língua + nível). Com `idioms` vazio, assuma "
-        "português nativo se o currículo está em português; para os outros idiomas "
-        "responda o menor nível e siga em frente.\n"
-        # A lista existia sem dizer ONDE procurar, e metade dela já está no currículo:
-        # o agente desistia de candidatura por pergunta que tinha resposta a um campo
-        # de distância. Só sobrou como "sem resposta" o que o schema realmente não guarda.
-        "- Pergunta de ELEGIBILIDADE (autorização de trabalho ou visto, formação exigida, "
-        "certificação, CNH, pretensão salarial, disponibilidade de mudança): não chute — "
-        "mas PROCURE antes, porque a maioria está no currículo: pretensão salarial em "
-        "`personalInfo.desiredSalary`; formação/escolaridade em `education` (`endDate` no "
-        "futuro = em curso); certificações em `experience[].certifications`; autorização "
-        "de trabalho no país onde o candidato mora (`personalInfo.location`) e já teve "
-        "emprego formal (`experience[].jobType`) = SIM — visto ou patrocínio para OUTRO "
-        "país continua sem resposta. Só se realmente não estiver lá, chame `done` com "
-        f"success=false e a mensagem COMEÇANDO com '{SKIP_MARKER}' seguido da pergunta, "
-        "SEM enviar a candidatura.\n"
-        # Campo aberto era o buraco do prompt: as regras acima cobrem pergunta de grau,
-        # de idioma e de elegibilidade — todas com resposta curta e verificável. "Fale
-        # sobre você" / "por que esta vaga" não tinha regra nenhuma, então o modelo caía
-        # no default de LLM (parágrafo genérico com adjetivo) ou gastava passos travado.
-        # Ele conta como `input` no _effort, ou seja: já é pago como pergunta.
-        "- Pergunta ABERTA (texto livre: 'fale sobre você', 'por que esta vaga/empresa', "
-        "'descreva uma situação em que...', resumo/carta curta): RESPONDA, nunca pule "
-        "nem deixe em branco. Toda afirmação tem que estar sustentada pelo currículo — o "
-        "campo SELECIONA o que já está no JSON e reorganiza para a pergunta; nunca "
-        "acrescenta experiência, número, cliente ou habilidade que não esteja lá.\n"
-        # Ordem cronológica enterra o material mais forte quando o melhor trabalho é o
-        # mais recente — que é o caso da maioria dos currículos.
-        "  Estrutura: (1) situação atual — `personalInfo.jobTitle` ou a experiência com "
-        "`current: true`; (2) a evidência MAIS FORTE do currículo com o número que ela "
-        "tiver (`durationMonths`/12 em anos, tecnologia de `skills`, escopo em "
-        "`description`) — comece por ela, não pela ordem cronológica; (3) uma frase "
-        "final ligando isso ao cargo e à empresa desta vaga, que estão visíveis na "
-        "página. Nunca escreva os nomes dos campos do JSON no texto.\n"
-        # Portal trunca sem avisar: resposta acima do limite é resposta cortada no meio.
-        "  Limite: se o campo declarar máximo de caracteres/palavras, fique ABAIXO dele; "
-        "sem limite declarado, no máximo 3 frases. Em campo curto (até ~200 caracteres) "
-        "uma situação concreta do currículo vale mais que adjetivo — nunca use "
-        "'proativo', 'apaixonado por tecnologia', 'aprendo rápido', 'trabalho bem em "
-        "equipe' e afins, que é o que todo mundo escreve. Escreva no idioma da vaga.\n"
-        "- Fora esses dois casos, não invente dados que não estejam no currículo.\n"
+        + ANSWER_RULES +
         "- Avance pelas etapas (Avançar/Revisar) até enviar. Ao enviar com sucesso, "
         "chame `done` com success=true.\n"
         # Cada clique no LinkedIn re-renderiza o modal inteiro. O modelo lia "nada mudou"
@@ -271,6 +280,69 @@ async def record_skip(
     })
 
 
+@dataclass
+class AgentRun:
+    outcome: Outcome
+    error_log: str | None
+    questions: int
+    steps: int
+
+
+async def run_apply_agent(
+    *,
+    task: str,
+    llm,
+    browser_session,
+    platform: str,
+    job_url: str,
+    before_run: Callable[[], Awaitable] | None = None,
+    before_step: Callable[[Any], Awaitable] | None = None,
+    **agent_kw: Any,
+) -> AgentRun:
+    """Monta e roda o Agent (§7.5). Desktop (`execute_apply`) e worker da nuvem usam este
+    mesmo trecho; cada um traz o próprio prompt, LLM e sessão do navegador."""
+    agent = Agent(
+        task=task,
+        llm=llm,
+        browser_session=browser_session,
+        # O DOM do LinkedIn não rotula os campos (classes ofuscadas, radio sem
+        # aria-label): sem visão o modelo não sabe qual campo é qual. Mas detalhe
+        # "auto" manda a screenshot em alta resolução — 'low' corta a maior parte dos
+        # tokens de imagem e um formulário não precisa dessa resolução toda.
+        use_vision=True,
+        vision_detail_level="low",
+        # Sem limite, cada passo reenvia TODO o histórico: o passo 13 custa muito mais
+        # que o passo 1 e o TPM estoura no meio do run. 10 cobre o contexto que importa
+        # (browser-use exige > 5 e sempre mantém o primeiro item).
+        max_history_items=10,
+        use_judge=False,  # economia de LLM
+        # 1, não 4: os índices são backendNodeId do CDP e o modal do LinkedIn recria os
+        # nós a cada render. Num lote de 4, a 1ª ação (clicar Avançar) invalida as outras
+        # 3, que batem em nós mortos — e o modelo lê isso como "botão não funcional".
+        max_actions_per_step=1,
+        # roda dentro de uma task asyncio do uvicorn; não instalar handler de SIGINT.
+        enable_signal_handler=False,
+        **agent_kw,
+    )
+    try:
+        if before_run is not None:
+            await before_run()
+        history = await agent.run(max_steps=APPLY_MAX_STEPS, on_step_start=before_step)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("apply agent crashed for %s", job_url)
+        # Inesperado: o agente estourou em vez de concluir com sucesso/insucesso.
+        # Não confundir com PAUSE_RETRY por max_steps, que é desfecho normal e
+        # fica só no job_applications.error_log (ADR-04).
+        capture_agent_crash(exc, platform, job_ref=job_ref(job_url))
+        return AgentRun(Outcome.PAUSE_RETRY, f"agent crashed: {exc}", 0, 0)
+    questions, steps = _effort(history)
+    outcome = _outcome_from_result(history.is_successful(), history.final_result())
+    error_log = None if outcome is Outcome.SUCCESS else (
+        history.final_result() or "agente não concluiu dentro do limite de passos"
+    )
+    return AgentRun(outcome, error_log, questions, steps)
+
+
 async def execute_apply(
     ctx: EngineContext,
     *,
@@ -299,58 +371,26 @@ async def execute_apply(
         api_key=ctx.settings.web_api_token,
         base_url=ctx.settings.openai_base_url,
     )
-    agent = Agent(
-        task=_build_task(ctx, platform, job_title),
-        llm=llm,
-        browser_session=ctx.browser_session,
-        # Sem available_file_paths de propósito: o upload é do _attach_resume. Passar o
-        # PDF aqui só reabilitaria o `upload_file` que o prompt proíbe — e foi o que fez
-        # o CV baixado do próprio LinkedIn virar candidato a anexo.
-        # O DOM do LinkedIn não rotula os campos (classes ofuscadas, radio sem
-        # aria-label): sem visão o modelo não sabe qual campo é qual. Mas detalhe
-        # "auto" manda a screenshot em alta resolução — 'low' corta a maior parte dos
-        # tokens de imagem e um formulário não precisa dessa resolução toda.
-        use_vision=True,
-        vision_detail_level="low",
-        # Sem limite, cada passo reenvia TODO o histórico: o passo 13 custa muito mais
-        # que o passo 1 e o TPM estoura no meio do run. 10 cobre o contexto que importa
-        # (browser-use exige > 5 e sempre mantém o primeiro item).
-        max_history_items=10,
-        directly_open_url=False,  # já estamos na página certa; não navegar por conta
-        use_judge=False,  # economia de LLM
-        # 1, não 4: os índices são backendNodeId do CDP e o modal do LinkedIn recria os
-        # nós a cada render. Num lote de 4, a 1ª ação (clicar Avançar) invalida as outras
-        # 3, que batem em nós mortos — e o modelo lê isso como "botão não funcional".
-        max_actions_per_step=1,
-        # roda dentro de uma task asyncio do uvicorn; não instalar handler de SIGINT.
-        enable_signal_handler=False,
-    )
 
     # O campo de upload só existe a partir de um dos passos do modal, então checa a cada
     # passo em vez de uma vez antes de começar.
     async def _before_step(_agent) -> None:
         await _attach_resume(ctx.page, ctx.resume_pdf_path)
 
-    error_log: str | None = None
-    questions = steps = 0
-    try:
-        await _attach_resume(ctx.page, ctx.resume_pdf_path)
-        history = await agent.run(max_steps=APPLY_MAX_STEPS, on_step_start=_before_step)
-    except Exception as exc:  # noqa: BLE001
-        logger.exception("apply agent crashed for %s", job_url)
-        # Inesperado: o agente estourou em vez de concluir com sucesso/insucesso.
-        # Não confundir com PAUSE_RETRY por max_steps, que é desfecho normal e
-        # fica só no job_applications.error_log (ADR-04).
-        capture_agent_crash(exc, platform, job_ref=job_ref(job_url))
-        outcome = Outcome.PAUSE_RETRY
-        error_log = f"agent crashed: {exc}"
-    else:
-        questions, steps = _effort(history)
-        ok = history.is_successful()
-        outcome = _outcome_from_result(ok, history.final_result())
-        error_log = None if outcome is Outcome.SUCCESS else (
-            history.final_result() or "agente não concluiu dentro do limite de passos"
-        )
+    run = await run_apply_agent(
+        task=_build_task(ctx, platform, job_title),
+        llm=llm,
+        browser_session=ctx.browser_session,
+        platform=platform,
+        job_url=job_url,
+        before_run=lambda: _attach_resume(ctx.page, ctx.resume_pdf_path),
+        before_step=_before_step,
+        # Sem available_file_paths de propósito: o upload é do _attach_resume. Passar o
+        # PDF aqui só reabilitaria o `upload_file` que o prompt proíbe — e foi o que fez
+        # o CV baixado do próprio LinkedIn virar candidato a anexo.
+        directly_open_url=False,  # já estamos na página certa; não navegar por conta
+    )
+    outcome, error_log, questions, steps = run.outcome, run.error_log, run.questions, run.steps
 
     await ctx.client.update_application(
         application_id=application_id, status=_STATUS_BY_OUTCOME[outcome], error_log=error_log

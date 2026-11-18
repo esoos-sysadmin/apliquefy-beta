@@ -28,7 +28,7 @@ const statusClass: Record<ApplicationStatus, string> = {
 // em buckets. Servem ao gráfico, não ao leitor — na linha do histórico vai só o texto.
 function formatReason(value: string | null) {
     if (!value?.trim()) return null;
-    return value.replace(/^(FIT|ELEGIBILIDADE|PERGUNTA|BLOQUEIO|DESAFIO|HANDOFF|TENTATIVAS):\s*/, "").trim() || null;
+    return value.replace(/^(FIT|ELEGIBILIDADE|PERGUNTA|BLOQUEIO|DESAFIO|HANDOFF|TENTATIVAS|AGENTE|FORMULÁRIO|ERRO):\s*/, "").trim() || null;
 }
 
 function formatDate(value: string | null) {

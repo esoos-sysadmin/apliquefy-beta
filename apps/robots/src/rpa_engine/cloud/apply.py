@@ -21,7 +21,8 @@ import httpx
 
 from ..observability import capture_agent_crash
 from ..util.resume import normalize
-from .adapters.base import FormAdapter
+from .adapters.base import _GENERIC_SUCCESS, FormAdapter
+from .agent import AGENT_ATS, run_agent
 from .adapters.greenhouse import GREENHOUSE, apply_url, fetch_questions, greenhouse_ids, precheck
 from .answers import Answerer, AskFn
 from .discovery.canonical import BOARD_TOKEN, detect_ats
@@ -29,11 +30,17 @@ from .form_run import run_form
 
 logger = logging.getLogger(__name__)
 
-ADAPTERS: dict[str, FormAdapter] = {"greenhouse": GREENHOUSE}
+# Seletores portados do candidata/forms.py. A tela de sucesso é a mesma regex genérica
+# (/thanks do Lever, "thank you for applying" do Ashby).
+ADAPTERS: dict[str, FormAdapter] = {
+    "greenhouse": GREENHOUSE,
+    "lever": FormAdapter("lever", "#btn-submit, button[type=submit]:visible", _GENERIC_SUCCESS),
+    "ashby": FormAdapter("ashby", "button:has-text('Submit Application'), button[type=submit]:visible", _GENERIC_SUCCESS),
+}
 
 # desfecho do run_form → prefixo do errorLog (buckets do /relatorios)
 _FAIL_PREFIX = {"missing": "PERGUNTA", "blocked": "BLOQUEIO", "validation": "FORMULÁRIO", "challenge": "DESAFIO",
-                "handoff": "HANDOFF"}
+                "handoff": "HANDOFF", "agent": "AGENTE"}
 HANDOFF_POLL_S = 5
 
 
@@ -106,7 +113,7 @@ async def process(item: dict, *, client, bb, http, ask: AskFn | None, handoff_mi
 
     try:
         adapter = ADAPTERS.get(posting["ats"])
-        if adapter is None:  # agente genérico é da Fase 4
+        if adapter is None and posting["ats"] not in AGENT_ATS:
             return await fail(f"SEM ADAPTER: {posting['ats']}")
         url = safe_apply_url(posting)
         if url is None:
@@ -125,8 +132,13 @@ async def process(item: dict, *, client, bb, http, ask: AskFn | None, handoff_mi
             return await wait_for_user(bb, session_id, confirmed, client=client, user_id=user_id,
                                        app_id=app_id, minutes=handoff_min)
 
-        result = await run_form(bb, adapter, url, resume, pdf_path, answerer,
-                                handoff=handoff if handoff_min > 0 else None)
+        if adapter is None:
+            # ponytail: o agente não tem handoff; desafio vira DESAFIO:. Ligar quando a
+            # taxa de desafio nesses ATS justificar.
+            result = await run_agent(bb, posting["ats"], url, resume, pdf_path, posting.get("title"))
+        else:
+            result = await run_form(bb, adapter, url, resume, pdf_path, answerer,
+                                    handoff=handoff if handoff_min > 0 else None)
         if result.outcome != "submitted":
             return await fail(f"{_FAIL_PREFIX.get(result.outcome, 'ERRO')}: {result.detail}")
 
