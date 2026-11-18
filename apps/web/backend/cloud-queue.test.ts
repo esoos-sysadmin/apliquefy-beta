@@ -256,6 +256,10 @@ async function main() {
     assert.equal(d.success, false)
     assert.equal((d as { code?: string }).code, "CLOUD_PRICE_UNSET")
 
+    // ── descrição para o fit gate (ADR-07) ──────────────────────────────────────
+    assert.equal((await jobPostingService.getDescription(p1.id))?.description, p1.description)
+    assert.equal(await jobPostingService.getDescription("nao-e-uuid"), null)
+
     // ── varredor (§7.6) ─────────────────────────────────────────────────────────
     const ago = (min: number) => new Date(Date.now() - min * 60_000)
     const mk = (jobUrl: string, data: object) => prisma.jobApplication.create({
@@ -282,11 +286,23 @@ async function main() {
     assert.equal(await prisma.transaction.count({ where: { metadata: { path: ["jobApplicationId"], equals: expiredH.id } } }), 0)
 
     // ── criar campanha ats (rota do usuário, Clerk) ─────────────────────────────
-    const createdAts = await campaignService.createAtsCampaign("u1", {
+    const atsInput = {
         name: "Sites de empresas", resumeId: resume.id, dailyLimit: 10,
-        atsConfig: { searchTerms: "engenheiro de dados", remoteOnly: true, atsAllowlist: ["greenhouse"] },
-    })
+        atsConfig: { searchTerms: "engenheiro de dados", remoteOnly: true, atsAllowlist: ["greenhouse" as const] },
+    }
+    // §9.2.4: sem aceite do envio pela nuvem, não cria
+    const noConsent = await campaignService.createAtsCampaign("u1", atsInput)
+    assert.equal(noConsent.success, false)
+    assert.equal(await prisma.campaign.count({ where: { userId: "u1", name: "Sites de empresas" } }), 0)
+    const createdAts = await campaignService.createAtsCampaign("u1", { ...atsInput, consent: true })
     assert.equal(createdAts.success, true)
+    const consentAt = (await prisma.user.findUniqueOrThrow({ where: { id: "u1" } })).cloudConsentAt
+    assert.ok(consentAt) // aceite gravado com data
+    // já aceitou: a próxima campanha não pede de novo, e a data do 1º aceite fica
+    const second = await campaignService.createAtsCampaign("u1", { ...atsInput, name: "Sites 2", consent: true })
+    assert.equal(second.success, true)
+    assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: "u1" } })).cloudConsentAt?.getTime(), consentAt.getTime())
+    assert.equal((await campaignService.createAtsCampaign("u1", { ...atsInput, name: "Sites 3" })).success, true)
     const newCampaign = await prisma.campaign.findFirstOrThrow({
         where: { userId: "u1", name: "Sites de empresas" }, include: { atsConfig: true },
     })
@@ -296,12 +312,12 @@ async function main() {
     assert.deepEqual(newCampaign.atsConfig?.atsAllowlist, ["greenhouse"])
     // currículo de outro usuário → recusa
     const foreign = await campaignService.createAtsCampaign("u2", {
-        name: "x x x", resumeId: resume.id, atsConfig: { searchTerms: "dados" },
+        name: "x x x", resumeId: resume.id, atsConfig: { searchTerms: "dados" }, consent: true,
     })
     assert.equal(foreign.success, false)
     // ATS fora da lista conhecida → recusa na validação
     const unknownAts = await campaignService.createAtsCampaign("u1", {
-        name: "x x x", resumeId: resume.id, atsConfig: { searchTerms: "dados", atsAllowlist: ["workday"] },
+        name: "x x x", resumeId: resume.id, atsConfig: { searchTerms: "dados", atsAllowlist: ["workday"] }, consent: true,
     } as never)
     assert.equal(unknownAts.success, false)
     // apagar a campanha apaga a config (FK RESTRICT)

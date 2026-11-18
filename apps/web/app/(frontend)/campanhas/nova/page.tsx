@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BriefcaseBusiness, FlaskConical, Info, Rocket } from "lucide-react";
+import { BriefcaseBusiness, Cloud, FlaskConical, Info, Rocket } from "lucide-react";
 import { useCampaigns } from "../../../hooks/use-campaigns";
 import { useAbTests } from "../../../hooks/use-ab-tests";
 import { useResumes } from "../../../hooks/use-resumes";
@@ -15,8 +15,18 @@ import { ApiError } from "../../../lib/api-client";
 import { flattenZodErrorTree, type FieldError } from "../../../lib/format-field-errors";
 import type { LinkedinFormValues } from "../../../components/organisms/LinkedinParametersForm";
 import type { InfojobsFormValues } from "../../../components/organisms/InfojobsParametersForm";
+import { AtsParametersForm, type AtsFormValues } from "../../../components/organisms/AtsParametersForm";
 
-type CampaignPlatform = "linkedin" | "infojobs";
+type CampaignPlatform = "linkedin" | "infojobs" | "ats";
+
+const defaultAtsValues: AtsFormValues = {
+    searchTerms: [],
+    location: [],
+    remoteOnly: false,
+    atsAllowlist: [],
+    fitMinScore: "0", // ADR-07: gate desligado por padrão
+    consent: false,
+};
 
 const defaultLinkedinValues: LinkedinFormValues = {
     searchTerms: [],
@@ -54,7 +64,7 @@ function NewCampaignForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { resumes, isLoading: isLoadingResumes } = useResumes();
-    const { createLinkedinCampaign, createInfojobsCampaign } = useCampaigns();
+    const { createLinkedinCampaign, createInfojobsCampaign, createAtsCampaign } = useCampaigns();
     const { createAbTest } = useAbTests();
     const [platform, setPlatform] = useState<CampaignPlatform>("linkedin");
     const [resumeId, setResumeId] = useState("");
@@ -65,7 +75,10 @@ function NewCampaignForm() {
     const [dailyLimit, setDailyLimit] = useState("20");
     const [linkedinValues, setLinkedinValues] = useState<LinkedinFormValues>(defaultLinkedinValues);
     const [infojobsValues, setInfojobsValues] = useState<InfojobsFormValues>(defaultInfojobsValues);
+    const [atsValues, setAtsValues] = useState<AtsFormValues>(defaultAtsValues);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    // A/B ainda não existe para a nuvem
+    const isAbTest = abTest && platform !== "ats";
     const [apiErrors, setApiErrors] = useState<FieldError[]>([]);
     const [localError, setLocalError] = useState<string | null>(null);
 
@@ -77,17 +90,23 @@ function NewCampaignForm() {
         setInfojobsValues((prev) => ({ ...prev, [field]: value }));
     }
 
+    function handleAtsChange<K extends keyof AtsFormValues>(field: K, value: AtsFormValues[K]) {
+        setAtsValues((prev) => ({ ...prev, [field]: value }));
+    }
+
     async function handleSubmit() {
         setApiErrors([]);
         setLocalError(null);
 
         const missing: FieldError[] = [];
         if (!campaignName.trim()) missing.push({ path: "name", label: "Nome da campanha", message: "Campo obrigatório" });
-        if (!resumeId) missing.push({ path: "resumeId", label: abTest ? "Currículo A" : "Currículo", message: "Selecione um currículo" });
-        if (abTest && !resumeBId) missing.push({ path: "resumeBId", label: "Currículo B", message: "Selecione o segundo currículo" });
-        if (abTest && resumeBId && resumeBId === resumeId) missing.push({ path: "resumeBId", label: "Currículo B", message: "Escolha um currículo diferente do A" });
+        if (!resumeId) missing.push({ path: "resumeId", label: isAbTest ? "Currículo A" : "Currículo", message: "Selecione um currículo" });
+        if (isAbTest && !resumeBId) missing.push({ path: "resumeBId", label: "Currículo B", message: "Selecione o segundo currículo" });
+        if (isAbTest && resumeBId && resumeBId === resumeId) missing.push({ path: "resumeBId", label: "Currículo B", message: "Escolha um currículo diferente do A" });
         if (Number(dailyLimit) <= 0) missing.push({ path: "dailyLimit", label: "Limite diário", message: "Informe um valor maior que zero" });
-        const terms = platform === "linkedin" ? linkedinValues.searchTerms : infojobsValues.searchTerms;
+        const terms = platform === "linkedin" ? linkedinValues.searchTerms : platform === "ats" ? atsValues.searchTerms : infojobsValues.searchTerms;
+        if (platform === "ats" && Number(atsValues.fitMinScore) > 100) missing.push({ path: "fitMinScore", label: "Nota mínima", message: "Use um valor de 0 a 100" });
+        if (platform === "ats" && !atsValues.consent) missing.push({ path: "consent", label: "Consentimento", message: "Aceite o envio pelo navegador na nuvem" });
         if (terms.length === 0) missing.push({ path: "searchTerms", label: "Termos de busca", message: "Adicione ao menos um termo" });
 
         if (missing.length > 0) {
@@ -122,7 +141,7 @@ function NewCampaignForm() {
         setIsSubmitting(true);
 
         try {
-            if (abTest) {
+            if (isAbTest) {
                 const base = {
                     name: campaignName,
                     resumeAId: resumeId,
@@ -139,7 +158,21 @@ function NewCampaignForm() {
                 return;
             }
 
-            if (platform === "linkedin") {
+            if (platform === "ats") {
+                await createAtsCampaign({
+                    name: campaignName,
+                    resumeId,
+                    dailyLimit: Number(dailyLimit || 0),
+                    consent: atsValues.consent,
+                    atsConfig: {
+                        searchTerms: atsValues.searchTerms.join(", "),
+                        locationTerm: atsValues.location.join(", ") || undefined,
+                        remoteOnly: atsValues.remoteOnly,
+                        atsAllowlist: atsValues.atsAllowlist,
+                        fitMinScore: Number(atsValues.fitMinScore || 0),
+                    },
+                });
+            } else if (platform === "linkedin") {
                 await createLinkedinCampaign({
                     name: campaignName,
                     resumeId,
@@ -241,7 +274,7 @@ function NewCampaignForm() {
                             </div>
 
                             <label className="block space-y-2">
-                                <span className="text-sm font-medium text-slate-200">{abTest ? "Currículo A (variante A)" : "Currículo"}</span>
+                                <span className="text-sm font-medium text-slate-200">{isAbTest ? "Currículo A (variante A)" : "Currículo"}</span>
                                 <SelectField
                                     value={resumeId}
                                     onChange={setResumeId}
@@ -251,6 +284,7 @@ function NewCampaignForm() {
                             </label>
                         </div>
 
+                        {platform !== "ats" && (
                         <div className="space-y-4 rounded-2xl border border-line-strong bg-sunken p-4">
                             <label className="flex cursor-pointer items-start justify-between gap-4">
                                 <span className="flex items-start gap-3">
@@ -298,6 +332,7 @@ function NewCampaignForm() {
                                 </div>
                             ) : null}
                         </div>
+                        )}
 
                         <div className="max-w-[320px] space-y-2">
                             <label className="block text-sm font-medium text-slate-200">
@@ -317,7 +352,7 @@ function NewCampaignForm() {
                         <div className="space-y-3">
                             <p className="text-sm font-medium text-slate-200">Plataforma alvo</p>
 
-                            <div className="grid gap-3 lg:grid-cols-2">
+                            <div className="grid gap-3 lg:grid-cols-3">
                                 <button
                                     type="button"
                                     onClick={() => setPlatform("linkedin")}
@@ -375,11 +410,42 @@ function NewCampaignForm() {
                                         ●
                                     </span>
                                 </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setPlatform("ats")}
+                                    className={`flex items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
+                                        platform === "ats"
+                                            ? "border-accent bg-accent-soft shadow-[0_0_0_1px_rgb(var(--c-accent) / 0.35)]"
+                                            : "border-line-strong bg-surface hover:border-line-strong"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-accent/20 bg-accent-soft text-accent-text">
+                                            <Cloud size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-fg">Sites de empresas</p>
+                                            <p className="text-sm text-slate-400">Roda na nuvem, sem o desktop</p>
+                                        </div>
+                                    </div>
+                                    <span
+                                        className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
+                                            platform === "ats"
+                                                ? "border-accent bg-accent text-white"
+                                                : "border-line-strong text-transparent"
+                                        }`}
+                                    >
+                                        ●
+                                    </span>
+                                </button>
                             </div>
                         </div>
 
                         <div className="border-t border-line pt-6">
-                            {platform === "linkedin" ? (
+                            {platform === "ats" ? (
+                                <AtsParametersForm values={atsValues} onChange={handleAtsChange} />
+                            ) : platform === "linkedin" ? (
                                 <LinkedinParametersForm values={linkedinValues} onChange={handleLinkedinChange} />
                             ) : (
                                 <InfojobsParametersForm values={infojobsValues} onChange={handleInfojobsChange} />
@@ -406,7 +472,7 @@ function NewCampaignForm() {
                                     className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <Rocket size={16} />
-                                    {isSubmitting ? "Criando..." : abTest ? "Criar Teste A/B" : "Criar campanha"}
+                                    {isSubmitting ? "Criando..." : isAbTest ? "Criar Teste A/B" : "Criar campanha"}
                                 </button>
                             </div>
                         </div>

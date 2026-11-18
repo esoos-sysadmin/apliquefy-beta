@@ -85,6 +85,10 @@ class InternalClient:
         body = {"workerId": worker_id, "limit": limit, "ats": ats}
         return await self._call("POST", "/applications/claim", json=body)
 
+    async def posting_description(self, posting_id: str) -> str:
+        """Só para o fit gate: a lista de candidatas vem sem descrição (até 20 mil chars cada)."""
+        return (await self._call("GET", f"/postings/{posting_id}"))["description"] or ""
+
     async def sweep(self) -> int:
         """Varredor (§7.6): a web aplica as regras (handoff vencido, tentativas esgotadas)."""
         return (await self._call("POST", "/applications/sweep"))["failed"]

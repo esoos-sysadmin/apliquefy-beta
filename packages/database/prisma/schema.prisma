@@ -286,6 +286,8 @@ model User {
   stripeSubscriptionId String?   @unique @map("stripe_subscription_id") @db.VarChar
   subscriptionStatus   String?   @map("subscription_status") @db.VarChar
   currentPeriodEnd     DateTime? @map("current_period_end") @db.Timestamp
+  // Aceite do envio pelo navegador na nuvem (§9.2.4), gravado na 1ª campanha `ats`.
+  cloudConsentAt       DateTime? @map("cloud_consent_at") @db.Timestamp
   createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamp
 
   // Relacionamentos Inversos

@@ -127,12 +127,22 @@ async def passes(ctx, *, platform: str, job_title: str | None) -> FitVerdict | N
         breadcrumb("fit_gate", "descrição ilegível", platform=platform)
         return None
 
-    resume_json = json.dumps(normalize(ctx.resume), ensure_ascii=False)
     llm = ChatOpenAI(
         model=ctx.settings.openai_model,
         api_key=ctx.settings.web_api_token,
         base_url=ctx.settings.openai_base_url,
     )
+    return await score_text(description, ctx.resume, llm=llm, platform=platform, job_title=job_title)
+
+
+async def score_text(description: str, resume: dict, *, llm, platform: str, job_title: str | None) -> FitVerdict | None:
+    """Avalia a vaga a partir do TEXTO da descrição (ADR-07). O worker da nuvem usa direto,
+    com a descrição vinda da API do ATS. Mesmo fail-open do `passes`."""
+    description = (description or "").strip()
+    if len(description) < _MIN_DESCRIPTION_CHARS:
+        return None
+    description = description[:_MAX_DESCRIPTION_CHARS]
+    resume_json = json.dumps(normalize(resume), ensure_ascii=False)
     try:
         result = await llm.ainvoke(
             [
@@ -147,7 +157,7 @@ async def passes(ctx, *, platform: str, job_title: str | None) -> FitVerdict | N
             output_format=FitVerdict,
         )
     except Exception as exc:  # noqa: BLE001
-        logger.warning("fit: avaliação falhou (%s), candidatando sem avaliar", exc)
+        logger.warning("fit: avaliação falhou (%s), candidatando sem avaliar", type(exc).__name__)
         breadcrumb("fit_gate", "avaliação falhou", error=type(exc).__name__)
         return None
 

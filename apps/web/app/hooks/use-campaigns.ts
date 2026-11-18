@@ -6,6 +6,7 @@ import { createApiClient } from "../lib/api-client";
 import { getClerkToken } from "../lib/auth/client/clerk";
 import { handleClientError } from "../lib/handle-client-error";
 import { toast } from "../lib/toast";
+import type { CreateAtsCampaignInput } from "../lib/types/campaign-types";
 import type {
     Campaign,
     CreateInfojobsCampaignInput,
@@ -15,6 +16,7 @@ import type {
 import {
     activateCampaign as activateCampaignRequest,
     createInfojobsCampaign as createInfojobsCampaignRequest,
+    createAtsCampaign as createAtsCampaignRequest,
     createLinkedinCampaign as createLinkedinCampaignRequest,
     deleteCampaign as deleteCampaignRequest,
     getCampaigns as getCampaignsRequest,
@@ -68,6 +70,12 @@ export function useCampaigns() {
             const created = await withClient(async (api) => createInfojobsCampaignRequest(api, input));
             await mutate();
             toast.success("Campanha InfoJobs criada com sucesso!");
+            return created;
+        },
+        async createAtsCampaign(input: CreateAtsCampaignInput) {
+            const created = await withClient(async (api) => createAtsCampaignRequest(api, input));
+            await mutate();
+            toast.success("Campanha na nuvem criada com sucesso!");
             return created;
         },
         async updateCampaign(id: string, input: UpdateCampaignInput) {

@@ -24,7 +24,7 @@ from .browser import Browserbase
 from .config import CloudSettings, load_cloud_settings
 from .discovery.run import run_discovery
 from .internal_client import InternalClient
-from .matching import match_and_enqueue
+from .matching import default_score, match_and_enqueue
 
 logger = logging.getLogger("rpa_engine.cloud")
 
@@ -90,9 +90,11 @@ async def main() -> None:
         async def discover() -> None:
             await run_discovery(client, http, apify_token=s.apify_token, apify_actor=s.apify_actor)
 
+        score = default_score()
+
         async def match() -> None:
             for campaign in await client.active_campaigns():
-                await match_and_enqueue(client, campaign, s.supported_ats)
+                await match_and_enqueue(client, campaign, s.supported_ats, score=score)
 
         # ponytail: descoberta roda em toda subida (não guardamos a hora da última);
         # gravar em ats_boards.last_fetched_at se redeploys frequentes pesarem no Apify.

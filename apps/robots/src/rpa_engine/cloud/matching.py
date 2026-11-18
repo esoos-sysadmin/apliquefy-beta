@@ -6,8 +6,11 @@ fica o que é texto: termos no título e local/remoto. Fit gate por texto é da 
 from __future__ import annotations
 
 import logging
+import os
 import re
+from datetime import datetime, timedelta, timezone
 
+from ..runtime import fit_gate
 from .discovery.apify import CLOUD_ATS
 from .discovery.canonical import norm
 
@@ -46,8 +49,28 @@ def location_matches(p: dict, location_term: str | None, remote_only: bool) -> b
     return f" {norm(location_term)} " in f" {norm(p.get('location') or '')} "
 
 
-async def match_and_enqueue(client, campaign: dict, supported: set[str]) -> int:
-    """Enfileira até `remainingToday` vagas novas para a campanha. Devolve quantas."""
+def default_score():
+    """Fit gate da nuvem: ChatOpenAI direto (o proxy /api/ai exige Clerk). None = sem chave."""
+    key = os.environ.get("OPENAI_API_KEY")
+    if not key:
+        return None
+    from browser_use import ChatOpenAI
+
+    llm = ChatOpenAI(model=os.environ.get("OPENAI_MODEL", "gpt-4.1-mini"), api_key=key)
+
+    async def score(description: str, resume: dict, posting: dict):
+        return await fit_gate.score_text(description, resume, llm=llm, platform=posting.get("ats") or "ats",
+                                         job_title=posting.get("title"))
+
+    return score
+
+
+async def match_and_enqueue(client, campaign: dict, supported: set[str], score=None) -> int:
+    """Enfileira até `remainingToday` vagas novas para a campanha. Devolve quantas.
+
+    Com `fitMinScore > 0`, a vaga reprovada nem entra na fila (ADR-07): vira `skipped`
+    com `FIT:`, as mesmas duas chamadas do `record_skip` do desktop. O `enqueue` dela vai
+    com runAfter +1 h para o claim não pegar no intervalo entre as duas."""
     room = campaign["remainingToday"]
     config = campaign["config"]
     ats = sorted((set(config.get("atsAllowlist") or CLOUD_ATS)) & supported)
@@ -55,11 +78,25 @@ async def match_and_enqueue(client, campaign: dict, supported: set[str]) -> int:
         return 0
     terms = terms_of(config["searchTerms"])
     enqueued = 0
+    minimum = int(config.get("fitMinScore") or 0)
+    resume = None
     for p in await client.candidates(campaign["userId"], ats, terms=config["searchTerms"]):
         if enqueued >= room:
             break
         if not title_matches(p["title"], terms) or not location_matches(p, config.get("locationTerm"), config.get("remoteOnly")):
             continue
+        if minimum > 0 and score is not None:
+            if resume is None:
+                resume = await client.resume(campaign["userId"], campaign["resumeId"])
+            verdict = await score(await client.posting_description(p["id"]), resume, p)
+            if fit_gate.should_skip(verdict, minimum):
+                later = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+                app = await client.enqueue(user_id=campaign["userId"], campaign_id=campaign["campaignId"],
+                                           job_posting_id=p["id"], run_after=later)
+                if app is not None:
+                    await client.patch_application(campaign["userId"], app["id"], status="skipped",
+                                                   errorLog=fit_gate.skip_reason(verdict)[:4000])
+                continue
         got = await client.enqueue(user_id=campaign["userId"], campaign_id=campaign["campaignId"], job_posting_id=p["id"])
         enqueued += got is not None  # 409 = já registrada para o usuário: não ocupa vaga
     logger.info("matching: campanha %s enfileirou %d", campaign["campaignId"], enqueued)

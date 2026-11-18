@@ -451,3 +451,62 @@ def test_agent_task_keeps_answer_rules_and_never_logs_in() -> None:
     assert ANSWER_RULES in task
     assert "upload_file" in task and "login" in task.lower()
     assert "https://apply.workable.com" not in task  # a URL vai como ação inicial, não no texto
+
+
+# ── Fase 5: fit gate por texto (ADR-07) ─────────────────────────────────────
+
+class FitClient(MatchClient):
+    def __init__(self, candidates, descriptions):
+        super().__init__(candidates)
+        self.descriptions, self.patched, self.run_after = descriptions, [], {}
+
+    async def enqueue(self, *, user_id, campaign_id, job_posting_id, run_after=None):
+        self.run_after[job_posting_id] = run_after
+        return await super().enqueue(user_id=user_id, campaign_id=campaign_id, job_posting_id=job_posting_id)
+
+    async def posting_description(self, posting_id):
+        return self.descriptions[posting_id]
+
+    async def resume(self, user_id, resume_id):
+        return {"personalInfo": {"name": "Ana"}, "experience": []}
+
+    async def patch_application(self, user_id, application_id, **fields):
+        self.patched.append((application_id, fields))
+
+
+async def test_fit_gate_skips_before_queue_without_using_daily_room() -> None:
+    from rpa_engine.runtime.fit_gate import FitVerdict
+
+    cands = [{"id": f"p{i}", "title": "Data Engineer", "location": "Recife"} for i in (1, 2, 3)]
+    client = FitClient(cands, {"p1": "ruim", "p2": "boa", "p3": "boa"})
+    seen = []
+
+    async def score(description, resume, posting):
+        seen.append(description)
+        return FitVerdict(score=30 if description == "ruim" else 90, reason="pouco a ver")
+
+    campaign = {**CAMPAIGN, "resumeId": "r1", "config": {**CAMPAIGN["config"], "fitMinScore": 70}}
+    assert await match_and_enqueue(client, campaign, supported={"greenhouse"}, score=score) == 2
+    assert client.enqueued == ["p1", "p2", "p3"]
+    # reprovada nasce com runAfter (o claim não pega no meio) e vira skipped com FIT:
+    assert client.run_after["p1"] and not client.run_after["p2"]
+    assert client.patched == [("a-p1", {"status": "skipped", "errorLog": "FIT: aderência 30/100 — pouco a ver"})]
+
+
+async def test_fit_gate_off_by_default_never_scores() -> None:
+    async def score(*a):
+        raise AssertionError("gate desligado não chama o LLM")
+
+    client = FitClient([{"id": "p1", "title": "Data Engineer", "location": "Recife"}], {})
+    assert await match_and_enqueue(client, CAMPAIGN, supported={"greenhouse"}, score=score) == 1
+
+
+async def test_score_text_fails_open() -> None:
+    from rpa_engine.runtime.fit_gate import score_text
+
+    class Boom:
+        async def ainvoke(self, *a, **k):
+            raise RuntimeError("fora do ar")
+
+    assert await score_text("x" * 500, {}, llm=Boom(), platform="ats", job_title="Dev") is None
+    assert await score_text("curta", {}, llm=Boom(), platform="ats", job_title="Dev") is None

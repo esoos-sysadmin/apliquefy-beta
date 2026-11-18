@@ -68,6 +68,12 @@ export class JobPostingService {
      * canônica). Sem descrição: o fit gate por texto (Fase 5) busca a de cada aprovada.
      * ponytail: corta em `limit` mais recentes; paginar se o catálogo crescer.
      */
+    /** Descrição de uma vaga, só para o fit gate do worker (a lista de candidatas vem sem ela). */
+    async getDescription(id: string) {
+        if (!/^[0-9a-f-]{36}$/i.test(id)) return null
+        return prisma.jobPosting.findUnique({ where: { id }, select: { description: true } })
+    }
+
     async listCandidates(userId: string, ats: string[], limit: number, terms?: string) {
         const postings = await prisma.jobPosting.findMany({
             where: {

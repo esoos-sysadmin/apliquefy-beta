@@ -6,6 +6,7 @@ import type {
     UpdateCampaignInput,
 } from "../types/campaign";
 import type { ApiSuccessResponse } from "../types/api";
+import type { CreateAtsCampaignInput } from "../lib/types/campaign-types";
 
 function unwrapCampaignPayload(payload: unknown) {
     if (payload && typeof payload === "object" && "data" in payload) {
@@ -27,6 +28,11 @@ export async function createLinkedinCampaign(api: ApiClient, body: CreateLinkedi
 
 export async function createInfojobsCampaign(api: ApiClient, body: CreateInfojobsCampaignInput) {
     const response = await api.post<ApiSuccessResponse<Campaign>>("/campaigns/infojobs", body);
+    return unwrapCampaignPayload(response) as Campaign;
+}
+
+export async function createAtsCampaign(api: ApiClient, body: CreateAtsCampaignInput) {
+    const response = await api.post<ApiSuccessResponse<Campaign>>("/campaigns/ats", body);
     return unwrapCampaignPayload(response) as Campaign;
 }
 

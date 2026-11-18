@@ -165,17 +165,29 @@ export class CampaignService {
         if (!validation.success) {
             return { success: false, errorDesc: validation.error.format() }
         }
-        const { name, resumeId, dailyLimit, atsConfig } = validation.data
+        const { name, resumeId, dailyLimit, atsConfig, consent } = validation.data
 
         try {
             const resume = await prisma.resume.findFirst({ where: { id: resumeId, userId }, select: { id: true } })
             if (!resume) {
                 return { success: false, message: "Currículo não pertence ao usuário ou não encontrado" }
             }
+            const user = await prisma.user.findUnique({ where: { id: userId }, select: { cloudConsentAt: true } })
+            if (!user?.cloudConsentAt && consent !== true) {
+                return {
+                    success: false,
+                    message: "Para usar a nuvem, aceite que seu currículo e suas respostas sejam enviados por um navegador na nuvem.",
+                }
+            }
 
-            const campaign = await prisma.campaign.create({
-                data: { userId, resumeId, name, platform: "ats", dailyLimit, atsConfig: { create: atsConfig } },
-                include: this.campaignRelations,
+            const campaign = await prisma.$transaction(async (tx) => {
+                if (!user?.cloudConsentAt) {
+                    await tx.user.update({ where: { id: userId }, data: { cloudConsentAt: new Date() } })
+                }
+                return tx.campaign.create({
+                    data: { userId, resumeId, name, platform: "ats", dailyLimit, atsConfig: { create: atsConfig } },
+                    include: this.campaignRelations,
+                })
             })
             return { success: true, data: campaign }
         } catch (error) {

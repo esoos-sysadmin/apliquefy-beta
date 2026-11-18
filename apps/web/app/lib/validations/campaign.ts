@@ -105,4 +105,6 @@ export const atsConfigSchema = z.object({
 
 export const createAtsCampaignSchema = campaignBaseSchema.extend({
     atsConfig: atsConfigSchema,
+    // §9.2.4: obrigatório até o 1º aceite ficar gravado em users.cloud_consent_at
+    consent: z.boolean().optional(),
 });
