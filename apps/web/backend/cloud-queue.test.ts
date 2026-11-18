@@ -295,6 +295,32 @@ async function main() {
     assert.equal(await jobApplicationService.sweepCloud(), 0) // reexecutar não mexe em nada
     assert.equal(await prisma.transaction.count({ where: { metadata: { path: ["jobApplicationId"], equals: expiredH.id } } }), 0)
 
+    // ── aviso de needs_user: push, assinatura morta, fallback por e-mail (§6.5) ──
+    const { notifyNeedsUser } = await import("./modules/notification/needs-user.service")
+    await prisma.pushSubscription.createMany({ data: [
+        { userId: "u1", endpoint: "https://push.example/ok", p256dh: "k", auth: "a" },
+        { userId: "u1", endpoint: "https://push.example/gone", p256dh: "k", auth: "a" },
+    ] })
+    const pushed: string[] = []
+    const mails: string[] = []
+    const send = async (sub: { endpoint: string }, payload: string) => {
+        if (sub.endpoint.endsWith("gone")) throw Object.assign(new Error("gone"), { statusCode: 410 })
+        pushed.push(payload)
+    }
+    const email = async (o: { to: string }) => { mails.push(o.to) }
+    const target = { id: "00000000-0000-0000-0000-0000000000aa", jobTitle: "Dados", companyName: "Acme" }
+    assert.equal(await notifyNeedsUser("u1", target, { send, email }), "push")
+    assert.equal(mails.length, 0)
+    const payload = JSON.parse(first(pushed)) as { url: string; title: string }
+    assert.equal(payload.url, `/candidaturas/${target.id}/concluir`)
+    assert.deepEqual((await prisma.pushSubscription.findMany({ where: { userId: "u1" } })).map((x) => x.endpoint), ["https://push.example/ok"])
+    // sem assinatura que funcione → e-mail
+    await prisma.pushSubscription.deleteMany({})
+    assert.equal(await notifyNeedsUser("u1", target, { send, email }), "email")
+    assert.deepEqual(mails, ["u1@t"])
+    // sem VAPID configurado também cai no e-mail; erro no e-mail nunca derruba o PATCH
+    assert.equal(await notifyNeedsUser("u1", target, { send: null, email: async () => { throw new Error("x") } }), "none")
+
     // ── criar campanha ats (rota do usuário, Clerk) ─────────────────────────────
     const atsInput = {
         name: "Sites de empresas", resumeId: resume.id, dailyLimit: 10,

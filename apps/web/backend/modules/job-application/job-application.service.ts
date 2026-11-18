@@ -1,4 +1,5 @@
 import { prisma, Prisma } from "@repo/database"
+import { notifyNeedsUser } from "../notification/needs-user.service"
 import {
     createJobApplicationSchema,
     updateJobApplicationSchema,
@@ -535,6 +536,10 @@ export class JobApplicationService {
                 ...(final && { liveViewUrl: null, needsUserUntil: null }),
             },
         })
+        // Só na transição: um PATCH repetido do worker não manda o aviso duas vezes.
+        if (status === "needs_user" && current.status === "pending") {
+            await notifyNeedsUser(userId, application)
+        }
         return { success: true, data: application }
     }
 

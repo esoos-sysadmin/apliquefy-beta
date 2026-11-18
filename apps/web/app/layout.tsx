@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AppProviders } from "./components/providers/AppProviders";
@@ -16,7 +16,12 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Apliquefy",
   description: "Automação de candidaturas a vagas de emprego",
+  // PWA (§6.5): no iOS o push só funciona com o app adicionado à tela inicial.
+  icons: { apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Apliquefy", statusBarStyle: "default" },
 };
+
+export const viewport: Viewport = { themeColor: "#7A3BFF" };
 
 // Aplica o tema salvo antes da primeira pintura (sem flash do claro no escuro). Padrão: claro.
 const THEME_INIT = `try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
