@@ -458,10 +458,10 @@ def test_agent_task_keeps_answer_rules_and_never_logs_in() -> None:
 class FitClient(MatchClient):
     def __init__(self, candidates, descriptions):
         super().__init__(candidates)
-        self.descriptions, self.patched, self.run_after = descriptions, [], {}
+        self.descriptions, self.patched, self.skip_reason = descriptions, [], {}
 
-    async def enqueue(self, *, user_id, campaign_id, job_posting_id, run_after=None):
-        self.run_after[job_posting_id] = run_after
+    async def enqueue(self, *, user_id, campaign_id, job_posting_id, run_after=None, skip_reason=None):
+        self.skip_reason[job_posting_id] = skip_reason
         return await super().enqueue(user_id=user_id, campaign_id=campaign_id, job_posting_id=job_posting_id)
 
     async def posting_description(self, posting_id):
@@ -488,9 +488,9 @@ async def test_fit_gate_skips_before_queue_without_using_daily_room() -> None:
     campaign = {**CAMPAIGN, "resumeId": "r1", "config": {**CAMPAIGN["config"], "fitMinScore": 70}}
     assert await match_and_enqueue(client, campaign, supported={"greenhouse"}, score=score) == 2
     assert client.enqueued == ["p1", "p2", "p3"]
-    # reprovada nasce com runAfter (o claim não pega no meio) e vira skipped com FIT:
-    assert client.run_after["p1"] and not client.run_after["p2"]
-    assert client.patched == [("a-p1", {"status": "skipped", "errorLog": "FIT: aderência 30/100 — pouco a ver"})]
+    # reprovada nasce skipped numa escrita só: se a rede cair, nada fica na fila para enviar
+    assert client.skip_reason == {"p1": "FIT: aderência 30/100 — pouco a ver", "p2": None, "p3": None}
+    assert client.patched == []
 
 
 async def test_fit_gate_off_by_default_never_scores() -> None:

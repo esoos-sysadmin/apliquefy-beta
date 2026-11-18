@@ -396,7 +396,7 @@ export class JobApplicationService {
     async enqueueCloud(userId: string, raw: unknown): Promise<ServiceResponse> {
         const parsed = enqueueSchema.safeParse(raw)
         if (!parsed.success) return { success: false, errorDesc: parsed.error.format() }
-        const { campaignId, jobPostingId, runAfter } = parsed.data
+        const { campaignId, jobPostingId, runAfter, skipReason } = parsed.data
 
         const posting = await prisma.jobPosting.findUnique({ where: { id: jobPostingId } })
         if (!posting) return { success: false, message: "Vaga não encontrada", code: "NOT_FOUND" }
@@ -421,7 +421,12 @@ export class JobApplicationService {
 
         const application = await prisma.jobApplication.update({
             where: { id: (created.data as { id: string }).id },
-            data: { jobPostingId, ats: posting.ats, runAfter: runAfter ? new Date(runAfter) : null },
+            // Mesma escrita que preenche `ats`: sem `ats` o claim não pega, então o descarte
+            // nunca fica um instante na fila. Skip não cobra nem reembolsa nada.
+            data: {
+                jobPostingId, ats: posting.ats, runAfter: runAfter ? new Date(runAfter) : null,
+                ...(skipReason && { status: "skipped", errorLog: skipReason }),
+            },
         })
         return { success: true, data: application }
     }

@@ -8,7 +8,6 @@ from __future__ import annotations
 import logging
 import os
 import re
-from datetime import datetime, timedelta, timezone
 
 from ..runtime import fit_gate
 from .discovery.apify import CLOUD_ATS
@@ -69,8 +68,7 @@ async def match_and_enqueue(client, campaign: dict, supported: set[str], score=N
     """Enfileira até `remainingToday` vagas novas para a campanha. Devolve quantas.
 
     Com `fitMinScore > 0`, a vaga reprovada nem entra na fila (ADR-07): vira `skipped`
-    com `FIT:`, as mesmas duas chamadas do `record_skip` do desktop. O `enqueue` dela vai
-    com runAfter +1 h para o claim não pegar no intervalo entre as duas."""
+    com `FIT:`, criada assim numa escrita só (nunca fica claimável no meio do caminho)."""
     room = campaign["remainingToday"]
     config = campaign["config"]
     ats = sorted((set(config.get("atsAllowlist") or CLOUD_ATS)) & supported)
@@ -90,12 +88,8 @@ async def match_and_enqueue(client, campaign: dict, supported: set[str], score=N
                 resume = await client.resume(campaign["userId"], campaign["resumeId"])
             verdict = await score(await client.posting_description(p["id"]), resume, p)
             if fit_gate.should_skip(verdict, minimum):
-                later = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
-                app = await client.enqueue(user_id=campaign["userId"], campaign_id=campaign["campaignId"],
-                                           job_posting_id=p["id"], run_after=later)
-                if app is not None:
-                    await client.patch_application(campaign["userId"], app["id"], status="skipped",
-                                                   errorLog=fit_gate.skip_reason(verdict)[:4000])
+                await client.enqueue(user_id=campaign["userId"], campaign_id=campaign["campaignId"],
+                                     job_posting_id=p["id"], skip_reason=fit_gate.skip_reason(verdict))
                 continue
         got = await client.enqueue(user_id=campaign["userId"], campaign_id=campaign["campaignId"], job_posting_id=p["id"])
         enqueued += got is not None  # 409 = já registrada para o usuário: não ocupa vaga

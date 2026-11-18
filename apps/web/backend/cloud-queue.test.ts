@@ -256,6 +256,16 @@ async function main() {
     assert.equal(d.success, false)
     assert.equal((d as { code?: string }).code, "CLOUD_PRICE_UNSET")
 
+    // ── vaga reprovada no fit gate nasce skipped, numa escrita só (ADR-07) ─────────
+    await prisma.jobPosting.create({ data: { ...posting(42), lastSeenAt: new Date() } as never })
+    const p42 = await prisma.jobPosting.findUniqueOrThrow({ where: { canonicalUrl: posting(42).canonicalUrl } })
+    const sk = await jobApplicationService.enqueueCloud("u1", { campaignId: c1.id, jobPostingId: p42.id, skipReason: "FIT: aderência 30/100" })
+    assert.equal(sk.success, true)
+    const skRow = await prisma.jobApplication.findUniqueOrThrow({ where: { id: (sk as { data: { id: string } }).data.id } })
+    assert.equal(skRow.status, "skipped")
+    assert.equal(skRow.errorLog, "FIT: aderência 30/100")
+    assert.ok(!(await jobApplicationService.claimCloud("w9", 20, ["greenhouse"])).some((i) => i.application.id === skRow.id))
+
     // ── descrição para o fit gate (ADR-07) ──────────────────────────────────────
     assert.equal((await jobPostingService.getDescription(p1.id))?.description, p1.description)
     assert.equal(await jobPostingService.getDescription("nao-e-uuid"), null)

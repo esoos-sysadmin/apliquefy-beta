@@ -60,6 +60,8 @@ export const enqueueSchema = z.object({
     campaignId: z.string().uuid(),
     jobPostingId: z.string().uuid(),
     runAfter: z.string().datetime({ offset: true }).optional().nullable(),
+    // Reprovada no fit gate (ADR-07): nasce `skipped` com este motivo, sem nunca ficar na fila.
+    skipReason: z.string().min(1).max(4000).optional(),
 })
 
 export const claimSchema = z.object({

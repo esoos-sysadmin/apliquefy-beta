@@ -70,10 +70,13 @@ class InternalClient:
         return await self._call("GET", "/postings/candidates", params=params)
 
     async def enqueue(
-        self, *, user_id: str, campaign_id: str, job_posting_id: str, run_after: str | None = None
+        self, *, user_id: str, campaign_id: str, job_posting_id: str, run_after: str | None = None,
+        skip_reason: str | None = None,
     ) -> dict | None:
-        """None = 409, a vaga já está registrada para o usuário."""
+        """None = 409, a vaga já está registrada para o usuário. `skip_reason` = nasce skipped."""
         body = {"userId": user_id, "campaignId": campaign_id, "jobPostingId": job_posting_id, "runAfter": run_after}
+        if skip_reason:
+            body["skipReason"] = skip_reason[:4000]
         res = await self._http.post("/applications/enqueue", json=body)
         if res.status_code == 409:
             return None
