@@ -24,7 +24,8 @@ DIFF=$(git diff "$REF...HEAD" --text \
   ':(exclude)*.gif' ':(exclude)*.ico' ':(exclude)*-lock.json' ':(exclude)*.lock' \
   2>/dev/null || true)
 
-if [ -z "${DIFF//[$'\t\r\n ']/}" ]; then
+# ponytail: regex instead of ${DIFF//...}, which is O(n²) and hung on a 2.5MB diff
+if ! [[ $DIFF =~ [^[:space:]] ]]; then
   BODY="_Sem diferenças em relação a \`$REF\`._"
 elif ! command -v claude >/dev/null 2>&1; then
   echo "handoff: 'claude' não encontrado no PATH; abortando." >&2

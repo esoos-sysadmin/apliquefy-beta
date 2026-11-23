@@ -131,7 +131,7 @@ export function getPlatformLoginUrl(platform: RunnerPlatform) {
 }
 
 // ponytail: URL de prod fixa no código. Trocar por env do CI se um dia houver staging.
-const PROD_WEB_URL = "https://apliquefy.vercel.app";
+const PROD_WEB_URL = "https://apliquefy.com";
 
 export function getDesktopWebUrl() {
     return process.env.APLIQUEFY_WEB_URL ?? (app.isPackaged ? PROD_WEB_URL : "http://localhost:3000");

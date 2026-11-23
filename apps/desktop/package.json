@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist-electron/electron/main.js",
+  "desktopName": "apliquefy.desktop",
   "scripts": {
     "build:deps": "tsc -p ../../packages/observability",
     "check-types": "npm run build:deps && tsc --noEmit",
@@ -75,6 +76,7 @@
       "target": [
         "AppImage"
       ],
+      "executableName": "apliquefy",
       "category": "Utility",
       "artifactName": "Apliquefy.${ext}"
     }

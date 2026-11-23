@@ -5,7 +5,7 @@ import { creditStore } from "../stores/credit-store";
 
 
 // @ts-ignore: O TypeScript reclama do module Node16, mas o Vite compila isso perfeitamente
-const WEB_URL = import.meta.env.VITE_APLIQUEFY_WEB_URL || "http://localhost:3000";
+const WEB_URL = import.meta.env.VITE_APLIQUEFY_WEB_URL || (import.meta.env.PROD ? "https://apliquefy.com" : "http://localhost:3000");
 
 type CampaignActionsOptions = {
     onSessionMissing: (platform: RunnerPlatform) => void;

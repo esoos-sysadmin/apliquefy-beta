@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from "electron";
+import fs from "node:fs";
 import path from "node:path";
 import { initObservability, Sentry } from "./observability";
 import { applyRunnerSettings } from "./ipc/settings";
@@ -45,7 +46,39 @@ let mainWindow: BrowserWindow | null = null;
 // ok, remover.
 app.disableHardwareAcceleration()
 
+// AppImage rodado direto não instala .desktop, e sem ele o dock do Linux mostra ícone
+// genérico. Registra (ou atualiza o caminho, se o arquivo mudou de lugar) a cada boot.
+// O nome do arquivo bate com o `desktopName` do package.json (app_id no Wayland).
+function integrateAppImage() {
+    const appImage = process.env.APPIMAGE;
+    if (!appImage) return;
+    try {
+        const iconPath = path.join(app.getPath("userData"), "icon.png");
+        fs.copyFileSync(path.join(app.getAppPath(), "resources/icon.png"), iconPath);
+        const appsDir = path.join(app.getPath("home"), ".local/share/applications");
+        fs.mkdirSync(appsDir, { recursive: true });
+        fs.writeFileSync(
+            path.join(appsDir, "apliquefy.desktop"),
+            [
+                "[Desktop Entry]",
+                "Name=Apliquefy",
+                `Exec="${appImage}" --no-sandbox %U`,
+                `Icon=${iconPath}`,
+                "Type=Application",
+                "Terminal=false",
+                "Categories=Utility;",
+                "StartupWMClass=Apliquefy",
+                "",
+            ].join("\n"),
+        );
+    } catch (err) {
+        console.error("[appimage] failed to register desktop entry:", err);
+    }
+}
+
 app.whenReady().then(async () => {
+    integrateAppImage();
+
     registerIpcHandlers({
         getMainWindow: () => mainWindow,
     });
