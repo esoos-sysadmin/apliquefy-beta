@@ -432,7 +432,9 @@ model CampaignAts {
   campaignId   String   @unique @map("campaign_id") @db.Uuid
   searchTerms  String   @map("search_terms") @db.VarChar
   locationTerm String?  @map("location_term") @db.VarChar
-  remoteOnly   Boolean  @default(false) @map("remote_only")
+  workModels   String[] @default([]) @map("work_models") // remote|hybrid|onsite; vazio = todos
+  seniorities  String[] @default([]) // intern|junior|mid|senior|lead; vazio = todas
+  excludeTerms String[] @default([]) @map("exclude_terms") // título com algum termo é descartado
   atsAllowlist String[] @map("ats_allowlist") // vazio = todos os suportados
   fitMinScore  Int      @default(0) @map("fit_min_score")
 
@@ -531,6 +533,7 @@ model JobPosting {
   location     String?   @db.VarChar
   isRemote     Boolean?  @map("is_remote")
   description  String? // texto puro, até ~20 mil caracteres
+  workplaceType String?  @map("workplace_type") @db.VarChar // remote|hybrid|onsite; null = não informado
   postedAt     DateTime? @map("posted_at") @db.Timestamp
   closedAt     DateTime? @map("closed_at") @db.Timestamp
   source       String    @db.VarChar // ats_api | apify_linkedin

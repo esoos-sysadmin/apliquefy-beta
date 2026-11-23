@@ -57,7 +57,7 @@ async function main() {
     const c1 = await prisma.campaign.create({
         data: {
             userId: "u1", resumeId: resume.id, name: "nuvem", platform: "ats", status: "active", dailyLimit: 5,
-            atsConfig: { create: { searchTerms: "engenheiro de dados", remoteOnly: true, atsAllowlist: ["greenhouse"] } },
+            atsConfig: { create: { searchTerms: "engenheiro de dados", workModels: ["remote", "hybrid"], seniorities: ["senior"], excludeTerms: ["vendas"], atsAllowlist: ["greenhouse"] } },
         },
     })
     await prisma.campaign.create({
@@ -72,7 +72,7 @@ async function main() {
         ats: "greenhouse", boardToken: "acme", externalId: String(n), title: `Engenheiro de Dados ${n}`,
         companyName: "Acme", source: "ats_api", ...extra,
     })
-    let up = await jobPostingService.upsertPostings({ postings: [posting(1), posting(2)] })
+    let up = await jobPostingService.upsertPostings({ postings: [posting(1, { workplaceType: "remote" }), posting(2)] })
     assert.deepEqual(up, { success: true, data: { upserted: 2, created: 2, rejected: 0 } })
     up = await jobPostingService.upsertPostings({ postings: [posting(1, { closed: true }), posting(3)] })
     assert.deepEqual(up, { success: true, data: { upserted: 2, created: 1, rejected: 0 } })
@@ -85,6 +85,11 @@ async function main() {
         posting(2),
     ] })
     assert.deepEqual(mixed, { success: true, data: { upserted: 1, created: 0, rejected: 3 } })
+    // Lote em um INSERT … ON CONFLICT: reenvio não duplica linha e reabrir limpa closedAt.
+    assert.equal(await prisma.jobPosting.count(), 3)
+    const p1WorkplaceType = (await prisma.jobPosting.findUnique({ where: { canonicalUrl: posting(1).canonicalUrl } }))?.workplaceType
+    assert.equal((await prisma.jobPosting.findUnique({ where: { canonicalUrl: posting(3).canonicalUrl } }))?.closedAt, null)
+    assert.equal(p1WorkplaceType, "remote") // reenvio sem workplaceType não apaga
     const [p1, , p3] = (await prisma.jobPosting.findMany({ orderBy: { externalId: "asc" } })) as [JP, JP, JP]
 
     // ── boards ──────────────────────────────────────────────────────────────────
@@ -103,6 +108,9 @@ async function main() {
     assert.equal(first(active).userId, "u1")
     assert.equal(first(active).resumeId, resume.id)
     assert.deepEqual(first(active).config.atsAllowlist, ["greenhouse"])
+    assert.deepEqual(first(active).config.workModels, ["remote", "hybrid"])
+    assert.deepEqual(first(active).config.seniorities, ["senior"])
+    assert.deepEqual(first(active).config.excludeTerms, ["vendas"])
     delete process.env.CLOUD_COST_PER_APPLICATION
     assert.deepEqual(await campaignService.listActiveCloudCampaigns(), []) // sem preço, nada enfileira
     process.env.CLOUD_COST_PER_APPLICATION = "3"
@@ -341,7 +349,7 @@ async function main() {
     // ── criar campanha ats (rota do usuário, Clerk) ─────────────────────────────
     const atsInput = {
         name: "Sites de empresas", resumeId: resume.id, dailyLimit: 10,
-        atsConfig: { searchTerms: "engenheiro de dados", remoteOnly: true, atsAllowlist: ["greenhouse" as const] },
+        atsConfig: { searchTerms: "engenheiro de dados", workModels: ["remote" as const, "hybrid" as const], seniorities: ["senior" as const], excludeTerms: ["vendas"], atsAllowlist: ["greenhouse" as const] },
     }
     // §9.2.4: sem aceite do envio pela nuvem, não cria
     const noConsent = await campaignService.createAtsCampaign("u1", atsInput)
@@ -363,6 +371,9 @@ async function main() {
     assert.equal(newCampaign.status, "inactive")
     assert.equal(newCampaign.atsConfig?.fitMinScore, 0) // gate desligado por padrão (ADR-07)
     assert.deepEqual(newCampaign.atsConfig?.atsAllowlist, ["greenhouse"])
+    assert.deepEqual(newCampaign.atsConfig?.workModels, ["remote", "hybrid"])
+    assert.deepEqual(newCampaign.atsConfig?.seniorities, ["senior"])
+    assert.deepEqual(newCampaign.atsConfig?.excludeTerms, ["vendas"])
     // currículo de outro usuário → recusa
     const foreign = await campaignService.createAtsCampaign("u2", {
         name: "x x x", resumeId: resume.id, atsConfig: { searchTerms: "dados" }, consent: true,

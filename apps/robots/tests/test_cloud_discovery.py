@@ -36,14 +36,23 @@ def test_lever_and_ashby_postings() -> None:
         "workplaceType": "remote", "descriptionPlain": "x", "createdAt": 1762770000000,
     }, "acme", "Acme")
     assert lever["canonicalUrl"] == "https://jobs.lever.co/acme/abc"
-    assert lever["isRemote"] is True
+    assert lever["isRemote"] is True and lever["workplaceType"] == "remote"
+    unspecified = from_lever({"id": "z", "text": "Dev", "hostedUrl": "https://jobs.lever.co/acme/z",
+                              "categories": {}, "workplaceType": "unspecified"}, "acme", "Acme")
+    assert "workplaceType" not in unspecified  # NULL = não informado: a chave nem vai no upsert
     assert lever["postedAt"].startswith("2025-")
     ashby = from_ashby({
         "id": "u1", "title": "Dev", "jobUrl": "https://jobs.ashbyhq.com/acme/u1", "location": "Recife",
         "isRemote": False, "descriptionPlain": "d", "publishedAt": "2026-11-01T00:00:00Z",
     }, "acme", "Acme")
     assert ashby["applyUrl"] == "https://jobs.ashbyhq.com/acme/u1/application"
-    assert ashby["isRemote"] is False
+    assert ashby["isRemote"] is False and "workplaceType" not in ashby
+    base = {"id": "u2", "title": "Dev", "jobUrl": "https://jobs.ashbyhq.com/acme/u2", "location": "X", "descriptionPlain": "d"}
+    assert from_ashby({**base, "workplaceType": "OnSite", "isRemote": False}, "acme", None)["workplaceType"] == "onsite"
+    assert from_ashby({**base, "workplaceType": "Hybrid"}, "acme", None)["workplaceType"] == "hybrid"
+    assert from_ashby({**base, "isRemote": True}, "acme", None)["workplaceType"] == "remote"  # fallback
+    gh = from_greenhouse({"id": 1, "title": "Dev", "location": {"name": "São Paulo (Hybrid)"}, "content": ""}, "acme", None)
+    assert gh["workplaceType"] == "hybrid"
 
 
 def test_apify_item_keeps_only_ats_apply_urls() -> None:
@@ -56,7 +65,10 @@ def test_apify_item_keeps_only_ats_apply_urls() -> None:
     p = normalize_item(item)
     assert p["canonicalUrl"] == "https://greenhouse.io/acme/jobs/9"
     assert p["ats"] == "greenhouse" and p["source"] == "apify_linkedin" and p["sourceRef"] == "42"
-    assert p["isRemote"] is True and p["location"] == "Recife, PE"
+    assert p["isRemote"] is True and p["location"] == "Recife, PE" and p["workplaceType"] == "remote"
+    assert normalize_item({**item, "workplaceType": "on-site"})["workplaceType"] == "onsite"
+    no_kind = normalize_item({**item, "workplaceType": None, "workRemoteAllowed": False})
+    assert "workplaceType" not in no_kind  # sem informação nem no texto do local
     # Easy Apply / site próprio: fica fora (LinkedIn é do desktop)
     assert normalize_item({**item, "applyMethod": {"companyApplyUrl": None}}) is None
     assert normalize_item({**item, "applyMethod": {"companyApplyUrl": "https://acme.com/vaga"}}) is None

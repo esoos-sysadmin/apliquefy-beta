@@ -6,6 +6,9 @@ import socket
 from dataclasses import dataclass
 
 
+REQUIRED = ("APLIQUEFY_WEB_URL", "WORKER_API_TOKEN")
+
+
 def _set(name: str, default: str) -> set[str]:
     return {x.strip().lower() for x in os.environ.get(name, default).split(",") if x.strip()}
 
@@ -27,10 +30,13 @@ class CloudSettings:
 
 
 def load_cloud_settings() -> CloudSettings:
-    web_url = os.environ.get("APLIQUEFY_WEB_URL", "").rstrip("/")
-    token = os.environ.get("WORKER_API_TOKEN", "")
-    if not web_url or not token:
-        raise RuntimeError("APLIQUEFY_WEB_URL e WORKER_API_TOKEN são obrigatórios")
+    # Browserbase, OPENAI_API_KEY e APIFY_TOKEN são opcionais: sem eles o worker degrada
+    # (sem envio / sem LLM / sem Apify) e a descoberta segue rodando.
+    missing = [k for k in REQUIRED if not os.environ.get(k)]
+    if missing:
+        raise RuntimeError("variáveis obrigatórias ausentes: " + ", ".join(missing))
+    web_url = os.environ["APLIQUEFY_WEB_URL"].rstrip("/")
+    token = os.environ["WORKER_API_TOKEN"]
     return CloudSettings(
         web_url=web_url,
         worker_token=token,

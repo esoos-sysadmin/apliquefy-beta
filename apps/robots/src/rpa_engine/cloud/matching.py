@@ -1,7 +1,7 @@
 """Matching e enfileiramento (§7.3): campanha ativa × catálogo → itens na fila.
 
 A web já filtra o grosso (48 h, aberta, ATS, vaga que o usuário ainda não tem); aqui
-fica o que é texto: termos no título e local/remoto. Fit gate por texto é da Fase 5.
+fica o que é texto: termos no título, exclusões, senioridade, modelo de trabalho e local. Fit gate por texto é da Fase 5.
 """
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import re
 
 from ..runtime import fit_gate
 from .discovery.apify import CLOUD_ATS
+from .discovery.ats_sources import workplace_from_text
 from .discovery.canonical import norm
 
 logger = logging.getLogger(__name__)
@@ -38,14 +39,51 @@ def _remote_reachable(p: dict) -> bool:
     return remote and (loc in _REMOTE_ONLY_TEXT or bool(_REMOTE_OK.search(loc)))
 
 
-def location_matches(p: dict, location_term: str | None, remote_only: bool) -> bool:
-    if _remote_reachable(p):
+def infer_workplace(p: dict) -> str | None:
+    """'remote' | 'hybrid' | 'onsite' | None (não informado). Campo da vaga primeiro; senão o texto."""
+    if p.get("workplaceType") in ("remote", "hybrid", "onsite"):
+        return p["workplaceType"]
+    found = workplace_from_text(f"{p.get('location') or ''} {p.get('title') or ''}")
+    return found or ("remote" if p.get("isRemote") else None)
+
+
+def work_model_matches(p: dict, models: list[str] | None) -> bool:
+    """Vazio = todos. Desconhecido conta como presencial ou híbrido; remoto exige ser acessível do Brasil."""
+    if not models:
         return True
-    if remote_only:
-        return False
+    kind = infer_workplace(p)
+    if kind is None:
+        return bool({"onsite", "hybrid"} & set(models))
+    return kind in models and (kind != "remote" or _remote_reachable(p))
+
+
+def location_matches(p: dict, location_term: str | None) -> bool:
+    """locationTerm só vale para presencial/híbrido/desconhecido; remoto acessível ignora."""
+    if infer_workplace(p) == "remote" and _remote_reachable(p):
+        return True
     if not location_term:
         return True
     return f" {norm(location_term)} " in f" {norm(p.get('location') or '')} "
+
+
+_SENIORITY = (  # ordem = precedência: "Senior Engineering Manager" é lead
+    ("intern", "estagio estagiario estagiaria intern internship trainee aprendiz"),
+    ("lead", "staff principal lead lider especialista specialist manager gerente head coordenador coordenadora"),
+    ("senior", "senior sr iii"),
+    ("junior", "junior jr entry"),
+    ("mid", "pleno pl mid ii"),
+)
+
+
+def infer_seniority(title: str) -> str | None:
+    """intern | junior | mid | senior | lead pelo título (pt/en/es); sem marcador = None (passa no filtro)."""
+    words = set(norm(title).split())
+    return next((level for level, markers in _SENIORITY if words & set(markers.split())), None)
+
+
+def seniority_matches(title: str, seniorities: list[str] | None) -> bool:
+    level = infer_seniority(title)
+    return not seniorities or level is None or level in seniorities
 
 
 def default_score():
@@ -81,7 +119,11 @@ async def match_and_enqueue(client, campaign: dict, supported: set[str], score=N
     for p in await client.candidates(campaign["userId"], ats, terms=config["searchTerms"]):
         if enqueued >= room:
             break
-        if not title_matches(p["title"], terms) or not location_matches(p, config.get("locationTerm"), config.get("remoteOnly")):
+        if (not title_matches(p["title"], terms)
+                or title_matches(p["title"], config.get("excludeTerms") or [])
+                or not seniority_matches(p["title"], config.get("seniorities"))
+                or not work_model_matches(p, config.get("workModels"))
+                or not location_matches(p, config.get("locationTerm"))):
             continue
         if minimum > 0 and score is not None:
             if resume is None:

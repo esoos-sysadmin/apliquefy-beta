@@ -9,7 +9,10 @@ import pytest
 
 from rpa_engine.cloud import apply as apply_mod
 from rpa_engine.cloud.form_run import FormResult
-from rpa_engine.cloud.matching import location_matches, match_and_enqueue, title_matches
+from rpa_engine.cloud.matching import (
+    infer_seniority, infer_workplace, location_matches, match_and_enqueue, seniority_matches, title_matches,
+    work_model_matches,
+)
 
 
 # ── matching ────────────────────────────────────────────────────────────────
@@ -27,14 +30,72 @@ def _p(location: str | None, remote: bool | None = None) -> dict:
 
 
 def test_location_matches() -> None:
-    assert location_matches(_p("Recife, PE"), "Recife", remote_only=False)
-    assert not location_matches(_p("São Paulo"), "Recife", remote_only=False)
-    assert location_matches(_p("Remote - Brazil", True), "Recife", remote_only=False)
-    assert location_matches(_p("Remote", True), "Recife", remote_only=True)
-    # remoto, mas só para quem mora nos EUA: não serve para o usuário daqui
-    assert not location_matches(_p("Remote - US", True), None, remote_only=True)
-    assert not location_matches(_p("Recife, PE", False), "Recife", remote_only=True)
-    assert location_matches(_p("San Francisco"), None, remote_only=False)  # sem filtro de local
+    assert location_matches(_p("Recife, PE"), "Recife")
+    assert not location_matches(_p("São Paulo"), "Recife")
+    assert location_matches(_p("Remote - Brazil", True), "Recife")  # remoto acessível ignora o local
+    assert not location_matches(_p("Remote - US", True), "Recife")
+    assert location_matches(_p("San Francisco"), None)  # sem filtro de local
+    # híbrido marcado como remoto no ATS ainda é preso a uma cidade
+    assert not location_matches({"location": "São Paulo", "isRemote": True, "workplaceType": "hybrid"}, "Recife")
+
+
+def test_infer_seniority() -> None:
+    cases = {
+        "Estagiário em Dados": "intern", "Data Science Intern": "intern", "Trainee de Engenharia": "intern",
+        "Engenheiro de Dados Júnior": "junior", "Data Engineer Jr.": "junior", "Entry Level Analyst": "junior",
+        "Desenvolvedor Pleno": "mid", "Software Engineer II": "mid", "Dev Backend Pl": "mid",
+        "Engenheiro Sênior": "senior", "Sr. Data Engineer": "senior", "Software Engineer III": "senior",
+        "Staff Engineer": "lead", "Gerente de Dados": "lead", "Tech Lead": "lead", "Especialista em Cloud": "lead",
+        "Senior Engineering Manager": "lead",  # liderança vence senioridade
+        "Ingeniero Senior": "senior", "Desarrollador Junior": "junior",
+    }
+    for title, level in cases.items():
+        assert infer_seniority(title) == level, title
+    assert infer_seniority("Engenheiro de Dados") is None
+    assert infer_seniority("Seniority Analyst") is None  # palavra inteira, não prefixo
+
+
+def test_seniority_filter_lets_unmarked_titles_through() -> None:
+    assert seniority_matches("Engenheiro de Dados", ["senior"])
+    assert seniority_matches("Engenheiro Sênior", ["senior", "lead"])
+    assert not seniority_matches("Engenheiro Júnior", ["senior"])
+    assert seniority_matches("Engenheiro Júnior", [])
+    assert seniority_matches("Engenheiro Júnior", None)
+
+
+def test_infer_workplace() -> None:
+    assert infer_workplace({"workplaceType": "hybrid", "location": "Remote"}) == "hybrid"  # campo manda
+    assert infer_workplace({"location": "Remoto - Brasil"}) == "remote"
+    assert infer_workplace({"location": "São Paulo (Híbrido)"}) == "hybrid"
+    assert infer_workplace({"location": "Hybrid / Remote"}) == "hybrid"
+    assert infer_workplace({"location": "Recife", "title": "Dev (Remote)"}) == "remote"
+    assert infer_workplace({"location": "Recife", "isRemote": True}) == "remote"
+    assert infer_workplace({"location": "Recife"}) is None
+
+
+def test_work_model_matches() -> None:
+    remote_br = {"location": "Remote - Brazil", "isRemote": True}
+    remote_us = {"location": "Remote - US", "isRemote": True}
+    hybrid = {"location": "Recife", "workplaceType": "hybrid"}
+    onsite = {"location": "Recife", "workplaceType": "onsite"}
+    unknown = {"location": "Recife"}
+    assert work_model_matches(unknown, None) and work_model_matches(remote_us, [])  # sem filtro
+    assert work_model_matches(remote_br, ["remote"]) and not work_model_matches(remote_br, ["onsite"])
+    assert not work_model_matches(remote_us, ["remote"])  # remoto inacessível do Brasil
+    assert not work_model_matches(remote_us, ["remote", "hybrid", "onsite"])
+    assert work_model_matches(hybrid, ["hybrid"]) and not work_model_matches(hybrid, ["remote", "onsite"])
+    assert work_model_matches(onsite, ["onsite"]) and not work_model_matches(onsite, ["hybrid"])
+    # desconhecido conta como presencial OU híbrido
+    assert work_model_matches(unknown, ["onsite"]) and work_model_matches(unknown, ["hybrid"])
+    assert not work_model_matches(unknown, ["remote"])
+
+
+def test_exclude_terms_ignore_accents_and_case() -> None:
+    assert title_matches("Analista de VENDAS Pleno", ["vendas"])
+    assert title_matches("Gerente de Operações", ["operacoes"])
+    assert title_matches("Desenvolvedor PJ", ["PJ", "estágio"])
+    assert not title_matches("Engenheiro de Dados", ["vendas", "pj"])
+    assert not title_matches("Engenheiro de Dados", [])  # vazio = nada excluído
 
 
 class MatchClient:
@@ -55,7 +116,7 @@ class MatchClient:
 CAMPAIGN = {
     "campaignId": "c1", "userId": "u1", "remainingToday": 2,
     "config": {"searchTerms": "engenheiro de dados, data engineer", "locationTerm": "Recife",
-               "remoteOnly": False, "atsAllowlist": ["greenhouse", "lever"], "fitMinScore": 0},
+               "atsAllowlist": ["greenhouse", "lever"], "fitMinScore": 0},
 }
 
 
@@ -510,3 +571,23 @@ async def test_score_text_fails_open() -> None:
 
     assert await score_text("x" * 500, {}, llm=Boom(), platform="ats", job_title="Dev") is None
     assert await score_text("curta", {}, llm=Boom(), platform="ats", job_title="Dev") is None
+
+
+async def test_match_and_enqueue_applies_b2_filters() -> None:
+    cands = [
+        {"id": "ok", "title": "Data Engineer", "location": "Recife", "isRemote": False},
+        {"id": "sr", "title": "Senior Data Engineer", "location": "Recife", "isRemote": False},
+        {"id": "sales", "title": "Data Engineer - Vendas", "location": "Recife", "isRemote": False},
+        {"id": "us", "title": "Data Engineer", "location": "Remote - US", "isRemote": True},
+        {"id": "br", "title": "Data Engineer", "location": "Remote - Brazil", "isRemote": True},
+    ]
+    campaign = {**CAMPAIGN, "remainingToday": 10, "config": {
+        **CAMPAIGN["config"], "workModels": ["remote", "onsite"], "seniorities": ["mid", "junior"],
+        "excludeTerms": ["vendas"]}}
+    client = MatchClient(cands)
+    await match_and_enqueue(client, campaign, supported={"greenhouse"})
+    assert client.enqueued == ["ok", "br"]
+    # campanha antiga (sem as chaves novas): nada filtra além de termos e local
+    old = MatchClient(cands)
+    await match_and_enqueue(old, {**campaign, "config": CAMPAIGN["config"]}, supported={"greenhouse"})
+    assert old.enqueued == ["ok", "sr", "sales", "br"]  # "us" cai no locationTerm, como antes

@@ -14,7 +14,7 @@ from urllib.parse import urlsplit
 import httpx
 
 from ..adapters.greenhouse import greenhouse_ids
-from .ats_sources import MAX_DESCRIPTION
+from .ats_sources import MAX_DESCRIPTION, workplace_from_text
 from .canonical import BOARD_TOKEN, canonical_url, detect_ats
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,9 @@ def normalize_item(item: dict) -> dict | None:
         return None
     location = (item.get("location") or {}).get("linkedinText") or None
     workplace = (item.get("workplaceType") or "").lower()
-    return {
+    kind = {"remote": "remote", "hybrid": "hybrid", "on-site": "onsite", "onsite": "onsite"}.get(workplace) \
+        or workplace_from_text(location)
+    return {**({"workplaceType": kind} if kind else {}),
         "canonicalUrl": canonical_url(url),
         "applyUrl": url,
         "ats": ats,
@@ -81,12 +83,27 @@ async def search(client: httpx.AsyncClient, token: str, actor: str, terms: str, 
 async def seed_greenhouse_boards(client: httpx.AsyncClient, token: str, max_companies: int = 5000) -> list[dict]:
     """Execução única do johnvc/greenhouse-job-board-api em modo companiesOnly (~4.400 boards).
     As chaves da linha não estão documentadas: aceita as variações prováveis."""
+    # Run assíncrono + polling: o run-sync do Apify corta a conexão em ~300 s e a varredura
+    # completa leva mais. maxJobs (default 100 no ator) também limita as linhas de empresa.
     r = await client.post(
-        f"{API}/johnvc~greenhouse-job-board-api/run-sync-get-dataset-items",
+        f"{API}/johnvc~greenhouse-job-board-api/runs",
+        params={"waitForFinish": 60},
         headers=_auth(token),
-        json={"outputMode": "companiesOnly", "verifyCompanies": True, "maxCompanies": max_companies},
-        timeout=900,
+        json={"outputMode": "companiesOnly", "verifyCompanies": True,
+              "maxCompanies": max_companies, "maxJobs": max_companies},
+        timeout=120,
     )
+    r.raise_for_status()
+    run = r.json()["data"]
+    while run["status"] in ("READY", "RUNNING"):
+        r = await client.get(f"https://api.apify.com/v2/actor-runs/{run['id']}",
+                             params={"waitForFinish": 60}, headers=_auth(token), timeout=120)
+        r.raise_for_status()
+        run = r.json()["data"]
+    if run["status"] != "SUCCEEDED":
+        raise RuntimeError(f"apify: run {run['id']} terminou {run['status']}")
+    r = await client.get(f"https://api.apify.com/v2/datasets/{run['defaultDatasetId']}/items",
+                         headers=_auth(token), timeout=300)
     r.raise_for_status()
     boards = []
     for row in r.json():

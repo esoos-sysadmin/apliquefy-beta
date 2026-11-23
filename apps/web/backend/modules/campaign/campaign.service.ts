@@ -458,7 +458,9 @@ export class CampaignService {
                 config: {
                     searchTerms: c.atsConfig!.searchTerms,
                     locationTerm: c.atsConfig!.locationTerm,
-                    remoteOnly: c.atsConfig!.remoteOnly,
+                    workModels: c.atsConfig!.workModels,
+                    seniorities: c.atsConfig!.seniorities,
+                    excludeTerms: c.atsConfig!.excludeTerms,
                     atsAllowlist: c.atsConfig!.atsAllowlist,
                     fitMinScore: c.atsConfig!.fitMinScore,
                 },

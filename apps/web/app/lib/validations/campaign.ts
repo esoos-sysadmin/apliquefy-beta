@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SENIORITIES, WORK_MODELS } from "../../types/campaign";
 
 // ======================= BASE =======================
 
@@ -96,7 +97,9 @@ export const atsEnum = z.enum(["greenhouse", "lever", "ashby", "workable", "recr
 export const atsConfigSchema = z.object({
     searchTerms: z.string().trim().min(2, "O termo de busca deve ter ao menos 2 caracteres").max(200),
     locationTerm: z.string().trim().min(2, "A localização deve ter ao menos 2 caracteres").max(200).optional(),
-    remoteOnly: z.boolean().optional().default(false),
+    workModels: z.array(z.enum(WORK_MODELS)).max(WORK_MODELS.length).optional().default([]),
+    seniorities: z.array(z.enum(SENIORITIES)).max(SENIORITIES.length).optional().default([]),
+    excludeTerms: z.array(z.string().trim().min(1).max(60)).max(20).optional().default([]),
     // vazio = todos os ATS que o worker suporta
     atsAllowlist: z.array(atsEnum).max(atsEnum.options.length).optional().default([]),
     // 0 = gate de aderência desligado (ADR-07; o usuário escolhe ligar)

@@ -1,6 +1,12 @@
 export type CampaignPlatform = "linkedin" | "infojobs" | "ats";
 export type CampaignStatus = "active" | "paused" | "inactive";
 
+// Campanha "Sites de empresas" (ats): vazio = sem filtro. Fonte da verdade do B1; a UI importa daqui.
+export const WORK_MODELS = ["remote", "hybrid", "onsite"] as const;
+export type WorkModel = (typeof WORK_MODELS)[number];
+export const SENIORITIES = ["intern", "junior", "mid", "senior", "lead"] as const;
+export type Seniority = (typeof SENIORITIES)[number];
+
 export interface CampaignLinkedinConfig {
     id?: string;
     searchTerms?: string | null;
@@ -27,6 +33,17 @@ export interface CampaignInfojobsConfig {
     pcdTypes?: string[];
 }
 
+export interface CampaignAtsConfig {
+    id?: string;
+    searchTerms?: string | null;
+    locationTerm?: string | null;
+    workModels?: WorkModel[];
+    seniorities?: Seniority[];
+    excludeTerms?: string[];
+    atsAllowlist?: string[];
+    fitMinScore?: number | null;
+}
+
 export interface Campaign {
     id: string;
     name: string;
@@ -42,6 +59,7 @@ export interface Campaign {
     } | null;
     linkedinConfig?: CampaignLinkedinConfig | null;
     infojobsConfig?: CampaignInfojobsConfig | null;
+    atsConfig?: CampaignAtsConfig | null;
     _count?: {
         jobApplications: number;
         reports?: number;

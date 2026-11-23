@@ -1,4 +1,4 @@
-import { prisma } from "@repo/database"
+import { prisma, Prisma } from "@repo/database"
 import { jobPostingInputSchema, upsertBoardsSchema, upsertPostingsSchema } from "../../../app/lib/validations/internal"
 
 type Result<T> = { success: true; data: T } | { success: false; errorDesc: unknown }
@@ -27,8 +27,10 @@ export class JobPostingService {
      * Upsert em lote por URL canônica (catálogo global, compartilhado entre usuários).
      * `lastSeenAt` sempre avança; `closedAt` liga quando a fonte diz que fechou e desliga
      * se a vaga reaparecer aberta.
-     * ponytail: um upsert por vaga numa transação (≤500, uma vez por dia); INSERT … ON
-     * CONFLICT em lote via SQL bruto se a descoberta ficar lenta.
+     * Um INSERT … ON CONFLICT só (≤500 linhas): upsert por vaga numa $transaction estourava
+     * os 5 s do Prisma no Neon. `created` vem do RETURNING (xmax = 0).
+     * ponytail: campo opcional ausente/null NÃO apaga o valor já gravado (COALESCE); limpar
+     * de propósito pede UPDATE à parte. Lote fixo em 500 ⇒ ~8 mil parâmetros, longe do teto do Postgres.
      */
     async upsertPostings(raw: unknown): Promise<Result<{ upserted: number; created: number; rejected: number }>> {
         const parsed = upsertPostingsSchema.safeParse(raw)
@@ -43,23 +45,38 @@ export class JobPostingService {
 
         // A mesma URL duas vezes no lote: fica a última.
         const postings = [...new Map(valid.map((p) => [p.canonicalUrl, p])).values()]
-        const urls = postings.map((p) => p.canonicalUrl)
-        const existing = await prisma.jobPosting.count({ where: { canonicalUrl: { in: urls } } })
-        const now = new Date()
+        const now = new Date().toISOString()
+        // timestamptz → AT TIME ZONE 'UTC': as colunas são `timestamp` sem fuso e guardam UTC.
+        const ts = (iso: string | null) => Prisma.sql`${iso}::timestamptz AT TIME ZONE 'UTC'`
+        const rows = postings.map((p) => Prisma.sql`(
+            ${p.canonicalUrl}::varchar, ${p.applyUrl}::varchar, ${p.ats}::varchar, ${p.boardToken ?? null}::varchar,
+            ${p.externalId ?? null}::varchar, ${p.title}::varchar, ${p.companyName ?? null}::varchar,
+            ${p.location ?? null}::varchar, ${p.isRemote ?? null}::boolean, ${p.workplaceType ?? null}::varchar, ${p.description ?? null}::text,
+            ${ts(p.postedAt ? new Date(p.postedAt).toISOString() : null)}, ${ts(p.closed ? now : null)},
+            ${p.source}::varchar, ${p.sourceRef ?? null}::varchar, ${ts(now)}, ${ts(now)}
+        )`)
+        const result = await prisma.$queryRaw<{ inserted: boolean }[]>`
+            INSERT INTO job_postings (
+                canonical_url, apply_url, ats, board_token, external_id, title, company_name, location,
+                is_remote, workplace_type, description, posted_at, closed_at, source, source_ref, first_seen_at, last_seen_at
+            ) VALUES ${Prisma.join(rows)}
+            ON CONFLICT (canonical_url) DO UPDATE SET
+                apply_url = EXCLUDED.apply_url, ats = EXCLUDED.ats,
+                board_token = COALESCE(EXCLUDED.board_token, job_postings.board_token),
+                external_id = COALESCE(EXCLUDED.external_id, job_postings.external_id),
+                title = EXCLUDED.title,
+                company_name = COALESCE(EXCLUDED.company_name, job_postings.company_name),
+                location = COALESCE(EXCLUDED.location, job_postings.location),
+                is_remote = COALESCE(EXCLUDED.is_remote, job_postings.is_remote),
+                workplace_type = COALESCE(EXCLUDED.workplace_type, job_postings.workplace_type),
+                description = COALESCE(EXCLUDED.description, job_postings.description),
+                posted_at = EXCLUDED.posted_at, closed_at = EXCLUDED.closed_at,
+                source = EXCLUDED.source,
+                source_ref = COALESCE(EXCLUDED.source_ref, job_postings.source_ref),
+                last_seen_at = EXCLUDED.last_seen_at
+            RETURNING (xmax = 0) AS inserted`
 
-        await prisma.$transaction(
-            postings.map(({ closed, postedAt, ...p }) => {
-                const fields = {
-                    ...p,
-                    postedAt: postedAt ? new Date(postedAt) : null,
-                    closedAt: closed ? now : null,
-                    lastSeenAt: now,
-                }
-                return prisma.jobPosting.upsert({ where: { canonicalUrl: p.canonicalUrl }, create: fields, update: fields })
-            }),
-        )
-
-        return { success: true, data: { upserted: postings.length, created: postings.length - existing, rejected } }
+        return { success: true, data: { upserted: postings.length, created: result.filter((r) => r.inserted).length, rejected } }
     }
 
     /**

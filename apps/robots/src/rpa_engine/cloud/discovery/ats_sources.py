@@ -9,13 +9,22 @@ from typing import Callable
 import httpx
 
 from ..adapters.greenhouse import apply_url as greenhouse_apply_url
-from .canonical import canonical_url, html_to_text
+from .canonical import canonical_url, html_to_text, norm
 
 MAX_DESCRIPTION = 20_000
 _REMOTE = re.compile(r"remot", re.I)
 
 
+def workplace_from_text(text: str | None) -> str | None:
+    """'hybrid' | 'remote' | None pelo texto do local/título. Híbrido antes de remoto: "Hybrid / Remote"
+    prende a pessoa a uma cidade."""
+    n = norm(text or "")
+    return "hybrid" if re.search(r"hybrid|hibrid", n) else "remote" if "remot" in n else None
+
+
 def _posting(**kw) -> dict:
+    if kw.get("workplaceType") is None:
+        kw.pop("workplaceType", None)  # o upsert aceita ausente, não null
     kw["description"] = (kw.get("description") or "")[:MAX_DESCRIPTION] or None
     return {"source": "ats_api", **kw}
 
@@ -28,7 +37,7 @@ def from_greenhouse(j: dict, token: str, company: str | None) -> dict:
         applyUrl=greenhouse_apply_url(token, str(j["id"])),
         ats="greenhouse", boardToken=token, externalId=str(j["id"]),
         title=j["title"].strip(), companyName=company, location=location or None,
-        isRemote=bool(_REMOTE.search(location)),
+        isRemote=bool(_REMOTE.search(location)), workplaceType=workplace_from_text(location),
         description=html_to_text(j.get("content", "")),
         postedAt=j.get("first_published") or j.get("updated_at"),
     )
@@ -44,6 +53,7 @@ def from_lever(j: dict, slug: str, company: str | None) -> dict:
         ats="lever", boardToken=slug, externalId=j["id"],
         title=j["text"].strip(), companyName=company, location=cat.get("location") or None,
         isRemote=(j.get("workplaceType") == "remote") or bool(_REMOTE.search(cat.get("location") or "")),
+        workplaceType=j.get("workplaceType") if j.get("workplaceType") in ("remote", "hybrid", "onsite") else None,
         description="\n".join(filter(None, [j.get("descriptionPlain"), lists, j.get("additionalPlain")])),
         postedAt=datetime.fromtimestamp(created / 1000, timezone.utc).isoformat() if created else None,
     )
@@ -57,6 +67,8 @@ def from_ashby(j: dict, slug: str, company: str | None) -> dict:
         ats="ashby", boardToken=slug, externalId=j["id"],
         title=j["title"].strip(), companyName=company, location=", ".join(filter(None, places)) or None,
         isRemote=bool(j.get("isRemote")),
+        workplaceType={"remote": "remote", "hybrid": "hybrid", "onsite": "onsite"}.get(
+            (j.get("workplaceType") or "").lower()) or ("remote" if j.get("isRemote") else None),
         description=j.get("descriptionPlain") or html_to_text(j.get("descriptionHtml", "")),
         postedAt=j.get("publishedAt"),
     )

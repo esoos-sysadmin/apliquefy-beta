@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { WORK_MODELS } from "../../types/campaign"
 
 // Corpos das rotas /api/internal/* (worker da nuvem, SDD-candidatura-nuvem §6.2).
 // O worker é confiável quanto à identidade (token), não quanto ao conteúdo: o que vem de
@@ -40,6 +41,7 @@ export const jobPostingInputSchema = z.object({
     isRemote: z.boolean().optional().nullable(),
     // Texto puro; corta em vez de recusar: descrição longa não invalida a vaga.
     description: z.string().optional().nullable().transform((d) => (d ? d.slice(0, 20_000) : d)),
+    workplaceType: z.enum(WORK_MODELS).optional().nullable(),
     postedAt: z.string().datetime({ offset: true }).optional().nullable(),
     closed: z.boolean().optional(),
     source: z.enum(["ats_api", "apify_linkedin"]),

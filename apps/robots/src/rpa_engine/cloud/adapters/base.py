@@ -149,9 +149,30 @@ def standard_value(field: Field, resume: dict) -> str | None:
     return None
 
 
+_UF = dict(zip(
+    "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(),
+    "Acre|Alagoas|Amapá|Amazonas|Bahia|Ceará|Distrito Federal|Espírito Santo|Goiás|Maranhão|Mato Grosso|"
+    "Mato Grosso do Sul|Minas Gerais|Pará|Paraíba|Paraná|Pernambuco|Piauí|Rio de Janeiro|Rio Grande do Norte|"
+    "Rio Grande do Sul|Rondônia|Roraima|Santa Catarina|São Paulo|Sergipe|Tocantins".split("|"),
+))
+_SEG = re.compile(r",|\s[-–]\s|/")
+
+
+def _city_query(value: str) -> str:
+    """O que digitar no typeahead de cidade: o 1º trecho ("Recife, PE" / "Recife - PE" → "Recife")."""
+    return _SEG.split(value)[0].strip()[:40]
+
+
+def _expand_uf(value: str) -> str:
+    """"Recife, PE" → "Recife, Pernambuco": o typeahead devolve o estado por extenso."""
+    parts = [x.strip() for x in _SEG.split(value)]
+    state = _UF.get(parts[-1].upper()) if len(parts) > 1 else None
+    return ", ".join(parts[:-1] + [state]) if state else value
+
+
 def _unique_match(value: str, options: list[str]) -> str | None:
     """A única opção que contém todas as palavras do valor ("Recife Brazil" ⊂ "Recife, PE, Brazil")."""
-    words = set(norm(value).split())
+    words = set(norm(_expand_uf(value)).split())
     hits = [o for o in options if words <= set(norm(o).split())]
     return hits[0] if len(hits) == 1 else None
 
@@ -238,7 +259,7 @@ class FormFiller:
             await loc.click()
             # Sem opções prévias = typeahead que busca no servidor (cidade): digita só
             # "Recife", não "Recife, Brasil", e espera a resposta chegar.
-            await loc.press_sequentially((value if options else value.split(",")[0])[:40], delay=30)
+            await loc.press_sequentially(value[:40] if options else _city_query(value), delay=30)
             opts: list[str] = []
             for _ in range(8):
                 await self.page.wait_for_timeout(500)

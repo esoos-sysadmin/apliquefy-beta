@@ -80,7 +80,10 @@ async def _send_loop(s: CloudSettings, client: InternalClient, http: httpx.Async
 
 
 async def main() -> None:
-    s = load_cloud_settings()
+    try:
+        s = load_cloud_settings()
+    except RuntimeError as exc:
+        raise SystemExit(f"rpa_engine.cloud: {exc}")  # exit 1, sem traceback
     os.environ.setdefault("SENTRY_DSN_RUNNER", os.environ.get("SENTRY_DSN", ""))
     if init_observability():
         sentry_sdk.set_tag("surface", "cloud-worker")
