@@ -83,14 +83,14 @@ export default function ResumesPage() {
     }
 
     return (
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-fg">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-4 text-fg sm:gap-6">
             {isImporting && (
                 <div
                     role="status"
                     aria-live="polite"
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-sunken/85 px-6 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-sunken/85 px-4 backdrop-blur-sm"
                 >
-                    <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-line bg-surface px-8 py-10 text-center">
+                    <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-line bg-surface px-5 py-8 text-center sm:px-8 sm:py-10">
                         <Loader2 size={34} className="animate-spin text-sky-400" />
                         <div>
                             <p className="text-lg font-semibold text-fg">Lendo seu currículo...</p>
@@ -102,7 +102,7 @@ export default function ResumesPage() {
                 </div>
             )}
 
-            <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-col gap-4 border-b border-line pb-4 sm:pb-6 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                         <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
@@ -111,14 +111,14 @@ export default function ResumesPage() {
                     </div>
 
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">Meus currículos</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-4xl">Meus currículos</h1>
                         <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
                             Consulte, organize e atualize os currículos que você usa nas campanhas de automação.
                         </p>
                     </div>
                 </div>
 
-                <div className="flex shrink-0 flex-wrap items-center gap-3">
+                <div className="grid shrink-0 grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
                     <input
                         ref={fileInputRef}
                         type="file"
@@ -130,21 +130,21 @@ export default function ResumesPage() {
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isImporting}
-                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong bg-surface px-5 text-sm font-semibold text-slate-200 transition hover:border-accent/50 hover:bg-raised disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-line-strong bg-surface px-3 text-sm font-semibold text-slate-200 sm:w-auto sm:px-5 transition hover:border-accent/50 hover:bg-raised disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         <Upload size={17} />
                         {isImporting ? "Lendo PDF..." : "Importar PDF"}
                     </button>
                     <Link
                         href="/curriculos/analisar"
-                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 px-5 text-sm font-semibold text-sky-300 transition hover:border-sky-400/40 hover:bg-sky-500/15"
+                        className="inline-flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 sm:w-auto sm:px-5 text-sm font-semibold text-sky-300 transition hover:border-sky-400/40 hover:bg-sky-500/15"
                     >
                         <Sparkles size={17} />
                         Analisar com IA
                     </Link>
                     <Link
                         href="/curriculos/novo"
-                        className="inline-flex h-11 items-center gap-2 rounded-xl bg-accent px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] transition hover:bg-accent-hover"
+                        className="order-first col-span-2 inline-flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-accent px-5 sm:order-none sm:col-auto sm:w-auto text-sm font-semibold text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] transition hover:bg-accent-hover"
                     >
                         <Plus size={17} />
                         Novo currículo
@@ -152,7 +152,7 @@ export default function ResumesPage() {
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
+            <div className="sm:rounded-2xl sm:border sm:border-line sm:bg-surface sm:p-4">
                 <div className="flex flex-col gap-3 lg:flex-row">
                     <label className="group flex h-12 flex-1 items-center gap-3 rounded-xl border border-line-strong bg-sunken px-4 transition-colors focus-within:border-accent/50">
                         <Search size={17} className="text-slate-500 transition-colors group-focus-within:text-slate-300" />

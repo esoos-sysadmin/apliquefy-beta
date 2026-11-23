@@ -1,6 +1,6 @@
 "use client";
 
-import { inputStyle, sectionStyle, sectionTitle, labelStyle, gridTwo, errorStyle } from "../../lib/constants/resume-styles";
+import { inputStyle, sectionStyle, sectionTitle, labelStyle, gridTwoClass, errorStyle } from "../../lib/constants/resume-styles";
 import { seniorityOptions } from "../../lib/constants/resume-form";
 import type { ResumeFormPersonalInfo } from "../../types/resume-form";
 
@@ -22,7 +22,7 @@ export function ResumePersonalDetailsSection({
     return (
         <section style={sectionStyle}>
             <h2 style={sectionTitle}>Dados pessoais</h2>
-            <div style={gridTwo}>
+            <div className={gridTwoClass}>
                 <div>
                     <label style={labelStyle}>Nome completo *</label>
                     <input
@@ -153,7 +153,7 @@ export function ResumePersonalDetailsSection({
                         placeholder="Descreva sua experiência profissional resumidamente..."
                     />
                     <p style={{ textAlign: "right", fontSize: 12, color: "rgb(var(--c-slate-600))", margin: "4px 0 0" }}>
-                        {personalInfo.professionalSummary.length}/500 characters
+                        {personalInfo.professionalSummary.length}/500 caracteres
                     </p>
                 </div>
             </div>

@@ -2,14 +2,20 @@
 
 import { Cloud } from "lucide-react";
 import { TagInput } from "../atoms/TagInput";
-import { atsOptions } from "../../lib/constants/campaign-options";
+import { atsOptions, atsSeniorityOptions, atsWorkModelOptions } from "../../lib/constants/campaign-options";
+import type { Seniority, WorkModel } from "../../types/campaign";
 
 type AtsValue = (typeof atsOptions)[number]["value"];
+
+const workModelOptions: { label: string; value: WorkModel }[] = [...atsWorkModelOptions];
+const seniorityOptions: { label: string; value: Seniority }[] = [...atsSeniorityOptions];
 
 export interface AtsFormValues {
     searchTerms: string[];
     location: string[];
-    remoteOnly: boolean;
+    workModels: WorkModel[];
+    seniorities: Seniority[];
+    excludeTerms: string[];
     atsAllowlist: AtsValue[];
     fitMinScore: string;
     consent: boolean;
@@ -26,17 +32,39 @@ export function AtsParametersForm({
     values: AtsFormValues;
     onChange: <K extends keyof AtsFormValues>(field: K, value: AtsFormValues[K]) => void;
 }) {
-    function toggleAts(value: AtsValue) {
-        const has = values.atsAllowlist.includes(value);
-        onChange("atsAllowlist", has ? values.atsAllowlist.filter((v) => v !== value) : [...values.atsAllowlist, value]);
+    function toggle<T extends string>(list: T[], value: T) {
+        return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+    }
+
+    function chips<T extends string>(options: { label: string; value: T }[], selected: T[], onToggle: (value: T) => void) {
+        return (
+            <div className="flex flex-wrap gap-2">
+                {options.map((option) => {
+                    const on = selected.includes(option.value);
+                    return (
+                        <button
+                            key={option.value}
+                            type="button"
+                            aria-pressed={on}
+                            onClick={() => onToggle(option.value)}
+                            className={`min-h-[44px] rounded-full border px-4 py-2 text-sm transition ${
+                                on ? "border-accent bg-accent-soft text-accent-text" : "border-line-strong text-muted hover:border-accent"
+                            }`}
+                        >
+                            {option.label}
+                        </button>
+                    );
+                })}
+            </div>
+        );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
             <div className="space-y-1">
                 <div className="flex items-center gap-2">
                     <Cloud size={18} className="text-accent-text" />
-                    <h2 className="text-xl font-semibold text-fg">Parâmetros dos sites de empresas</h2>
+                    <h2 className="text-lg font-semibold text-fg sm:text-xl">Parâmetros dos sites de empresas</h2>
                 </div>
                 <p className="text-sm text-muted">
                     Procuramos vagas nos sites de carreira das empresas (Greenhouse, Lever, Ashby e outros) e enviamos
@@ -44,7 +72,7 @@ export function AtsParametersForm({
                 </p>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
                 <label className="block space-y-2">
                     <span className="text-sm font-medium text-slate-300">Termos de busca</span>
                     <TagInput
@@ -59,36 +87,30 @@ export function AtsParametersForm({
                 </label>
             </div>
 
-            <label className="flex cursor-pointer items-center gap-3 text-sm text-fg">
-                <input
-                    type="checkbox"
-                    checked={values.remoteOnly}
-                    onChange={(event) => onChange("remoteOnly", event.target.checked)}
-                    className="h-4 w-4 accent-[rgb(var(--c-accent))]"
-                />
-                Só vagas remotas
+            <fieldset className="space-y-2">
+                <legend className="text-sm font-medium text-slate-300">
+                    Modelo de trabalho <span className="text-slate-400">— nenhum marcado = todos</span>
+                </legend>
+                {chips(workModelOptions, values.workModels, (v) => onChange("workModels", toggle(values.workModels, v)))}
+            </fieldset>
+
+            <fieldset className="space-y-2">
+                <legend className="text-sm font-medium text-slate-300">
+                    Senioridade <span className="text-slate-400">— nenhuma marcada = todas</span>
+                </legend>
+                {chips(seniorityOptions, values.seniorities, (v) => onChange("seniorities", toggle(values.seniorities, v)))}
+            </fieldset>
+
+            <label className="block space-y-2">
+                <span className="text-sm font-medium text-slate-300">
+                    Excluir vagas com <span className="text-slate-400">(opcional — palavras no título)</span>
+                </span>
+                <TagInput tags={values.excludeTerms} onChange={(tags) => onChange("excludeTerms", tags)} placeholder="ex.: vendas, PJ" />
             </label>
 
             <fieldset className="space-y-2">
                 <legend className="text-sm font-medium text-slate-300">Sites permitidos (nenhum marcado = todos)</legend>
-                <div className="flex flex-wrap gap-2">
-                    {atsOptions.map((option) => {
-                        const on = values.atsAllowlist.includes(option.value);
-                        return (
-                            <button
-                                key={option.value}
-                                type="button"
-                                aria-pressed={on}
-                                onClick={() => toggleAts(option.value)}
-                                className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                                    on ? "border-accent bg-accent-soft text-accent-text" : "border-line-strong text-muted hover:border-accent"
-                                }`}
-                            >
-                                {option.label}
-                            </button>
-                        );
-                    })}
-                </div>
+                {chips([...atsOptions], values.atsAllowlist, (v) => onChange("atsAllowlist", toggle(values.atsAllowlist, v)))}
             </fieldset>
 
             <label className="block max-w-[320px] space-y-2">

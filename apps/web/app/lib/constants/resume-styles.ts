@@ -22,7 +22,7 @@ export const inputStyle = (hasError = false, frozen = false): React.CSSPropertie
 export const sectionStyle: React.CSSProperties = {
     background: "rgb(var(--c-surface))",
     borderRadius: 12,
-    padding: 24,
+    padding: "clamp(16px, 4vw, 24px)",
     marginBottom: 20,
     border: "1px solid rgb(var(--c-line))",
     boxShadow: "0 2px 10px rgba(0, 0, 0, 0.25)",
@@ -47,11 +47,8 @@ export const labelStyle: React.CSSProperties = {
     letterSpacing: "0.03em",
 };
 
-export const gridTwo: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 16,
-};
+// 1 coluna no celular, 2 a partir de sm (640 px). Classe porque estilo inline não tem breakpoint.
+export const gridTwoClass = "grid gap-4 sm:grid-cols-2";
 
 export const errorStyle: React.CSSProperties = {
     display: "block",
@@ -70,6 +67,12 @@ export const addButtonStyle: React.CSSProperties = {
     cursor: "pointer",
     fontWeight: 600,
 };
+// celular: botão na largura toda e com 44 px de altura; sm+ volta ao tamanho do conteúdo.
+export const addButtonClass = "min-h-[44px] w-full sm:min-h-0 sm:w-auto";
+// cabeçalho de seção: título e "+ Adicionar" empilham no celular
+export const sectionHeaderClass = "mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between";
+// card de item (experiência/formação/idioma)
+export const itemCardClass = "mb-3 rounded-lg bg-raised p-3 sm:p-4";
 
 export const removeButtonStyle: React.CSSProperties = {
     background: "transparent",

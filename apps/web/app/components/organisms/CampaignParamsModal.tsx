@@ -31,7 +31,9 @@ export function CampaignParamsModal({
 
     const platformBadge = isLinkedin
         ? "border-sky-500/25 bg-sky-500/10 text-sky-300"
-        : "border-orange-500/25 bg-orange-500/10 text-orange-300";
+        : campaign.platform === "ats"
+          ? "border-accent/25 bg-accent-soft text-accent-text"
+          : "border-orange-500/25 bg-orange-500/10 text-orange-300";
 
     const general: Array<[string, string]> = [
         ["Currículo", campaign.resume?.title ?? "Não vinculado"],
@@ -41,19 +43,19 @@ export function CampaignParamsModal({
     ];
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ap-ink/80 px-4 py-8 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ap-ink/80 p-3 backdrop-blur-sm sm:px-4 sm:py-8">
             <div className="flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-line-strong bg-surface shadow-[0_30px_90px_rgba(0,0,0,0.55)]">
-                <div className="flex items-start justify-between gap-4 border-b border-line bg-gradient-to-br from-raised to-surface px-6 py-5">
-                    <div className="flex items-center gap-4">
-                        <div className={`flex h-12 w-12 items-center justify-center rounded-xl border ${platformBadge}`}>
+                <div className="flex items-start justify-between gap-2 border-b border-line bg-gradient-to-br from-raised to-surface px-4 py-4 sm:gap-4 sm:px-6 sm:py-5">
+                    <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border sm:h-12 sm:w-12 ${platformBadge}`}>
                             <SlidersHorizontal size={20} />
                         </div>
 
                         <div className="min-w-0">
-                            <h2 className="truncate text-xl font-semibold text-fg">{campaign.name}</h2>
+                            <h2 className="line-clamp-2 break-words text-base font-semibold text-fg sm:text-xl">{campaign.name}</h2>
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                                 <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${platformBadge}`}>
-                                    {isLinkedin ? "LinkedIn" : "InfoJobs"}
+                                    {isLinkedin ? "LinkedIn" : campaign.platform === "ats" ? "Nuvem" : "InfoJobs"}
                                 </span>
                                 <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${status.badgeClassName}`}>
                                     <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${status.dotClassName}`} />
@@ -67,20 +69,20 @@ export function CampaignParamsModal({
                         type="button"
                         onClick={onClose}
                         aria-label="Fechar painel da campanha"
-                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-raised hover:text-fg"
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-raised hover:text-fg"
                     >
                         <X size={18} />
                     </button>
                 </div>
 
-                <div className="space-y-6 overflow-y-auto px-6 py-6">
+                <div className="space-y-6 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
                     <section className="space-y-3">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Geral</p>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid gap-3 sm:grid-cols-2">
                             {general.map(([label, value]) => (
                                 <div key={label} className="rounded-xl border border-line bg-surface px-4 py-3">
                                     <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-slate-500">{label}</p>
-                                    <p className="mt-1 truncate text-sm font-semibold text-fg" title={value}>{value}</p>
+                                    <p className="mt-1 break-words text-sm font-semibold text-fg" title={value}>{value}</p>
                                 </div>
                             ))}
                         </div>
@@ -117,7 +119,7 @@ export function CampaignParamsModal({
                     </section>
                 </div>
 
-                <div className="border-t border-line bg-sunken px-6 py-4">
+                <div className="border-t border-line bg-sunken px-4 py-4 sm:px-6">
                     <button
                         type="button"
                         onClick={onClose}

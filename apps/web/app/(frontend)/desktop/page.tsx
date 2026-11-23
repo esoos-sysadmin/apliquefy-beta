@@ -35,8 +35,8 @@ function DesktopContent() {
     }, [tabParam]);
 
     return (
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-fg">
-            <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-start sm:justify-between">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-4 text-fg sm:gap-6">
+            <div className="flex flex-col gap-4 border-b border-line pb-4 sm:pb-6 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                         <span>Dashboard</span>
@@ -44,7 +44,7 @@ function DesktopContent() {
                         <span className="text-slate-300">Desktop App</span>
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">Desktop App</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-4xl">Desktop App</h1>
                         <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
                             Automatize suas candidaturas com o aplicativo Apliquefy rodando no seu computador.
                         </p>
@@ -62,7 +62,7 @@ function DesktopContent() {
                     <button
                         key={tab.value}
                         onClick={() => setActiveTab(tab.value)}
-                        className={`rounded-lg px-5 py-2 text-sm font-semibold transition-colors ${
+                        className={`min-h-[44px] flex-1 rounded-lg px-4 py-2 text-sm font-semibold sm:flex-none sm:px-5 transition-colors ${
                             activeTab === tab.value
                                 ? "bg-overlay text-fg shadow"
                                 : "text-slate-500 hover:text-slate-300"

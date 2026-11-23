@@ -2,8 +2,8 @@
 
 export function ResumeProgressBar({ progress }: { progress: number }) {
     return (
-        <div style={{ background: "rgb(var(--c-surface))", borderRadius: 12, padding: 20, marginBottom: 24, border: "1px solid rgb(var(--c-line))" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+        <div className="mb-6 rounded-xl border border-line bg-surface p-4 sm:p-5">
+            <div className="mb-2 flex justify-between max-sm:gap-3">
                 <div>
                     <p style={{ margin: 0, fontWeight: 600, color: "rgb(var(--c-fg))" }}>Preenchimento do perfil</p>
                     {progress < 90 && (

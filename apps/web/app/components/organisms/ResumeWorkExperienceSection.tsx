@@ -1,6 +1,7 @@
 "use client";
 
-import { inputStyle, sectionStyle, sectionTitle, labelStyle, gridTwo, addButtonStyle, removeButtonStyle } from "../../lib/constants/resume-styles";
+import { Trash2 } from "lucide-react";
+import { inputStyle, sectionStyle, sectionTitle, labelStyle, gridTwoClass, addButtonStyle, addButtonClass, removeButtonStyle, sectionHeaderClass, itemCardClass } from "../../lib/constants/resume-styles";
 import { MonthYearPicker } from "../molecules/MonthYearPicker";
 import type { ResumeFormExperience } from "../../types/resume-form";
 
@@ -23,10 +24,10 @@ export function ResumeWorkExperienceSection({
 
     return (
         <section style={sectionStyle}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div className={sectionHeaderClass}>
                 <h2 style={{ ...sectionTitle, marginBottom: 0 }}>Experiência profissional</h2>
                 {isEditing && (
-                    <button onClick={onAdd} style={addButtonStyle}>
+                    <button type="button" onClick={onAdd} style={addButtonStyle} className={addButtonClass}>
                         + Adicionar experiência
                     </button>
                 )}
@@ -39,13 +40,15 @@ export function ResumeWorkExperienceSection({
             )}
 
             {experience.map((exp, i) => (
-                <div key={i} style={{ background: "rgb(var(--c-raised))", borderRadius: 8, padding: 16, marginBottom: 12 }}>
+                <div key={i} className={itemCardClass}>
                     {isEditing && (
-                        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-                            <button onClick={() => onRemove(i)} style={removeButtonStyle}>Remover</button>
+                        <div className="mb-2 flex justify-end">
+                            <button type="button" onClick={() => onRemove(i)} style={removeButtonStyle} className="inline-flex min-h-[44px] items-center gap-1.5 px-2 sm:min-h-0 sm:px-0">
+                                <Trash2 size={16} className="sm:hidden" /> Remover
+                            </button>
                         </div>
                     )}
-                    <div style={gridTwo}>
+                    <div className={gridTwoClass}>
                         <div>
                             <label style={labelStyle}>Empresa</label>
                             <input value={exp.companyName} onChange={(e) => onChange(i, "companyName", e.target.value)} onClick={onUnlock} readOnly={frozen} style={inputStyle(false, frozen)} placeholder="Nome da empresa" />
@@ -58,7 +61,9 @@ export function ResumeWorkExperienceSection({
                             <label style={labelStyle}>Tipo de contrato</label>
                             <input value={exp.jobType} onChange={(e) => onChange(i, "jobType", e.target.value)} onClick={onUnlock} readOnly={frozen} style={inputStyle(false, frozen)} placeholder="Ex: CLT, PJ" />
                         </div>
-                        <div>
+                        {/* celular: início/término lado a lado; sm:contents devolve cada data à grade do desktop */}
+                        <div className="col-span-full grid grid-cols-2 gap-2 sm:contents">
+                        <div className="min-w-0">
                             <label style={labelStyle}>Data de início</label>
                             <MonthYearPicker
                                 value={exp.jobStartDate}
@@ -67,7 +72,7 @@ export function ResumeWorkExperienceSection({
                                 readOnly={frozen}
                             />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <label style={labelStyle}>Data de término</label>
                             <MonthYearPicker
                                 value={exp.jobEndDate}
@@ -78,15 +83,16 @@ export function ResumeWorkExperienceSection({
                                 placeholder={exp.isActualJob ? "Atual" : "Selecione mês e ano"}
                             />
                         </div>
+                        </div>
                         {isEditing && (
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: 24 }}>
+                            <div className="flex items-center gap-2 sm:pt-6">
                                 <input
                                     type="checkbox"
                                     id={`current-${i}`}
                                     checked={exp.isActualJob}
                                     onChange={(e) => onChange(i, "isActualJob", e.target.checked)}
                                 />
-                                <label htmlFor={`current-${i}`} style={{ fontSize: 13, color: "rgb(var(--c-slate-300))", cursor: "pointer" }}>
+                                <label htmlFor={`current-${i}`} className="max-sm:flex-1 max-sm:py-3" style={{ fontSize: 13, color: "rgb(var(--c-slate-300))", cursor: "pointer" }}>
                                     Emprego atual
                                 </label>
                             </div>

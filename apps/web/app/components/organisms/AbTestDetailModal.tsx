@@ -81,7 +81,7 @@ export function AbTestDetailModal({ abTestId, onClose }: { abTestId: string; onC
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ap-ink/75 px-4 py-8 backdrop-blur-sm">
-            <div className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-line bg-surface shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+            <div className="flex max-h-[88dvh] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-line bg-surface shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
                 <div className="flex items-start justify-between border-b border-line bg-surface px-5 py-5">
                     <div className="flex items-start gap-3">
                         <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-300">
@@ -98,7 +98,7 @@ export function AbTestDetailModal({ abTestId, onClose }: { abTestId: string; onC
                         type="button"
                         onClick={onClose}
                         aria-label="Fechar painel do teste A/B"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-raised hover:text-fg"
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-raised hover:text-fg"
                     >
                         <X size={18} />
                     </button>
@@ -145,13 +145,13 @@ export function AbTestDetailModal({ abTestId, onClose }: { abTestId: string; onC
                                 <p className="flex items-center gap-2 text-sm font-semibold text-fg">
                                     <Trophy size={15} className="text-amber-300" /> Resultado do teste
                                 </p>
-                                <div className="mt-3 grid grid-cols-3 gap-2">
+                                <div className="mt-3 grid gap-2 sm:grid-cols-3">
                                     {winnerOptions.map((option) => (
                                         <button
                                             key={option.value}
                                             type="button"
                                             onClick={() => setWinner(abTest.winner === option.value ? null : option.value)}
-                                            className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                                            className={`min-h-[44px] rounded-xl border px-3 py-2 text-xs font-semibold transition ${
                                                 abTest.winner === option.value
                                                     ? "border-amber-400 bg-amber-400/10 text-amber-200"
                                                     : "border-line-strong bg-sunken text-slate-300 hover:border-accent/50"

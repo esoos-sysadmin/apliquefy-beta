@@ -17,7 +17,7 @@ export default function PacotesPage() {
         <div>
             <Link
                 href="/assinatura"
-                className="mb-4 inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-fg"
+                className="mb-4 inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-400 transition hover:text-fg"
             >
                 <ArrowLeft size={14} />
                 Voltar para Assinatura
@@ -42,7 +42,7 @@ export default function PacotesPage() {
                 {CREDIT_PACKAGES.map((pkg) => (
                     <div
                         key={pkg.slug}
-                        className="rounded-2xl border border-line bg-sunken p-6 transition hover:border-line-strong"
+                        className="rounded-2xl border border-line bg-sunken p-5 transition hover:border-line-strong sm:p-6"
                     >
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10 text-violet-300">
                             <Package size={20} />
@@ -62,7 +62,7 @@ export default function PacotesPage() {
                         <button
                             type="button"
                             onClick={() => purchaseCreditPackage(pkg.slug)}
-                            className="mt-4 w-full rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500"
+                            className="mt-4 min-h-[44px] w-full rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500"
                         >
                             Comprar
                         </button>

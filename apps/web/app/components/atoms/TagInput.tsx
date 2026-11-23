@@ -16,14 +16,17 @@ export function TagInput({
 }) {
     const [input, setInput] = useState("");
 
+    function commit() {
+        const tag = input.trim();
+        if (!tag) return;
+        if (!tags.includes(tag)) onChange([...tags, tag]);
+        setInput("");
+    }
+
     function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter" && input.trim()) {
             e.preventDefault();
-            const tag = input.trim();
-            if (!tags.includes(tag)) {
-                onChange([...tags, tag]);
-            }
-            setInput("");
+            commit();
         }
     }
 
@@ -39,8 +42,9 @@ export function TagInput({
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    onBlur={commit} // celular: sem Enter confiável, tocar fora também adiciona
                     placeholder={tags.length === 0 ? placeholder : "Adicionar mais..."}
-                    className="h-8 w-full bg-transparent text-sm text-fg outline-none placeholder:text-slate-500"
+                    className="h-10 min-w-0 w-full bg-transparent text-sm text-fg outline-none placeholder:text-slate-500"
                 />
             </div>
             {tags.length > 0 && (
@@ -54,7 +58,7 @@ export function TagInput({
                             <button
                                 type="button"
                                 onClick={() => removeTag(tag)}
-                                className="leading-none text-blue-400 hover:text-fg"
+                                className="-mr-1.5 px-2 py-1.5 leading-none text-blue-400 hover:text-fg"
                             >
                                 ×
                             </button>

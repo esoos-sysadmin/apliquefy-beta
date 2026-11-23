@@ -1,4 +1,5 @@
 import type { Campaign } from "../../types/campaign";
+import { atsWorkModelOptions } from "../constants/campaign-options";
 
 const brazilStateLabels: Record<string, string> = {
     acre: "Acre",
@@ -30,7 +31,16 @@ const brazilStateLabels: Record<string, string> = {
     tocantins: "Tocantins",
 };
 
+const atsWorkModelLabels: Record<string, string> = Object.fromEntries(atsWorkModelOptions.map((option) => [option.value, option.label]));
+
 export function getCampaignLocation(campaign: Campaign): string {
+    if (campaign.platform === "ats") {
+        const config = campaign.atsConfig;
+        const place = config?.locationTerm?.trim();
+        const models = (config?.workModels ?? []).map((model) => atsWorkModelLabels[model] ?? model).join("/");
+        return [place, models].filter(Boolean).join(" · ") || "Qualquer local";
+    }
+
     if (campaign.platform === "linkedin") {
         return campaign.linkedinConfig?.locationTerm || "Localização não informada";
     }

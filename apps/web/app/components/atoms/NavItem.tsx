@@ -19,7 +19,7 @@ export function NavItem({ href, label, icon }: NavItemProps) {
     return (
         <Link
             href={href}
-            className="nav-item"
+            className="nav-item min-h-[44px] lg:min-h-0"
             data-active={isActive}
             {...(isExternal && { target: "_blank", rel: "noopener noreferrer" })}
             style={{

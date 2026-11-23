@@ -20,7 +20,7 @@ export function Sidebar() {
         <>
             <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-surface px-4 lg:hidden">
                 <SidebarLogo compact />
-                <button type="button" aria-label="Abrir menu" onClick={() => setOpen(true)} className="rounded-lg p-2 text-fg hover:bg-sunken">
+                <button type="button" aria-label="Abrir menu" onClick={() => setOpen(true)} className="rounded-lg p-3 text-fg hover:bg-sunken">
                     <Menu size={20} />
                 </button>
             </header>
@@ -33,7 +33,7 @@ export function Sidebar() {
                 <div>
                     <div className="flex items-start justify-between">
                         <SidebarLogo />
-                        <button type="button" aria-label="Fechar menu" onClick={() => setOpen(false)} className="rounded-lg p-2 text-fg hover:bg-sunken lg:hidden">
+                        <button type="button" aria-label="Fechar menu" onClick={() => setOpen(false)} className="rounded-lg p-3 text-fg hover:bg-sunken lg:hidden">
                             <X size={18} />
                         </button>
                     </div>

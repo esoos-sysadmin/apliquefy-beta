@@ -54,10 +54,10 @@ export default function ContaPage() {
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
                 <div>
                     <p style={{ margin: 0, color: "rgb(var(--c-muted))", fontSize: 13 }}>Conta</p>
-                    <h1 style={{ margin: "8px 0 0", fontSize: 32, color: "rgb(var(--c-fg))" }}>Minha sessão</h1>
+                    <h1 style={{ margin: "8px 0 0", fontSize: "clamp(24px, 7vw, 32px)", color: "rgb(var(--c-fg))" }}>Minha sessão</h1>
                 </div>
 
                 <button
@@ -67,7 +67,8 @@ export default function ContaPage() {
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 8,
-                        padding: "10px 16px",
+                        padding: "12px 16px",
+                        minHeight: 44,
                         borderRadius: 10,
                         background: "transparent",
                         border: "1px solid rgb(var(--c-line-strong))",

@@ -83,7 +83,7 @@ export function SelectField<T extends string>({
                                         onChange(option.value);
                                         setOpen(false);
                                     }}
-                                    className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
+                                    className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-3 text-left text-sm sm:py-2.5 transition-colors ${
                                         active
                                             ? "bg-sky-500/15 text-sky-200"
                                             : option.value

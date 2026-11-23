@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BriefcaseBusiness, Cloud, FlaskConical, Info, Rocket } from "lucide-react";
 import { useCampaigns } from "../../../hooks/use-campaigns";
 import { useAbTests } from "../../../hooks/use-ab-tests";
 import { useResumes } from "../../../hooks/use-resumes";
+import { useIsMobile } from "../../../hooks/use-is-mobile";
+import { AB_TESTS_ENABLED } from "../../../lib/constants/features";
 import { SelectField } from "../../../components/atoms/SelectField";
 import { LinkedinParametersForm } from "../../../components/organisms/LinkedinParametersForm";
 import { InfojobsParametersForm } from "../../../components/organisms/InfojobsParametersForm";
@@ -22,7 +24,9 @@ type CampaignPlatform = "linkedin" | "infojobs" | "ats";
 const defaultAtsValues: AtsFormValues = {
     searchTerms: [],
     location: [],
-    remoteOnly: false,
+    workModels: [],
+    seniorities: [],
+    excludeTerms: [],
     atsAllowlist: [],
     fitMinScore: "0", // ADR-07: gate desligado por padrão
     consent: false,
@@ -67,8 +71,18 @@ function NewCampaignForm() {
     const { createLinkedinCampaign, createInfojobsCampaign, createAtsCampaign } = useCampaigns();
     const { createAbTest } = useAbTests();
     const [platform, setPlatform] = useState<CampaignPlatform>("linkedin");
+    const isMobile = useIsMobile();
+    // Celular: nuvem primeiro e já selecionada; LinkedIn/InfoJobs ficam desabilitados (UX, o backend aceita).
+    useEffect(() => {
+        if (isMobile) setPlatform("ats");
+    }, [isMobile]);
+    function selectPlatform(next: CampaignPlatform) {
+        if (isMobile && next !== "ats") return;
+        setPlatform(next);
+    }
+    const blocked = (p: CampaignPlatform) => isMobile === true && p !== "ats";
     const [resumeId, setResumeId] = useState("");
-    const [abTest, setAbTest] = useState(() => searchParams.get("ab") === "1");
+    const [abTest, setAbTest] = useState(() => AB_TESTS_ENABLED && searchParams.get("ab") === "1");
     const [resumeBId, setResumeBId] = useState("");
     const [hypothesis, setHypothesis] = useState("");
     const [campaignName, setCampaignName] = useState("");
@@ -167,7 +181,9 @@ function NewCampaignForm() {
                     atsConfig: {
                         searchTerms: atsValues.searchTerms.join(", "),
                         locationTerm: atsValues.location.join(", ") || undefined,
-                        remoteOnly: atsValues.remoteOnly,
+                        workModels: atsValues.workModels,
+                        seniorities: atsValues.seniorities,
+                        excludeTerms: atsValues.excludeTerms,
                         atsAllowlist: atsValues.atsAllowlist,
                         fitMinScore: Number(atsValues.fitMinScore || 0),
                     },
@@ -211,10 +227,10 @@ function NewCampaignForm() {
     }
 
     return (
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-fg">
-            <div className="border-b border-line pb-6">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-4 text-fg sm:gap-6">
+            <div className="border-b border-line pb-4 sm:pb-6">
                 <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                    <div className="hidden flex-wrap items-center gap-2 text-sm text-slate-500 sm:flex">
                         <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
                         <span>/</span>
                         <Link href="/campanhas" className="transition-colors hover:text-slate-300">
@@ -225,11 +241,12 @@ function NewCampaignForm() {
                     </div>
 
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">
+                        <h1 className="text-xl font-bold tracking-tight text-fg sm:text-4xl">
                             Criar nova campanha de automação
                         </h1>
                         <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
-                            Configure os parâmetros para o agente desktop iniciar a busca e preparar os envios automáticos.
+                            <span className="sm:hidden">Configure os parâmetros da busca e dos envios.</span>
+                            <span className="hidden sm:inline">Configure os parâmetros para o agente desktop iniciar a busca e preparar os envios automáticos.</span>
                         </p>
                     </div>
                 </div>
@@ -260,8 +277,8 @@ function NewCampaignForm() {
                     </Link>
                 </div>
             ) : (
-                <div className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
-                    <div className="space-y-6">
+                <div className="rounded-xl border border-line bg-surface p-4 sm:rounded-2xl sm:p-6">
+                    <div className="space-y-4 sm:space-y-6">
                         <div className="grid gap-4 lg:grid-cols-2">
                             <div className="space-y-2">
                                 <label className="block text-sm font-medium text-slate-200">Nome da campanha</label>
@@ -284,7 +301,7 @@ function NewCampaignForm() {
                             </label>
                         </div>
 
-                        {platform !== "ats" && (
+                        {AB_TESTS_ENABLED && platform !== "ats" && (
                         <div className="space-y-4 rounded-2xl border border-line-strong bg-sunken p-4">
                             <label className="flex cursor-pointer items-start justify-between gap-4">
                                 <span className="flex items-start gap-3">
@@ -337,7 +354,7 @@ function NewCampaignForm() {
                         <div className="max-w-[320px] space-y-2">
                             <label className="block text-sm font-medium text-slate-200">
                                 Limite diário de tentativas de candidatura
-                                <span className="ml-1 text-slate-400">
+                                <span className="mt-1 block text-xs text-slate-400 sm:ml-1 sm:mt-0 sm:inline sm:text-sm">
                                     (Este campo consome créditos, por exemplo: limite de 20 tentativas = 20 créditos)
                                 </span>
                             </label>
@@ -352,27 +369,39 @@ function NewCampaignForm() {
                         <div className="space-y-3">
                             <p className="text-sm font-medium text-slate-200">Plataforma alvo</p>
 
+                            {isMobile && (
+                                <div role="note" className="rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-fg">
+                                    <strong>Você está no celular.</strong> Daqui, suas candidaturas vão pela nuvem, em formulários abertos nos
+                                    sites das empresas (Greenhouse, Lever, Ashby…). Para candidatar pelo LinkedIn ou InfoJobs, use o app no
+                                    computador.{" "}
+                                    <Link href="/desktop" className="inline-block py-1 font-semibold text-accent-text underline">
+                                        Baixar o app desktop →
+                                    </Link>
+                                </div>
+                            )}
+
                             <div className="grid gap-3 lg:grid-cols-3">
                                 <button
                                     type="button"
-                                    onClick={() => setPlatform("linkedin")}
-                                    className={`flex items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
+                                    onClick={() => selectPlatform("linkedin")}
+                                    aria-disabled={blocked("linkedin") || undefined}
+                                    className={`flex min-h-[44px] items-center justify-between gap-3 rounded-xl border px-3 py-3 sm:rounded-2xl sm:px-4 sm:py-4 text-left transition ${blocked("linkedin") ? "cursor-not-allowed opacity-50 grayscale" : ""} ${
                                         platform === "linkedin"
                                             ? "border-accent bg-accent-soft shadow-[0_0_0_1px_rgb(var(--c-accent) / 0.35)]"
                                             : "border-line-strong bg-surface hover:border-line-strong"
                                     }`}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-300">
+                                    <div className="flex min-w-0 items-center gap-3">
+                                        <div className="flex h-10 w-10 shrink-0 items-center sm:h-12 sm:w-12 justify-center rounded-2xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-300">
                                             <BriefcaseBusiness size={20} />
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <p className="font-semibold text-fg">LinkedIn</p>
                                             <p className="text-sm text-slate-400">Ideal para networking profissional</p>
                                         </div>
                                     </div>
                                     <span
-                                        className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
+                                        className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] ${
                                             platform === "linkedin"
                                                 ? "border-accent bg-accent text-white"
                                                 : "border-line-strong text-transparent"
@@ -384,24 +413,25 @@ function NewCampaignForm() {
 
                                 <button
                                     type="button"
-                                    onClick={() => setPlatform("infojobs")}
-                                    className={`flex items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
+                                    onClick={() => selectPlatform("infojobs")}
+                                    aria-disabled={blocked("infojobs") || undefined}
+                                    className={`flex min-h-[44px] items-center justify-between gap-3 rounded-xl border px-3 py-3 sm:rounded-2xl sm:px-4 sm:py-4 text-left transition ${blocked("infojobs") ? "cursor-not-allowed opacity-50 grayscale" : ""} ${
                                         platform === "infojobs"
                                             ? "border-accent bg-accent-soft shadow-[0_0_0_1px_rgb(var(--c-accent) / 0.35)]"
                                             : "border-line-strong bg-surface hover:border-line-strong"
                                     }`}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-orange-500/20 bg-orange-500/10 text-orange-300">
+                                    <div className="flex min-w-0 items-center gap-3">
+                                        <div className="flex h-10 w-10 shrink-0 items-center sm:h-12 sm:w-12 justify-center rounded-2xl border border-orange-500/20 bg-orange-500/10 text-orange-300">
                                             <BriefcaseBusiness size={20} />
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <p className="font-semibold text-fg">InfoJobs</p>
                                             <p className="text-sm text-slate-400">Alto volume de vagas</p>
                                         </div>
                                     </div>
                                     <span
-                                        className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
+                                        className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] ${
                                             platform === "infojobs"
                                                 ? "border-accent bg-accent text-white"
                                                 : "border-line-strong text-transparent"
@@ -413,24 +443,25 @@ function NewCampaignForm() {
 
                                 <button
                                     type="button"
-                                    onClick={() => setPlatform("ats")}
-                                    className={`flex items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
+                                    onClick={() => selectPlatform("ats")}
+                                    aria-disabled={blocked("ats") || undefined}
+                                    className={`flex min-h-[44px] items-center justify-between gap-3 rounded-xl border px-3 py-3 sm:rounded-2xl sm:px-4 sm:py-4 text-left transition ${blocked("ats") ? "cursor-not-allowed opacity-50 grayscale" : ""} ${isMobile ? "order-first" : ""} ${
                                         platform === "ats"
                                             ? "border-accent bg-accent-soft shadow-[0_0_0_1px_rgb(var(--c-accent) / 0.35)]"
                                             : "border-line-strong bg-surface hover:border-line-strong"
                                     }`}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-accent/20 bg-accent-soft text-accent-text">
+                                    <div className="flex min-w-0 items-center gap-3">
+                                        <div className="flex h-10 w-10 shrink-0 items-center sm:h-12 sm:w-12 justify-center rounded-2xl border border-accent/20 bg-accent-soft text-accent-text">
                                             <Cloud size={20} />
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <p className="font-semibold text-fg">Sites de empresas</p>
                                             <p className="text-sm text-slate-400">Roda na nuvem, sem o desktop</p>
                                         </div>
                                     </div>
                                     <span
-                                        className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
+                                        className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] ${
                                             platform === "ats"
                                                 ? "border-accent bg-accent text-white"
                                                 : "border-line-strong text-transparent"
@@ -453,15 +484,15 @@ function NewCampaignForm() {
                         </div>
 
                         <div className="flex flex-col gap-4 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="inline-flex items-center gap-2 text-sm text-slate-500">
+                            <div className="hidden items-center gap-2 text-sm text-slate-500 sm:inline-flex">
                                 <Info size={14} />
                                 Confira seus filtros antes de começar
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+                            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
                                 <Link
                                     href="/campanhas"
-                                    className="inline-flex h-11 items-center justify-center rounded-xl border border-line-strong px-5 text-sm font-semibold text-slate-300 transition hover:border-line-strong hover:bg-surface"
+                                    className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-line-strong px-5 text-sm font-semibold text-slate-300 sm:w-auto transition hover:border-line-strong hover:bg-surface"
                                 >
                                     Cancelar
                                 </Link>
@@ -469,10 +500,10 @@ function NewCampaignForm() {
                                     type="button"
                                     onClick={handleSubmit}
                                     disabled={isSubmitting}
-                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="inline-flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-accent px-4 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <Rocket size={16} />
-                                    {isSubmitting ? "Criando..." : isAbTest ? "Criar Teste A/B" : "Criar campanha"}
+                                    {isSubmitting ? "Criando..." : isAbTest ? "Criar Teste A/B" : (<><span className="sm:hidden">Criar</span><span className="hidden sm:inline">Criar campanha</span></>)}
                                 </button>
                             </div>
                         </div>

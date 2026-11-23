@@ -32,11 +32,11 @@ export function ConfirmDialog({
 
     return (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-ap-ink/80 px-4 backdrop-blur-sm">
-            <div className="w-full max-w-md rounded-[24px] border border-line-strong bg-surface p-6 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
+            <div className="max-h-full w-full max-w-md overflow-y-auto rounded-[24px] border border-line-strong bg-surface p-5 sm:p-6 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
                         <div
-                            className={`flex h-11 w-11 items-center justify-center rounded-2xl border ${
+                            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${
                                 danger
                                     ? "border-rose-500/20 bg-rose-500/10 text-rose-300"
                                     : "border-amber-500/20 bg-amber-500/10 text-amber-300"
@@ -44,7 +44,7 @@ export function ConfirmDialog({
                         >
                             <AlertTriangle className="h-5 w-5" />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <h2 className="text-lg font-semibold text-fg">{title}</h2>
                             <div className="mt-2 text-sm leading-6 text-slate-400">{description}</div>
                         </div>
@@ -53,18 +53,18 @@ export function ConfirmDialog({
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="rounded-xl p-2 text-slate-500 transition hover:bg-raised hover:text-fg"
+                        className="shrink-0 rounded-xl p-3 text-slate-500 transition hover:bg-raised hover:text-fg"
                         aria-label="Fechar confirmação"
                     >
                         <X className="h-4 w-4" />
                     </button>
                 </div>
 
-                <div className="mt-6 flex items-center justify-end gap-3">
+                <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="inline-flex h-11 items-center justify-center rounded-xl border border-line-strong px-4 text-sm font-semibold text-slate-300 transition hover:border-line-strong hover:text-fg"
+                        className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-line-strong px-4 sm:w-auto text-sm font-semibold text-slate-300 transition hover:border-line-strong hover:text-fg"
                     >
                         {cancelLabel}
                     </button>
@@ -72,7 +72,7 @@ export function ConfirmDialog({
                         type="button"
                         onClick={onConfirm}
                         disabled={loading}
-                        className={`inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold text-white transition ${
+                        className={`inline-flex h-11 w-full items-center justify-center rounded-xl px-5 sm:w-auto text-sm font-semibold text-white transition ${
                             danger ? "bg-rose-600 hover:bg-rose-500" : "bg-accent hover:bg-accent-hover"
                         } disabled:cursor-not-allowed disabled:opacity-60`}
                     >

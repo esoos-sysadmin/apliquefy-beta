@@ -14,6 +14,7 @@ import { AbTestCard } from "../../components/molecules/AbTestCard";
 import { AbTestDetailModal } from "../../components/organisms/AbTestDetailModal";
 import { useCampaigns } from "../../hooks/use-campaigns";
 import { useAbTests } from "../../hooks/use-ab-tests";
+import { AB_TESTS_ENABLED } from "../../lib/constants/features";
 import type { Campaign } from "../../types/campaign";
 import type { AbTest } from "../../types/ab-test";
 
@@ -28,11 +29,12 @@ const platformOptions = [
     { label: "Todas as plataformas", value: "all" },
     { label: "LinkedIn", value: "linkedin" },
     { label: "InfoJobs", value: "infojobs" },
+    { label: "Nuvem", value: "ats" },
 ] as const;
 
 export default function CampaignsPage() {
     const [tab, setTab] = useState<"campaigns" | "ab">(
-        typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "ab" ? "ab" : "campaigns",
+        AB_TESTS_ENABLED && typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "ab" ? "ab" : "campaigns",
     );
     const [search, setSearch] = useState("");
     const [selectedPlatform, setSelectedPlatform] = useState<(typeof platformOptions)[number]["value"]>("all");
@@ -43,7 +45,19 @@ export default function CampaignsPage() {
     const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [page, setPage] = useState(1);
-    const { campaigns, isLoading, error, refetch, deleteCampaign } = useCampaigns();
+    const { campaigns, isLoading, error, refetch, deleteCampaign, activateCampaign, pauseCampaign } = useCampaigns();
+    const [togglingId, setTogglingId] = useState<string | null>(null);
+
+    async function handleToggle(campaign: Campaign) {
+        setTogglingId(campaign.id);
+        try {
+            // o hook já mostra o erro do service em toast e desfaz o status otimista
+            await (campaign.status === "active" ? pauseCampaign(campaign.id) : activateCampaign(campaign.id));
+        } catch {
+        } finally {
+            setTogglingId(null);
+        }
+    }
 
     // Testes A/B
     const [abSearch, setAbSearch] = useState("");
@@ -54,7 +68,8 @@ export default function CampaignsPage() {
     const filteredAbTests = abTests.filter((t) => t.name.toLowerCase().includes(abSearch.toLowerCase().trim()));
 
     // Variantes de teste A/B são Campaigns reais, mas pertencem à aba Testes A/B — não entram na aba Campanhas.
-    const abVariantIds = new Set(abTests.flatMap((t) => [t.variantA.id, t.variantB.id]));
+    // Com A/B oculto, as variantes já existentes voltam a aparecer como campanhas comuns.
+    const abVariantIds = new Set(AB_TESTS_ENABLED ? abTests.flatMap((t) => [t.variantA.id, t.variantB.id]) : []);
 
     const filteredCampaigns = campaigns.filter((campaign) => {
         if (abVariantIds.has(campaign.id)) return false;
@@ -97,37 +112,38 @@ export default function CampaignsPage() {
     }
 
     return (
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-fg">
-            <div className="flex items-start justify-between gap-4 border-b border-line pb-6">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-4 text-fg sm:gap-6">
+            <div className="flex flex-col gap-4 border-b border-line pb-4 sm:pb-6 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                    <div className="hidden flex-wrap items-center gap-2 text-sm text-slate-500 sm:flex">
                         <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
                         <span>/</span>
                         <span className="text-slate-300">Campanhas</span>
                     </div>
 
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">Minhas campanhas</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-fg sm:text-4xl">Minhas campanhas</h1>
                         <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
-                            Gerencie, acompanhe e prepare a automação de envios de currículos que futuramente controlará o RPA no desktop.
+                            Gerencie e acompanhe suas campanhas: pela nuvem, em sites de empresas, ou pelo app desktop, no LinkedIn e InfoJobs.
                         </p>
                     </div>
                 </div>
 
                 <Link
                     href={tab === "ab" ? "/campanhas/nova?ab=1" : "/campanhas/nova"}
-                    className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-accent px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] transition hover:bg-accent-hover"
+                    className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-accent px-5 sm:w-auto text-sm font-semibold text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] transition hover:bg-accent-hover"
                 >
                     <Plus size={17} />
                     {tab === "ab" ? "Novo teste A/B" : "Nova campanha"}
                 </Link>
             </div>
 
+            {AB_TESTS_ENABLED && (
             <div className="flex gap-2 border-b border-line pb-1">
                 <button
                     type="button"
                     onClick={() => setTab("campaigns")}
-                    className={`inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition ${
+                    className={`inline-flex min-h-[44px] items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition ${
                         tab === "campaigns" ? "border-accent text-fg" : "border-transparent text-slate-400 hover:text-slate-200"
                     }`}
                 >
@@ -136,17 +152,18 @@ export default function CampaignsPage() {
                 <button
                     type="button"
                     onClick={() => setTab("ab")}
-                    className={`inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition ${
+                    className={`inline-flex min-h-[44px] items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition ${
                         tab === "ab" ? "border-accent text-fg" : "border-transparent text-slate-400 hover:text-slate-200"
                     }`}
                 >
                     <FlaskConical size={16} /> Testes A/B
                 </button>
             </div>
+            )}
 
             {tab === "campaigns" ? (
             <>
-            <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
+            <div className="sm:rounded-2xl sm:border sm:border-line sm:bg-surface sm:p-4">
                 <div className="flex flex-col gap-3 lg:flex-row">
                     <label className="group flex h-12 flex-1 items-center gap-3 rounded-xl border border-line-strong bg-sunken px-4 transition-colors focus-within:border-accent/50">
                         <Search size={17} className="text-slate-500 transition-colors group-focus-within:text-slate-300" />
@@ -209,6 +226,8 @@ export default function CampaignsPage() {
                             onView={setActiveCampaign}
                             onOpenDetails={setDetailsCampaign}
                             onDelete={setCampaignToDelete}
+                            onToggle={handleToggle}
+                            toggling={togglingId === campaign.id}
                         />
                     ))
                 ) : campaigns.length === 0 ? (
@@ -233,12 +252,12 @@ export default function CampaignsPage() {
                     Exibindo {visibleCampaigns.length} de {filteredCampaigns.length} campanhas
                 </p>
 
-                <div className="flex items-center gap-2 self-end sm:self-auto">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:self-auto">
                     <button
                         type="button"
                         onClick={() => setPage((current) => Math.max(1, current - 1))}
                         disabled={currentPage === 1}
-                        className="inline-flex h-10 items-center rounded-xl border border-line-strong px-4 text-slate-300 transition hover:border-line-strong hover:bg-surface disabled:cursor-not-allowed disabled:text-slate-700"
+                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-xl border border-line-strong px-4 text-slate-300 transition hover:border-line-strong hover:bg-surface disabled:cursor-not-allowed disabled:text-slate-700"
                     >
                         Anterior
                     </button>
@@ -246,7 +265,7 @@ export default function CampaignsPage() {
                         type="button"
                         onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
                         disabled={currentPage === totalPages}
-                        className="inline-flex h-10 items-center rounded-xl border border-line-strong px-4 text-slate-300 transition hover:border-line-strong hover:bg-surface disabled:cursor-not-allowed disabled:text-slate-700"
+                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-xl border border-line-strong px-4 text-slate-300 transition hover:border-line-strong hover:bg-surface disabled:cursor-not-allowed disabled:text-slate-700"
                     >
                         Próxima
                     </button>
@@ -255,7 +274,7 @@ export default function CampaignsPage() {
             </>
             ) : (
             <>
-            <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
+            <div className="sm:rounded-2xl sm:border sm:border-line sm:bg-surface sm:p-4">
                 <label className="group flex h-12 items-center gap-3 rounded-xl border border-line-strong bg-sunken px-4 transition-colors focus-within:border-accent/50">
                     <Search size={17} className="text-slate-500 transition-colors group-focus-within:text-slate-300" />
                     <input

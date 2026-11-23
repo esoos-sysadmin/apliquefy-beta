@@ -175,7 +175,7 @@ function AnalyzeResumeInner() {
 
     return (
         <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 text-fg">
-            <div className="flex flex-col gap-3 border-b border-line pb-6">
+            <div className="flex flex-col gap-3 border-b border-line pb-4 sm:pb-6">
                 <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                     <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
                     <span>/</span>
@@ -184,7 +184,7 @@ function AnalyzeResumeInner() {
                     <span className="text-slate-300">Analisar com IA</span>
                 </div>
                 <div>
-                    <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight text-fg sm:text-4xl">
+                    <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-fg sm:text-4xl">
                         <Sparkles className="text-sky-400" size={30} />
                         Analisar currículo com IA
                     </h1>

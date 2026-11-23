@@ -32,11 +32,11 @@ export function UpsellModal({ open, currentPlanSlug, onClose }: UpsellModalProps
 
     return (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-ap-ink/80 px-4 backdrop-blur-sm">
-            <div className="w-full max-w-lg rounded-[24px] border border-line-strong bg-surface p-8 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
+            <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-[24px] border border-line-strong bg-surface p-5 sm:p-8 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
                 {/* Header */}
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-300">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-300">
                             <Zap className="h-5 w-5" />
                         </div>
                         <div>
@@ -51,7 +51,7 @@ export function UpsellModal({ open, currentPlanSlug, onClose }: UpsellModalProps
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-xl p-2 text-slate-500 transition hover:bg-raised hover:text-fg"
+                        className="shrink-0 rounded-xl p-3 text-slate-500 transition hover:bg-raised hover:text-fg"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -88,7 +88,7 @@ export function UpsellModal({ open, currentPlanSlug, onClose }: UpsellModalProps
                 )}
 
                 {/* Downsell link */}
-                <div className="mt-4 flex flex-col items-center gap-3">
+                <div className="mt-4 flex flex-col items-stretch gap-3 sm:items-center">
                     {isOnMaxPlan && (
                         <p className="text-center text-sm text-slate-400">
                             Você já está no plano máximo. Adquira créditos extras para continuar enviando.
@@ -97,7 +97,7 @@ export function UpsellModal({ open, currentPlanSlug, onClose }: UpsellModalProps
                     <button
                         type="button"
                         onClick={handleDecline}
-                        className="flex items-center gap-2 rounded-xl border border-line-strong px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-line-strong hover:text-fg"
+                        className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border sm:w-auto border-line-strong px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-line-strong hover:text-fg"
                     >
                         <Package size={14} />
                         {isOnMaxPlan ? "Comprar créditos avulsos" : "Prefiro comprar créditos avulsos"}

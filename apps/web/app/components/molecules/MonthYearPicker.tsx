@@ -14,6 +14,7 @@ interface MonthYearPickerProps {
     maxYear?: number;
 }
 
+const DEFAULT_PLACEHOLDER = "Selecione mês e ano";
 const MONTHS_PT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 function parseValue(value: string): { year: number; month: number } | null {
@@ -35,7 +36,7 @@ export function MonthYearPicker({
     value,
     onChange,
     onOpen,
-    placeholder = "Selecione mês e ano",
+    placeholder = DEFAULT_PLACEHOLDER,
     readOnly = false,
     disabled = false,
     minYear = 1960,
@@ -131,18 +132,20 @@ export function MonthYearPicker({
                     e.currentTarget.style.borderColor = "rgb(var(--c-line-strong))";
                 }}
             >
-                <span>{display || placeholder}</span>
-                <Calendar size={16} color="rgb(var(--c-muted))" />
+                {/* meia coluna no celular: placeholder padrão encurta para caber sem cortar */}
+                <span className="min-w-0 truncate">
+                    {display || (placeholder === DEFAULT_PLACEHOLDER ? (<><span className="sm:hidden">Mês/ano</span><span className="hidden sm:inline">{placeholder}</span></>) : placeholder)}
+                </span>
+                <Calendar size={16} color="rgb(var(--c-muted))" className="ml-2 shrink-0" />
             </button>
 
             {open && (
+                <>
+                {/* celular: o seletor vira modal centralizado (numa meia coluna não há onde ancorar) */}
+                <div className="fixed inset-0 z-40 bg-black/50 sm:hidden" onClick={() => setOpen(false)} />
                 <div
+                    className="fixed left-1/2 top-1/2 z-50 w-[280px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 sm:absolute sm:left-0 sm:top-[calc(100%+6px)] sm:translate-x-0 sm:translate-y-0"
                     style={{
-                        position: "absolute",
-                        top: "calc(100% + 6px)",
-                        left: 0,
-                        zIndex: 50,
-                        width: 280,
                         background: "rgb(var(--c-surface))",
                         border: "1px solid rgb(var(--c-line-strong))",
                         borderRadius: 12,
@@ -157,7 +160,7 @@ export function MonthYearPicker({
                                 if (view === "month") setViewYear((y) => Math.max(minYear, y - 1));
                                 else setYearPageStart((s) => Math.max(minYear, s - 12));
                             }}
-                            style={iconBtnStyle}
+                            className="max-sm:!h-11 max-sm:!w-11" style={iconBtnStyle}
                             aria-label="Anterior"
                         >
                             <ChevronLeft size={16} />
@@ -166,6 +169,7 @@ export function MonthYearPicker({
                         <button
                             type="button"
                             onClick={() => setView((v) => (v === "month" ? "year" : "month"))}
+                            className="max-sm:min-h-[44px]"
                             style={{
                                 background: "transparent",
                                 border: "none",
@@ -186,7 +190,7 @@ export function MonthYearPicker({
                                 if (view === "month") setViewYear((y) => Math.min(upperYear, y + 1));
                                 else setYearPageStart((s) => Math.min(upperYear - 11, s + 12));
                             }}
-                            style={iconBtnStyle}
+                            className="max-sm:!h-11 max-sm:!w-11" style={iconBtnStyle}
                             aria-label="Próximo"
                         >
                             <ChevronRight size={16} />
@@ -239,7 +243,7 @@ export function MonthYearPicker({
                                 onChange("");
                                 setOpen(false);
                             }}
-                            style={textBtnStyle}
+                            className="max-sm:min-h-[44px] max-sm:px-3" style={textBtnStyle}
                         >
                             Limpar
                         </button>
@@ -250,12 +254,13 @@ export function MonthYearPicker({
                                 onChange(`${today.getFullYear()}-${mm}`);
                                 setOpen(false);
                             }}
-                            style={textBtnStyle}
+                            className="max-sm:min-h-[44px] max-sm:px-3" style={textBtnStyle}
                         >
                             Hoje
                         </button>
                     </div>
                 </div>
+                </>
             )}
         </div>
     );
@@ -276,7 +281,7 @@ const iconBtnStyle: React.CSSProperties = {
 
 function cellStyle(selected: boolean, disabled = false): React.CSSProperties {
     return {
-        height: 36,
+        height: 44,
         borderRadius: 8,
         border: selected ? "1px solid rgb(var(--c-accent))" : "1px solid transparent",
         background: selected ? "rgb(var(--c-accent))" : "transparent",

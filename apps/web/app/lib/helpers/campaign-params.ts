@@ -10,6 +10,9 @@ import {
     infojobsShiftOptions,
     infojobsStateOptions,
     infojobsWorkModelOptions,
+    atsOptions,
+    atsSeniorityOptions,
+    atsWorkModelOptions,
     linkedinDatePostedOptions,
     linkedinExperienceOptions,
     linkedinJobTypeOptions,
@@ -39,6 +42,11 @@ function labelsOf(options: readonly Option[], values: string[] | null | undefine
     return values.map((value) => options.find((option) => option.value === value)?.label ?? value);
 }
 
+function splitTerms(value: string | null | undefined): string[] | null {
+    const terms = (value ?? "").split(",").map((term) => term.trim()).filter(Boolean);
+    return terms.length > 0 ? terms : null;
+}
+
 // Retorna apenas os filtros preenchidos (plataforma-específicos) da campanha.
 export function getCampaignParams(campaign: Campaign): CampaignParam[] {
     const rows: Array<[string, string[] | null]> = [];
@@ -53,6 +61,19 @@ export function getCampaignParams(campaign: Campaign): CampaignParam[] {
             ["Nível de experiência", labelsOf(linkedinExperienceOptions, config?.expLevel)],
             ["Tipo de vaga", labelsOf(linkedinJobTypeOptions, config?.jobType)],
             ["Modelo de trabalho", labelsOf(linkedinRemoteOptions, config?.remoteFilter)],
+        );
+    } else if (campaign.platform === "ats") {
+        const config = campaign.atsConfig;
+        // vazio = sem filtro; mostra "Todos" para a lista não parecer incompleta
+        const orAll = (values: string[] | null) => values ?? ["Todos"];
+        rows.push(
+            ["Termos de busca", splitTerms(config?.searchTerms)],
+            ["Local", splitTerms(config?.locationTerm)],
+            ["Modelo de trabalho", orAll(labelsOf(atsWorkModelOptions, config?.workModels))],
+            ["Senioridade", orAll(labelsOf(atsSeniorityOptions, config?.seniorities))],
+            ["Excluir vagas com", labelsOf([], config?.excludeTerms)],
+            ["Sites permitidos", orAll(labelsOf(atsOptions, config?.atsAllowlist))],
+            ["Nota mínima de aderência", config?.fitMinScore ? [String(config.fitMinScore)] : null],
         );
     } else {
         const config = campaign.infojobsConfig;

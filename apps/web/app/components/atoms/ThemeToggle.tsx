@@ -11,7 +11,7 @@ export function ThemeToggle() {
         <button
             type="button"
             onClick={() => setTheme(next)}
-            className="nav-item flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-muted"
+            className="nav-item flex min-h-[44px] w-full lg:min-h-0 items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-muted"
             aria-label={`Ativar tema ${next === "dark" ? "escuro" : "claro"}`}
         >
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}

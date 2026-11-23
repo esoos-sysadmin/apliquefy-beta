@@ -193,6 +193,20 @@ export const infojobsPcdOptions = [
 // ATS que a campanha "Sites de empresas" pode escolher. Bate 1:1 com `atsEnum` em
 // validations/campaign.ts e com os nomes de detect_ats no worker (rpa_engine.cloud).
 // Gupy/Workday/Sólides exigem conta do candidato e ficam fora (SDD-candidatura-nuvem §0).
+export const atsWorkModelOptions = [
+    { label: "Remoto", value: "remote" },
+    { label: "Híbrido", value: "hybrid" },
+    { label: "Presencial", value: "onsite" },
+] as const;
+
+export const atsSeniorityOptions = [
+    { label: "Estágio", value: "intern" },
+    { label: "Júnior", value: "junior" },
+    { label: "Pleno", value: "mid" },
+    { label: "Sênior", value: "senior" },
+    { label: "Especialista/Liderança", value: "lead" },
+] as const;
+
 export const atsOptions = [
     { label: "Greenhouse", value: "greenhouse" },
     { label: "Lever", value: "lever" },

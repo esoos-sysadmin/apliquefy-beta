@@ -39,7 +39,7 @@ export default function ConcluirPage({ params }: { params: Promise<{ id: string 
     const where = app ? `${app.jobTitle ?? "a vaga"}${app.companyName ? ` na ${app.companyName}` : ""}` : "";
 
     return (
-        <section className="mx-auto flex w-full max-w-lg flex-col gap-5 text-fg">
+        <section className="mx-auto flex w-full max-w-lg flex-col gap-4 text-fg">
             {isLoading ? (
                 <p className="text-muted">Carregando…</p>
             ) : error || !app ? (
@@ -58,7 +58,7 @@ export default function ConcluirPage({ params }: { params: Promise<{ id: string 
                         href={app.liveViewUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-3 font-medium text-white transition hover:bg-accent-hover"
+                        className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 font-medium text-white transition hover:bg-accent-hover"
                     >
                         Abrir o navegador <ExternalLink size={16} />
                     </a>

@@ -29,16 +29,16 @@ export function CampaignDetailsModal({
     const lastActivity = metrics.history[0]?.appliedAt ?? metrics.history[0]?.createdAt ?? "";
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ap-ink/75 px-4 py-8 backdrop-blur-sm">
-            <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-[28px] border border-line bg-surface shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
-                <div className="flex shrink-0 items-start justify-between border-b border-line bg-surface px-5 py-5">
-                    <div className="flex items-start gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ap-ink/75 p-3 backdrop-blur-sm sm:px-4 sm:py-8">
+            <div className="flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border sm:rounded-[28px] border-line bg-surface shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+                <div className="flex shrink-0 items-start justify-between border-b border-line bg-surface px-4 py-4 sm:px-5 sm:py-5">
+                    <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-300">
                             <BarChart3 size={18} />
                         </div>
 
-                        <div>
-                            <h2 className="text-lg font-semibold text-fg">{campaign.name}</h2>
+                        <div className="min-w-0">
+                            <h2 className="break-words text-base font-semibold text-fg sm:text-lg">{campaign.name}</h2>
                             <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                                 Métricas detalhadas de desempenho
                             </p>
@@ -49,13 +49,13 @@ export function CampaignDetailsModal({
                         type="button"
                         onClick={onClose}
                         aria-label="Fechar painel da campanha"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-raised hover:text-fg"
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-raised hover:text-fg"
                     >
                         <X size={18} />
                     </button>
                 </div>
 
-                <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
+                <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
                     {isLoading ? (
                         <div className="space-y-3">
                             <div className="h-28 animate-pulse rounded-2xl bg-raised" />
@@ -80,8 +80,8 @@ export function CampaignDetailsModal({
                                 <p className="mt-2 text-sm text-slate-500">Alcance total</p>
                             </div>
 
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <div className="rounded-2xl border border-line bg-raised px-4 py-4">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="rounded-xl border border-line bg-raised px-4 py-4 sm:rounded-2xl">
                                     <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Sucesso</p>
                                     <p className="mt-3 text-3xl font-semibold text-fg">{summary.applied}</p>
                                 </div>
@@ -96,7 +96,7 @@ export function CampaignDetailsModal({
                                 <p className="text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                                     Consumo de créditos
                                 </p>
-                                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                                <div className="mt-3 grid grid-cols-2 gap-3">
                                     <div className="rounded-2xl border border-accent/50 bg-accent-soft px-4 py-4 text-center">
                                         <p className="text-2xl font-semibold text-blue-300">{metrics.creditsUsed}</p>
                                         <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Usados</p>
@@ -115,7 +115,7 @@ export function CampaignDetailsModal({
                                         <button
                                             type="button"
                                             onClick={() => setShowHistory(false)}
-                                            className="text-xs font-semibold text-slate-400 transition hover:text-fg"
+                                            className="inline-flex min-h-[44px] items-center px-2 text-xs font-semibold text-slate-400 transition hover:text-fg"
                                         >
                                             Ocultar
                                         </button>
@@ -152,11 +152,11 @@ export function CampaignDetailsModal({
                         </>
                     )}
 
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                         <button
                             type="button"
                             onClick={() => setShowHistory((current) => !current)}
-                            className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-accent px-4 text-sm font-semibold text-white transition hover:bg-accent-hover"
+                            className="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl bg-accent px-3 sm:h-12 sm:rounded-2xl sm:px-4 text-sm font-semibold text-white transition hover:bg-accent-hover"
                         >
                             Ver histórico
                         </button>
@@ -164,14 +164,14 @@ export function CampaignDetailsModal({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-accent-soft px-4 text-sm font-semibold text-accent-text transition hover:bg-accent/25"
+                            className="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl bg-accent-soft px-3 sm:h-12 sm:rounded-2xl sm:px-4 text-sm font-semibold text-accent-text transition hover:bg-accent/25"
                         >
                             Fechar painel
                         </button>
                     </div>
                 </div>
 
-                <div className="flex shrink-0 items-center justify-between border-t border-line bg-sunken px-5 py-3 text-xs text-slate-500">
+                <div className="flex shrink-0 flex-col gap-1 border-t border-line bg-sunken px-4 py-3 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                     <span className="inline-flex items-center gap-2">
                         <span className={`h-2 w-2 rounded-full ${synced ? "bg-blue-400" : "bg-slate-500"}`} />
                         {synced ? "ENGINE SINCRONIZADO" : "NÃO SINCRONIZADO"}

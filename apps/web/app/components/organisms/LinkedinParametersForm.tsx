@@ -35,10 +35,10 @@ export function LinkedinParametersForm({
     onChange: <K extends keyof LinkedinFormValues>(field: K, value: LinkedinFormValues[K]) => void;
 }) {
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
             <div className="flex items-center gap-2">
                 <BriefcaseBusiness size={18} className="text-cyan-300" />
-                <h2 className="text-xl font-semibold text-fg">Parâmetros do LinkedIn</h2>
+                <h2 className="text-lg font-semibold text-fg sm:text-xl">Parâmetros do LinkedIn</h2>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">

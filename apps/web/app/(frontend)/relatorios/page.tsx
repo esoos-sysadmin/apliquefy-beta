@@ -53,14 +53,14 @@ export default function ReportsPage() {
     const maxDay = Math.max(1, ...timeline.map((t) => t.count));
 
     return (
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-fg">
-            <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <section className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-4 pb-24 text-fg sm:gap-6 sm:pb-0">
+            <div className="flex flex-col gap-4 border-b border-line pb-4 sm:pb-6 sm:flex-row sm:items-end sm:justify-between">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                         <span className="text-slate-300">Relatórios</span>
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">Relatórios</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-fg sm:text-4xl">Relatórios</h1>
                         <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
                             Acompanhe candidaturas enviadas, desempenho por currículo e o histórico de vagas.
                         </p>
@@ -89,7 +89,7 @@ export default function ReportsPage() {
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                         {[
                             { label: "Total de candidaturas", value: summary.total, accent: "text-fg", sub: `${summary.skipped} ignoradas` },
                             {
@@ -111,20 +111,20 @@ export default function ReportsPage() {
                                           : "—",
                             },
                         ].map((card) => (
-                            <div key={card.label} className="rounded-2xl border border-line bg-surface p-5">
-                                <p className="text-sm text-slate-400">{card.label}</p>
-                                <p className={`mt-2 text-3xl font-bold ${card.accent}`}>{isLoading ? "—" : card.value}</p>
-                                <p className="mt-1 text-xs text-slate-500">{isLoading ? "" : card.sub}</p>
+                            <div key={card.label} className="min-w-0 rounded-xl border border-line bg-surface p-4 sm:rounded-2xl sm:p-5">
+                                <p className="break-words text-xs text-slate-400 sm:text-sm">{card.label}</p>
+                                <p className={`mt-2 text-2xl font-bold sm:text-3xl ${card.accent}`}>{isLoading ? "—" : card.value}</p>
+                                <p className="mt-1 break-words text-xs text-slate-500">{isLoading ? "" : card.sub}</p>
                             </div>
                         ))}
                     </div>
 
-                    <div className="rounded-2xl border border-line bg-surface p-5">
-                        <h2 className="text-lg font-semibold text-fg">Candidaturas por dia</h2>
+                    <div className="rounded-xl border border-line bg-surface p-4 sm:rounded-2xl sm:p-5">
+                        <h2 className="text-base font-semibold text-fg sm:text-lg">Candidaturas por dia</h2>
                         <p className="mt-1 text-sm text-slate-400">Últimos 14 dias — buracos indicam robô parado ou sessão expirada.</p>
-                        <div className="mt-5 flex h-32 items-end gap-1.5">
+                        <div className="mt-4 flex h-28 items-end gap-1 sm:mt-5 sm:h-32 sm:gap-1.5">
                             {timeline.map((day) => (
-                                <div key={day.date} className="group flex flex-1 flex-col items-center justify-end gap-1.5" title={`${dayLabel(day.date)}: ${day.count}`}>
+                                <div key={day.date} className="group flex min-w-0 flex-1 flex-col items-center justify-end gap-1.5" title={`${dayLabel(day.date)}: ${day.count}`}>
                                     <span className="text-[10px] text-slate-500">{day.count > 0 ? day.count : ""}</span>
                                     <div
                                         className="w-full rounded-t bg-accent transition group-hover:bg-accent-hover"
@@ -137,8 +137,8 @@ export default function ReportsPage() {
                     </div>
 
                     <div className="grid gap-4 lg:grid-cols-2">
-                        <div className="rounded-2xl border border-line bg-surface p-5">
-                            <h2 className="text-lg font-semibold text-fg">Limite diário (hoje)</h2>
+                        <div className="rounded-xl border border-line bg-surface p-4 sm:rounded-2xl sm:p-5">
+                            <h2 className="text-base font-semibold text-fg sm:text-lg">Limite diário (hoje)</h2>
                             <p className="mt-1 text-sm text-slate-400">Uso das campanhas ativas — se bate no teto todo dia, considere aumentar.</p>
                             <div className="mt-4 space-y-3">
                                 {dailyUsage.length === 0 ? (
@@ -149,7 +149,7 @@ export default function ReportsPage() {
                                         return (
                                             <div key={c.campaignId}>
                                                 <div className="flex items-center justify-between text-sm">
-                                                    <span className="truncate text-slate-200">{c.campaignName}</span>
+                                                    <span className="min-w-0 truncate text-slate-200">{c.campaignName}</span>
                                                     <span className="ml-3 shrink-0 text-slate-400">{c.used}/{c.limit || "∞"}</span>
                                                 </div>
                                                 <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-sunken">
@@ -162,8 +162,8 @@ export default function ReportsPage() {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-line bg-surface p-5">
-                            <h2 className="text-lg font-semibold text-fg">Por que não foram enviadas</h2>
+                        <div className="rounded-xl border border-line bg-surface p-4 sm:rounded-2xl sm:p-5">
+                            <h2 className="text-base font-semibold text-fg sm:text-lg">Por que não foram enviadas</h2>
                             <p className="mt-1 text-sm text-slate-400">Vagas descartadas antes de candidatar e candidaturas que falharam.</p>
                             <div className="mt-4 space-y-2.5">
                                 {failureReasons.length === 0 ? (
@@ -171,7 +171,7 @@ export default function ReportsPage() {
                                 ) : (
                                     failureReasons.map((r) => (
                                         <div key={r.reason} className="flex items-center justify-between gap-3 rounded-xl border border-line-strong bg-sunken px-4 py-2.5">
-                                            <span className="truncate text-sm text-slate-300" title={r.reason}>{r.reason}</span>
+                                            <span className="min-w-0 break-words text-sm text-slate-300 sm:truncate" title={r.reason}>{r.reason}</span>
                                             <span className="shrink-0 rounded-full bg-slate-500/10 px-2.5 py-0.5 text-xs font-semibold text-slate-300">{r.count}</span>
                                         </div>
                                     ))
@@ -180,17 +180,17 @@ export default function ReportsPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-line bg-surface p-5">
-                        <h2 className="text-lg font-semibold text-fg">Desempenho por currículo</h2>
+                    <div className="rounded-xl border border-line bg-surface p-4 sm:rounded-2xl sm:p-5">
+                        <h2 className="text-base font-semibold text-fg sm:text-lg">Desempenho por currículo</h2>
                         <p className="mt-1 text-sm text-slate-400">Quantas candidaturas foram enviadas com cada currículo.</p>
                         <div className="mt-4 space-y-3">
                             {byResume.length === 0 ? (
                                 <p className="text-sm text-slate-500">Nenhuma candidatura registrada ainda.</p>
                             ) : (
                                 byResume.map((row) => (
-                                    <div key={row.resumeId || row.resumeTitle} className="flex items-center justify-between rounded-xl border border-line-strong bg-sunken px-4 py-3">
-                                        <span className="truncate text-sm font-medium text-slate-200">{row.resumeTitle}</span>
-                                        <span className="ml-4 shrink-0 text-sm text-slate-400">
+                                    <div key={row.resumeId || row.resumeTitle} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-xl border border-line-strong bg-sunken px-4 py-3">
+                                        <span className="min-w-0 break-words text-sm font-medium text-slate-200 sm:truncate">{row.resumeTitle}</span>
+                                        <span className="shrink-0 text-sm text-slate-400">
                                             <span className="font-semibold text-emerald-300">{row.applied}</span> enviadas
                                             <span className="mx-1 text-slate-600">·</span>
                                             {row.total} no total
@@ -201,13 +201,66 @@ export default function ReportsPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-line bg-surface">
-                        <div className="border-b border-line px-5 py-4">
-                            <h2 className="text-lg font-semibold text-fg">Histórico de vagas</h2>
+                    <div className="rounded-xl border border-line bg-surface sm:rounded-2xl">
+                        <div className="border-b border-line px-4 py-4 sm:px-5">
+                            <h2 className="text-base font-semibold text-fg sm:text-lg">Histórico de vagas</h2>
                             <p className="mt-1 text-sm text-slate-400">Cada vaga processada — enviada, descartada ou com falha — e o motivo.</p>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        {isLoading || history.length === 0 ? (
+                            <div className="px-4 py-10 text-center text-sm text-slate-500 sm:hidden">
+                                {isLoading ? "Carregando…" : "Nenhuma candidatura encontrada."}
+                            </div>
+                        ) : null}
+
+                        {!isLoading && history.length > 0 ? (
+                            <ul className="divide-y divide-line sm:hidden">
+                                {history.map((item) => {
+                                    const reason = formatReason(item.reason);
+                                    const concluir = item.status === "needs_user";
+                                    return (
+                                        <li key={item.id} className="min-w-0 space-y-2 px-4 py-4">
+                                            <div className="min-w-0">
+                                                <p className="break-words text-sm font-medium text-slate-200">{item.jobTitle ?? "—"}</p>
+                                                <p className="mt-0.5 break-words text-xs text-slate-400">
+                                                    {[item.companyName, item.resumeTitle].filter(Boolean).join(" · ") || "—"}
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                                                {item.status ? (
+                                                    <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusClass[item.status]}`}>
+                                                        {statusLabel[item.status]}
+                                                    </span>
+                                                ) : <span />}
+                                                <span className="text-xs text-slate-500">{formatDate(item.appliedAt ?? item.createdAt)}</span>
+                                            </div>
+                                            {reason ? <p className="line-clamp-3 break-words text-xs text-slate-400">{reason}</p> : null}
+                                            {concluir || item.jobUrl ? (
+                                                <div className={`grid gap-2 pt-1 ${concluir && item.jobUrl ? "grid-cols-2" : "grid-cols-1"}`}>
+                                                    {concluir ? (
+                                                        <Link href={`/candidaturas/${item.id}/concluir`} className="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl bg-accent px-3 text-sm font-medium text-white transition hover:bg-accent-hover">
+                                                            Concluir
+                                                        </Link>
+                                                    ) : null}
+                                                    {item.jobUrl ? (
+                                                        <a
+                                                            href={item.jobUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex h-11 w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-line-strong px-3 text-sm font-medium text-slate-300 transition hover:bg-sunken"
+                                                        >
+                                                            Abrir vaga <ExternalLink size={13} />
+                                                        </a>
+                                                    ) : null}
+                                                </div>
+                                            ) : null}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        ) : null}
+
+                        <div className="hidden overflow-x-auto sm:block">
                             <table className="w-full min-w-[820px] text-left text-sm">
                                 <thead className="text-xs uppercase text-slate-500">
                                     <tr className="border-b border-line">
@@ -242,7 +295,7 @@ export default function ReportsPage() {
                                                         </span>
                                                     ) : "—"}
                                                     {item.status === "needs_user" && (
-                                                        <Link href={`/candidaturas/${item.id}/concluir`} className="ml-2 text-xs text-accent-text underline">
+                                                        <Link href={`/candidaturas/${item.id}/concluir`} className="ml-2 inline-flex min-h-[44px] items-center text-sm font-medium text-accent-text underline">
                                                             Concluir
                                                         </Link>
                                                     )}
@@ -275,14 +328,14 @@ export default function ReportsPage() {
                         </div>
 
                         {totalPages > 1 ? (
-                            <div className="flex items-center justify-between border-t border-line px-5 py-4 text-sm text-slate-500">
-                                <span>Página {pagination?.page ?? page} de {totalPages}</span>
-                                <div className="flex items-center gap-2">
+                            <div className="flex flex-col gap-3 border-t border-line px-4 py-4 text-sm text-slate-500 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5">
+                                <span className="text-center sm:text-left">Página {pagination?.page ?? page} de {totalPages}</span>
+                                <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
                                     <button
                                         type="button"
                                         onClick={() => setPage((current) => Math.max(1, current - 1))}
                                         disabled={page <= 1}
-                                        className="inline-flex h-10 items-center rounded-xl border border-line-strong px-4 text-slate-300 transition hover:border-line-strong hover:bg-sunken disabled:cursor-not-allowed disabled:text-slate-700"
+                                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-xl border border-line-strong px-4 text-slate-300 transition hover:border-line-strong hover:bg-sunken disabled:cursor-not-allowed disabled:text-slate-700"
                                     >
                                         Anterior
                                     </button>
@@ -290,7 +343,7 @@ export default function ReportsPage() {
                                         type="button"
                                         onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
                                         disabled={page >= totalPages}
-                                        className="inline-flex h-10 items-center rounded-xl border border-line-strong px-4 text-slate-300 transition hover:border-line-strong hover:bg-sunken disabled:cursor-not-allowed disabled:text-slate-700"
+                                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-xl border border-line-strong px-4 text-slate-300 transition hover:border-line-strong hover:bg-sunken disabled:cursor-not-allowed disabled:text-slate-700"
                                     >
                                         Próxima
                                     </button>

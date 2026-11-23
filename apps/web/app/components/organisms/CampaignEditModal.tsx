@@ -39,22 +39,22 @@ export function CampaignEditModal({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ap-ink/75 px-4 py-8 backdrop-blur-sm">
-            <div className="w-full max-w-md overflow-hidden rounded-[22px] border border-line-strong bg-surface shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
-                <div className="flex items-center justify-between border-b border-line-strong px-5 py-5">
-                    <h2 className="text-xl font-semibold text-blue-400">Editar campanha</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ap-ink/75 p-3 backdrop-blur-sm sm:px-4 sm:py-8">
+            <div className="w-full max-h-full max-w-md overflow-y-auto rounded-2xl sm:rounded-[22px] border border-line-strong bg-surface shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+                <div className="flex items-center justify-between border-b border-line-strong px-4 py-4 sm:px-5 sm:py-5">
+                    <h2 className="text-lg sm:text-xl font-semibold text-blue-400">Editar campanha</h2>
 
                     <button
                         type="button"
                         onClick={onClose}
                         aria-label="Fechar modal de edição"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-overlay hover:text-fg"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-400 transition hover:bg-overlay hover:text-fg"
                     >
                         <X size={18} />
                     </button>
                 </div>
 
-                <div className="space-y-5 px-5 py-5">
+                <div className="space-y-4 px-4 py-4 sm:space-y-5 sm:px-5 sm:py-5">
                     <label className="block space-y-2">
                         <span className="text-sm font-medium text-slate-300">Nome da campanha</span>
                         <input
@@ -91,11 +91,11 @@ export function CampaignEditModal({
                     </label>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 border-t border-line-strong bg-overlay px-5 py-4">
+                <div className="grid grid-cols-2 gap-2 border-t border-line-strong bg-overlay px-4 py-4 sm:flex sm:items-center sm:justify-end sm:gap-3 sm:px-5">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="inline-flex h-11 items-center justify-center rounded-xl border border-line-strong px-4 text-sm font-semibold text-slate-300 transition hover:border-line-strong hover:text-fg"
+                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-xl border border-line-strong px-4 text-sm font-semibold text-slate-300 transition hover:border-line-strong hover:text-fg"
                     >
                         Cancelar
                     </button>
@@ -103,9 +103,9 @@ export function CampaignEditModal({
                         type="button"
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="inline-flex h-11 items-center justify-center rounded-xl bg-accent-hover px-5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(122,59,255,0.25)] transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-xl bg-accent-hover px-3 sm:px-5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(122,59,255,0.25)] transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {isSaving ? "Salvando..." : "Salvar alterações"}
+                        {isSaving ? "Salvando..." : (<><span className="sm:hidden">Salvar</span><span className="hidden sm:inline">Salvar alterações</span></>)}
                     </button>
                 </div>
             </div>

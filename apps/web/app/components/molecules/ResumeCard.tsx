@@ -18,10 +18,10 @@ export function ResumeCard({
     const isSynced = meta.status === "synced";
 
     return (
-        <article className="flex min-h-[220px] overflow-hidden rounded-2xl border border-line bg-surface transition-colors hover:border-line-strong">
-            <div className="flex flex-1 flex-col justify-between p-6">
+        <article className="flex overflow-hidden rounded-xl sm:min-h-[220px] sm:rounded-2xl border border-line bg-surface transition-colors hover:border-line-strong">
+            <div className="flex min-w-0 flex-1 flex-col justify-between p-4 sm:p-6">
                 <div>
-                    <div className="mb-5 flex items-start justify-between gap-4">
+                    <div className="mb-3 flex items-start sm:mb-5 justify-between gap-4">
                         <span
                             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
                                 isSynced
@@ -51,7 +51,7 @@ export function ResumeCard({
                         </div>
                     </div>
 
-                    <h2 className="text-xl font-semibold text-fg">{resume.title}</h2>
+                    <h2 className="line-clamp-2 break-words text-lg font-semibold text-fg sm:text-xl">{resume.title}</h2>
                     <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-400">
                         <span className="font-medium text-sky-300">{meta.role}</span>
                         <span className="text-slate-600">•</span>
@@ -62,21 +62,21 @@ export function ResumeCard({
                     </p>
                 </div>
 
-                <div className="mt-6 flex items-center gap-3">
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:flex sm:items-center">
                     <Link
                         href={`/curriculos/${resume.id}`}
-                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-blue-400/30 bg-blue-500/15 px-4 text-sm font-semibold text-blue-300 transition hover:border-blue-500 hover:bg-blue-600 hover:text-fg"
+                        className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-blue-400/30 bg-blue-500/15 px-4 text-sm font-semibold text-blue-300 transition hover:border-blue-500 hover:bg-blue-600 hover:text-fg"
                     >
                         <Pencil size={15} />
-                        Editar currículo
+                        Editar<span className="hidden sm:inline"> currículo</span>
                     </Link>
                     <button
                         type="button"
                         onClick={() => downloadResumePdf(resume)}
-                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong bg-raised px-4 text-sm font-semibold text-fg transition hover:border-line-strong hover:bg-overlay"
+                        className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-line-strong bg-raised px-4 text-sm font-semibold text-fg transition hover:border-line-strong hover:bg-overlay"
                     >
                         <Download size={15} />
-                        Baixar PDF
+                        <span className="hidden sm:inline">Baixar </span>PDF
                     </button>
                 </div>
             </div>

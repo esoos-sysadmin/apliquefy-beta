@@ -24,9 +24,9 @@ export default function AssinaturaPage() {
     const hasActivePlan = subscriptionStatus === "active"
 
     return (
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 text-fg">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-fg sm:gap-8">
             {/* Header */}
-            <div className="border-b border-line pb-6">
+            <div className="border-b border-line pb-4 sm:pb-6">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                         <Link href="/relatorios" className="transition-colors hover:text-slate-300">Relatórios</Link>
@@ -35,7 +35,7 @@ export default function AssinaturaPage() {
                     </div>
 
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">
+                        <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-4xl">
                             Assinatura & Créditos
                         </h1>
                         <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
@@ -47,7 +47,7 @@ export default function AssinaturaPage() {
 
             {/* Balance card */}
             <div
-                className={`rounded-2xl border p-6 ${
+                className={`rounded-2xl border p-5 sm:p-6 ${
                     isBlocked
                         ? "border-rose-500/20 bg-rose-500/5"
                         : isLow
@@ -55,10 +55,10 @@ export default function AssinaturaPage() {
                           : "border-emerald-500/20 bg-emerald-500/5"
                 }`}
             >
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
                         <div
-                            className={`flex h-14 w-14 items-center justify-center rounded-2xl border ${
+                            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border ${
                                 isBlocked
                                     ? "border-rose-500/20 bg-rose-500/10 text-rose-300"
                                     : isLow
@@ -69,16 +69,16 @@ export default function AssinaturaPage() {
                             <Coins className="h-7 w-7" />
                         </div>
                         <div>
-                            <div className="text-4xl font-bold tracking-tight text-fg">
+                            <div className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">
                                 {isLoading ? "—" : credits.toLocaleString("pt-BR")}
                             </div>
                             <div className="mt-0.5 text-sm text-slate-400">créditos disponíveis</div>
                         </div>
                     </div>
 
-                    <div className="text-right">
+                    <div className="sm:text-right">
                         {planName ? (
-                            <div className="flex items-center justify-end gap-1.5 text-sm font-medium text-slate-300">
+                            <div className="flex items-center gap-1.5 text-sm font-medium text-slate-300 sm:justify-end">
                                 <Crown size={14} className="text-amber-400" />
                                 {planName}
                             </div>
@@ -105,8 +105,8 @@ export default function AssinaturaPage() {
             </div>
 
             {/* Manage subscription */}
-            <div className="rounded-2xl border border-line bg-sunken p-6">
-                <div className="flex items-center justify-between">
+            <div className="rounded-2xl border border-line bg-sunken p-5 sm:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 className="text-lg font-semibold text-fg">Gerenciar assinatura</h2>
                         <p className="mt-1 text-sm text-slate-400">
@@ -118,7 +118,7 @@ export default function AssinaturaPage() {
                     {hasActivePlan && (
                         <a
                             href={STRIPE_PORTAL_URL}
-                            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-hover"
+                            className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-hover"
                         >
                             <ExternalLink size={15} />
                             Abrir portal
@@ -144,7 +144,7 @@ export default function AssinaturaPage() {
                         return (
                             <div
                                 key={pkg.slug}
-                                className="rounded-2xl border border-line bg-sunken p-6 transition hover:border-line-strong"
+                                className="rounded-2xl border border-line bg-sunken p-5 transition hover:border-line-strong sm:p-6"
                             >
                                 <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10 text-violet-300">
                                     <Package size={20} />
@@ -164,7 +164,7 @@ export default function AssinaturaPage() {
                                 <button
                                     type="button"
                                     onClick={() => purchaseCreditPackage(pkg.slug)}
-                                    className="mt-4 w-full rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500"
+                                    className="mt-4 min-h-[44px] w-full rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500"
                                 >
                                     Comprar
                                 </button>

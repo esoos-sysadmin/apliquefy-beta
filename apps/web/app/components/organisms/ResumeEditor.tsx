@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, ChevronDown, Copy, Download, Languages, Loader2, Maximize, MoveHorizontal, Sparkles, ZoomIn, ZoomOut } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ChevronDown, Copy, Download, ExternalLink, Languages, Loader2, Maximize, MoveHorizontal, Sparkles, ZoomIn, ZoomOut } from "lucide-react";
 import { useResumes } from "../../hooks/use-resumes";
 import {
     emptyExperience, emptyEducation, emptyIdiom,
@@ -29,14 +29,16 @@ import type { CreateResumeInput, Resume, ResumeLanguage, ResumeTemplate } from "
 
 // Hover com leve elevação + brilho; o ícone (group-hover) cresce junto.
 const toolButton =
-    "group inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-[10px] border border-blue-500 px-3.5 text-[13px] font-semibold text-blue-300 no-underline transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-blue-500/15 hover:text-fg hover:shadow-[0_8px_24px_rgb(var(--c-accent) / 0.25)] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60";
+    "group inline-flex h-11 items-center sm:h-10 gap-2 whitespace-nowrap rounded-[10px] border border-blue-500 px-3.5 text-[13px] font-semibold text-blue-300 no-underline transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-blue-500/15 hover:text-fg hover:shadow-[0_8px_24px_rgb(var(--c-accent) / 0.25)] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60";
+// Botões da barra de ações: no celular preenchem a célula do grid (mesma largura e altura).
+const toolFull = "w-full justify-center sm:w-auto";
 const toolIcon = "transition-transform duration-200 group-hover:scale-110";
 
 const zoomButton =
     "inline-flex h-[30px] min-w-[30px] items-center justify-center rounded-lg px-2 text-xs font-semibold text-slate-300 transition-all duration-150 hover:bg-blue-500/15 hover:text-fg active:scale-90";
 
 const menuItem =
-    "group/item flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[13px] text-slate-200 transition-all duration-150 ease-out hover:translate-x-1 hover:bg-blue-500/15 hover:text-fg disabled:cursor-not-allowed disabled:opacity-50";
+    "group/item flex min-h-[44px] w-full items-center gap-2.5 rounded-lg px-3 py-2.5 sm:min-h-0 text-left text-[13px] text-slate-200 transition-all duration-150 ease-out hover:translate-x-1 hover:bg-blue-500/15 hover:text-fg disabled:cursor-not-allowed disabled:opacity-50";
 const menuIcon = "shrink-0 text-slate-400 transition-all duration-150 group-hover/item:scale-110 group-hover/item:text-blue-300";
 
 // Largura de uma A4 a 100% no visualizador de PDF: 210mm em px CSS (96dpi).
@@ -62,6 +64,8 @@ export function ResumeEditor({ resumeId, initial, notice }: { resumeId?: string;
     const [busy, setBusy] = useState<null | "save" | "duplicate" | ResumeLanguage>(null);
     const [preview, setPreview] = useState<{ url: string; truncated: boolean } | null>(null);
     const [confirmLeave, setConfirmLeave] = useState(false);
+    // Só no celular (<sm): alterna Editar | Visualizar em vez de empilhar formulário e PDF.
+    const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
     const previewUrl = useRef<string | null>(null);
     // "width" = página ocupando a largura do painel (padrão); "page" = página inteira; número = % fixo.
     const [zoom, setZoom] = useState<"width" | "page" | number>("width");
@@ -209,21 +213,22 @@ export function ResumeEditor({ resumeId, initial, notice }: { resumeId?: string;
     // xl: o editor ocupa a altura da tela (100vh menos o padding de 32px do <main>);
     // só o formulário rola, o preview fica parado mostrando a página inteira.
     return (
-        <div className="resume-editor flex flex-col xl:h-[calc(100vh-64px)]" style={{ color: "rgb(var(--c-fg))", fontFamily: "sans-serif" }}>
-            <div className="mb-5 flex shrink-0 flex-wrap items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
+        <div className="resume-editor flex flex-col xl:h-[calc(100vh-64px)] max-sm:[&_input:not([type=checkbox])]:min-h-11 max-sm:[&_select]:min-h-11 max-sm:[&_input:not([type=checkbox])]:!text-base max-sm:[&_select]:!text-base max-sm:[&_textarea]:!text-base" style={{ color: "rgb(var(--c-fg))", fontFamily: "sans-serif" }}>
+            <div className="mb-4 flex shrink-0 flex-col gap-3 sm:mb-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <div className="flex min-w-0 flex-wrap items-center gap-3">
                     <button type="button" onClick={leave} aria-label="Voltar para currículos" className={`${toolButton} border-line-strong text-slate-300 hover:border-slate-500`}>
                         <ArrowLeft size={15} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
                     </button>
-                    <h1 style={{ fontSize: 26, fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>
+                    <h1 className="text-xl sm:text-[26px]" style={{ fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>
                         {resumeId ? "Editar currículo" : "Novo currículo"}
                     </h1>
                     {dirty && <span className="text-xs text-amber-300">Alterações não salvas</span>}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+                {/* celular: grid de 2 colunas; Salvar (principal) em cima e Analisar embaixo, ambos na largura toda */}
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                     {resumeId && (
-                        <Link href={`/curriculos/analisar?resume=${resumeId}`} className={toolButton}>
+                        <Link href={`/curriculos/analisar?resume=${resumeId}`} className={`${toolButton} ${toolFull} order-last col-span-2 sm:order-none sm:col-span-1`}>
                             <Sparkles size={15} className="transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
                             Analisar com IA
                         </Link>
@@ -231,13 +236,14 @@ export function ResumeEditor({ resumeId, initial, notice }: { resumeId?: string;
 
                     {/* <details> nativo: abre/fecha sem estado React; o efeito acima fecha ao clicar fora */}
                     <details ref={menuRef} className="group/menu relative">
-                        <summary className={`${toolButton} cursor-pointer list-none group-open/menu:bg-blue-500/15 group-open/menu:text-fg [&::-webkit-details-marker]:hidden`}>
+                        <summary className={`${toolButton} ${toolFull} cursor-pointer list-none group-open/menu:bg-blue-500/15 group-open/menu:text-fg [&::-webkit-details-marker]:hidden`}>
                             {menuBusy ? <Loader2 size={15} className="animate-spin" /> : <Copy size={15} className={toolIcon} />}
-                            Duplicar e traduzir
+                            <span className="sm:hidden">Duplicar</span>
+                            <span className="hidden sm:inline">Duplicar e traduzir</span>
                             <ChevronDown size={14} className="transition-transform duration-200 group-open/menu:rotate-180" />
                         </summary>
                         {/* dropdown-in (globals.css) toca a cada abertura: o painel só existe com o <details> aberto */}
-                        <div className="absolute right-0 z-20 mt-2 w-72 origin-top-right animate-[dropdown-in_0.16s_ease-out] rounded-xl border border-line-strong bg-surface/95 p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur">
+                        <div className="absolute left-0 z-20 mt-2 w-[min(18rem,calc(100vw-2rem))] origin-top-left animate-[dropdown-in_0.16s_ease-out] sm:left-auto sm:right-0 sm:w-72 sm:origin-top-right rounded-xl border border-line-strong bg-surface/95 p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur">
                             <button type="button" className={menuItem} disabled={!!busy} onClick={duplicate}>
                                 <Copy size={14} className={menuIcon} /> Duplicar
                             </button>
@@ -253,7 +259,7 @@ export function ResumeEditor({ resumeId, initial, notice }: { resumeId?: string;
                         </div>
                     </details>
 
-                    <button type="button" onClick={() => downloadResumePdf(previewResume)} className={toolButton}>
+                    <button type="button" onClick={() => downloadResumePdf(previewResume)} className={`${toolButton} ${toolFull}`}>
                         <Download size={15} className="transition-transform duration-200 group-hover:translate-y-0.5" />
                         Baixar PDF
                     </button>
@@ -261,19 +267,35 @@ export function ResumeEditor({ resumeId, initial, notice }: { resumeId?: string;
                         type="button"
                         onClick={save}
                         disabled={!!busy}
-                        className={`${toolButton} border-transparent bg-blue-600 text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] hover:bg-blue-500 hover:shadow-[0_12px_32px_rgba(122,59,255,0.45)]`}
+                        className={`${toolButton} ${toolFull} order-first col-span-2 sm:order-none sm:col-span-1 border-transparent bg-blue-600 text-white shadow-[0_10px_30px_rgba(122,59,255,0.28)] hover:bg-blue-500 hover:shadow-[0_12px_32px_rgba(122,59,255,0.45)]`}
                     >
                         {busy === "save" ? "Salvando..." : resumeId ? "Salvar" : "Criar currículo"}
                     </button>
                 </div>
             </div>
 
+            <div role="tablist" aria-label="Editar ou visualizar" className="mb-4 grid shrink-0 grid-cols-2 gap-1 rounded-xl border border-line-strong bg-surface p-1 sm:hidden">
+                {(["edit", "preview"] as const).map((tab) => (
+                    <button
+                        key={tab}
+                        type="button"
+                        role="tab"
+                        aria-selected={mobileTab === tab}
+                        onClick={() => setMobileTab(tab)}
+                        className={`inline-flex h-11 items-center justify-center gap-1.5 rounded-lg text-[13px] font-semibold transition-colors ${mobileTab === tab ? "bg-blue-500/15 text-blue-300" : "text-slate-300"}`}
+                    >
+                        {tab === "edit" ? "Editar" : "Visualizar"}
+                        {tab === "preview" && preview?.truncated && <AlertTriangle size={14} className="text-amber-300" aria-label="Currículo passou de 1 página" />}
+                    </button>
+                ))}
+            </div>
+
             <div className="grid gap-6 xl:min-h-0 xl:flex-1 xl:grid-cols-2">
-                <div className="min-w-0 xl:overflow-y-auto xl:pr-3">
+                <div className={`min-w-0 xl:overflow-y-auto xl:pr-3 ${mobileTab === "preview" ? "max-sm:hidden" : ""}`}>
                     {notice}
                     <FormErrorBanner errors={apiErrors} />
 
-                    <div style={{ marginBottom: 20 }} className="grid gap-4 sm:grid-cols-[1fr_auto_auto]">
+                    <div className="mb-5 grid gap-4 sm:grid-cols-[1fr_auto_auto]">
                         <div>
                             <label style={labelStyle}>Título do currículo *</label>
                             <input
@@ -328,9 +350,19 @@ export function ResumeEditor({ resumeId, initial, notice }: { resumeId?: string;
                         onAdd={() => setForm((f) => ({ ...f, idioms: [...f.idioms, { ...emptyIdiom }] }))}
                         onRemove={(i) => setForm((f) => ({ ...f, idioms: f.idioms.filter((_, idx) => idx !== i) }))}
                     />
+
+                    {/* celular: quem rolou o formulário todo salva sem voltar ao topo */}
+                    <button
+                        type="button"
+                        onClick={save}
+                        disabled={!!busy}
+                        className={`${toolButton} w-full justify-center border-transparent bg-blue-600 text-white hover:bg-blue-500 sm:hidden`}
+                    >
+                        {busy === "save" ? "Salvando..." : resumeId ? "Salvar" : "Criar currículo"}
+                    </button>
                 </div>
 
-                <div className="flex min-w-0 flex-col gap-3 xl:min-h-0">
+                <div className={`flex min-w-0 flex-col gap-3 xl:min-h-0 ${mobileTab === "edit" ? "max-sm:hidden" : ""}`}>
                     {preview?.truncated && (
                         <div className="flex items-start gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
                             <AlertTriangle size={16} className="mt-0.5 shrink-0" />
@@ -340,7 +372,7 @@ export function ResumeEditor({ resumeId, initial, notice }: { resumeId?: string;
                             </span>
                         </div>
                     )}
-                    <div className="flex shrink-0 items-center justify-end gap-1 self-end rounded-xl border border-line-strong bg-surface p-1">
+                    <div className="hidden shrink-0 items-center justify-end gap-1 self-end rounded-xl sm:flex border border-line-strong bg-surface p-1">
                         <button type="button" title="Diminuir zoom" aria-label="Diminuir zoom" className={zoomButton} onClick={() => stepZoom(-10)}>
                             <ZoomOut size={15} />
                         </button>
@@ -357,7 +389,13 @@ export function ResumeEditor({ resumeId, initial, notice }: { resumeId?: string;
                             <Maximize size={15} />
                         </button>
                     </div>
-                    <div ref={previewBox} className="h-[80vh] overflow-hidden rounded-xl border border-line-strong bg-[#525659] xl:h-auto xl:min-h-0 xl:flex-1">
+                    {/* Chrome do Android não abre PDF em iframe: o link garante a visualização no celular */}
+                    {preview && (
+                        <a href={preview.url} target="_blank" rel="noreferrer" className={`${toolButton} ${toolFull} sm:hidden`}>
+                            <ExternalLink size={15} /> Abrir PDF em tela cheia
+                        </a>
+                    )}
+                    <div ref={previewBox} className="h-[70vh] sm:h-[80vh] overflow-hidden rounded-xl border border-line-strong bg-[#525659] xl:h-auto xl:min-h-0 xl:flex-1">
                         {preview ? (
                             // key: o visualizador nativo ignora mudança só no #hash; remonta para aplicar o zoom.
                             <iframe key={`${preview.url}-${zoom}`} src={`${preview.url}#toolbar=0&navpanes=0&${viewerParams}`} title="Pré-visualização do currículo" className="h-full w-full" />

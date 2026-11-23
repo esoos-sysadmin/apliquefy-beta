@@ -7,7 +7,7 @@ const winnerLabel: Record<string, string> = { A: "Variante A", B: "Variante B", 
 
 function VariantMini({ label, name, apps }: { label: "A" | "B"; name: string; apps: number }) {
     return (
-        <div className="flex-1 rounded-xl border border-line-strong bg-sunken px-3 py-2.5">
+        <div className="min-w-0 flex-1 rounded-xl border border-line-strong bg-sunken px-3 py-2.5">
             <div className="flex items-center gap-2">
                 <span className="flex h-5 w-5 items-center justify-center rounded bg-accent text-[10px] font-bold text-white">{label}</span>
                 <span className="truncate text-xs font-medium text-slate-200" title={name}>{name}</span>
@@ -29,12 +29,12 @@ export function AbTestCard({
     return (
         <div className="rounded-2xl border border-line bg-surface p-5">
             <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-300">
+                <div className="flex min-w-0 items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-300">
                         <FlaskConical size={18} />
                     </div>
-                    <div>
-                        <p className="font-semibold text-fg">{abTest.name}</p>
+                    <div className="min-w-0">
+                        <p className="break-words font-semibold text-fg">{abTest.name}</p>
                         <p className="text-xs uppercase tracking-wide text-slate-500">{abTest.platform}</p>
                     </div>
                 </div>
@@ -50,7 +50,7 @@ export function AbTestCard({
                 )}
             </div>
 
-            <div className="mt-4 flex gap-3">
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                 <VariantMini label="A" name={abTest.variantA.resume?.title ?? abTest.variantA.name} apps={abTest.variantA._count.jobApplications} />
                 <VariantMini label="B" name={abTest.variantB.resume?.title ?? abTest.variantB.name} apps={abTest.variantB._count.jobApplications} />
             </div>
@@ -59,14 +59,14 @@ export function AbTestCard({
                 <button
                     type="button"
                     onClick={() => onDelete(abTest)}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl border border-line-strong px-4 text-sm font-semibold text-rose-300 transition hover:border-rose-500/40 hover:bg-rose-500/10"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong px-4 text-sm font-semibold text-rose-300 transition hover:border-rose-500/40 hover:bg-rose-500/10"
                 >
                     <Trash2 size={15} /> Excluir
                 </button>
                 <button
                     type="button"
                     onClick={() => onView(abTest)}
-                    className="inline-flex h-10 items-center rounded-xl bg-accent px-4 text-sm font-semibold text-white transition hover:bg-accent-hover"
+                    className="inline-flex h-11 items-center rounded-xl bg-accent px-4 text-sm font-semibold text-white transition hover:bg-accent-hover"
                 >
                     Ver comparação
                 </button>

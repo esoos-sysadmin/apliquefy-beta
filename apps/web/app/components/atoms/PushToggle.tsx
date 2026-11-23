@@ -46,7 +46,7 @@ export function PushToggle() {
             type="button"
             onClick={enable}
             disabled={state !== "off"}
-            className="mb-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted transition hover:bg-sunken hover:text-fg disabled:cursor-default disabled:hover:bg-transparent"
+            className="mb-2 flex min-h-[44px] w-full lg:min-h-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted transition hover:bg-sunken hover:text-fg disabled:cursor-default disabled:hover:bg-transparent"
         >
             {state === "on" ? <BellRing size={16} /> : <Bell size={16} />}
             {state === "on" ? "Avisos ligados" : state === "denied" ? "Avisos bloqueados no navegador" : state === "busy" ? "Ativando…" : "Ativar avisos no celular"}

@@ -1,6 +1,7 @@
 "use client";
 
-import { inputStyle, sectionStyle, sectionTitle, labelStyle, gridTwo, addButtonStyle, removeButtonStyle } from "../../lib/constants/resume-styles";
+import { Trash2 } from "lucide-react";
+import { inputStyle, sectionStyle, sectionTitle, labelStyle, gridTwoClass, addButtonStyle, addButtonClass, removeButtonStyle, sectionHeaderClass, itemCardClass } from "../../lib/constants/resume-styles";
 import { MonthYearPicker } from "../molecules/MonthYearPicker";
 import type { ResumeFormEducation } from "../../types/resume-form";
 
@@ -23,10 +24,10 @@ export function ResumeEducationSection({
 
     return (
         <section style={sectionStyle}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div className={sectionHeaderClass}>
                 <h2 style={{ ...sectionTitle, marginBottom: 0 }}>Formação acadêmica</h2>
                 {isEditing && (
-                    <button onClick={onAdd} style={addButtonStyle}>
+                    <button type="button" onClick={onAdd} style={addButtonStyle} className={addButtonClass}>
                         + Adicionar formação
                     </button>
                 )}
@@ -39,13 +40,15 @@ export function ResumeEducationSection({
             )}
 
             {education.map((edu, i) => (
-                <div key={i} style={{ background: "rgb(var(--c-raised))", borderRadius: 8, padding: 16, marginBottom: 12 }}>
+                <div key={i} className={itemCardClass}>
                     {isEditing && (
-                        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-                            <button onClick={() => onRemove(i)} style={removeButtonStyle}>Remover</button>
+                        <div className="mb-2 flex justify-end">
+                            <button type="button" onClick={() => onRemove(i)} style={removeButtonStyle} className="inline-flex min-h-[44px] items-center gap-1.5 px-2 sm:min-h-0 sm:px-0">
+                                <Trash2 size={16} className="sm:hidden" /> Remover
+                            </button>
                         </div>
                     )}
-                    <div style={gridTwo}>
+                    <div className={gridTwoClass}>
                         <div>
                             <label style={labelStyle}>Instituição</label>
                             <input value={edu.nameOfInstitution} onChange={(e) => onChange(i, "nameOfInstitution", e.target.value)} onClick={onUnlock} readOnly={frozen} style={inputStyle(false, frozen)} placeholder="Nome da instituição" />
@@ -54,7 +57,9 @@ export function ResumeEducationSection({
                             <label style={labelStyle}>Curso</label>
                             <input value={edu.nameOfGraduation} onChange={(e) => onChange(i, "nameOfGraduation", e.target.value)} onClick={onUnlock} readOnly={frozen} style={inputStyle(false, frozen)} placeholder="Nome do curso" />
                         </div>
-                        <div>
+                        {/* celular: início/conclusão lado a lado; sm:contents devolve cada data à grade do desktop */}
+                        <div className="col-span-full grid grid-cols-2 gap-2 sm:contents">
+                        <div className="min-w-0">
                             <label style={labelStyle}>Data de início</label>
                             <MonthYearPicker
                                 value={edu.StartDateOfGraduation}
@@ -63,7 +68,7 @@ export function ResumeEducationSection({
                                 readOnly={frozen}
                             />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <label style={labelStyle}>Data de conclusão</label>
                             <MonthYearPicker
                                 value={edu.EndDateOfGraduation}
@@ -71,6 +76,7 @@ export function ResumeEducationSection({
                                 onOpen={onUnlock}
                                 readOnly={frozen}
                             />
+                        </div>
                         </div>
                     </div>
                 </div>
